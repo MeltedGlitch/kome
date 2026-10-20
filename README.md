@@ -23,7 +23,7 @@ kome restore original   # back to exactly how your desktop was
 ## Install (from source)
 
 ```sh
-git clone https://github.com/<user>/kome
+git clone https://github.com/MeltedGlitch/kome
 cd kome
 make install            # into ~/.local, no root needed
 ```
