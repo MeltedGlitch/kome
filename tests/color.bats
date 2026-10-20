@@ -16,6 +16,7 @@ calc() {
 }
 
 @test "decimals never depend on the user's locale" {
+	locale -a 2>/dev/null | grep -qix 'es_ES.utf-\{0,1\}8' || skip "es_ES.UTF-8 locale not installed"
 	LC_ALL=es_ES.UTF-8 LC_NUMERIC=es_ES.UTF-8 run calc 'sprintf("%.1f", 0.5)'
 	[ "$output" = "0.5" ]
 }

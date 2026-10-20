@@ -8,6 +8,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
-        run: sudo apt-get update && sudo apt-get install -y shellcheck bats
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck bats locales
+          # A comma-decimal locale, to test that output never depends on it.
+          sudo locale-gen es_ES.UTF-8
       - name: Lint and test
         run: make check
