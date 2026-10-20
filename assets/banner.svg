@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-labelledby="t d">
+  <title id="t">kome</title>
+  <desc id="d">kome — one command, your whole KDE Plasma desktop re-themed. Rice grains in the Catppuccin Mocha palette.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e1e2e"/>
+      <stop offset="1" stop-color="#11111b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.22" cy="0.5" r="0.4">
+      <stop offset="0" stop-color="#cba6f7" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#cba6f7" stop-opacity="0"/>
+    </radialGradient>
+    <!-- One rice grain, centred on 0,0. -->
+    <ellipse id="grain" rx="9" ry="22"/>
+  </defs>
+
+  <rect width="1280" height="400" rx="28" fill="url(#bg)"/>
+  <rect width="1280" height="400" rx="28" fill="url(#glow)"/>
+
+  <!-- Bowl mark: 米 on a soft disc -->
+  <circle cx="280" cy="200" r="118" fill="#313244"/>
+  <circle cx="280" cy="200" r="118" fill="none" stroke="#45475a" stroke-width="2"/>
+  <text x="280" y="246" text-anchor="middle" font-size="140" fill="#cba6f7"
+        font-family="'Noto Sans CJK JP','Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">米</text>
+
+  <!-- Name and tagline -->
+  <text x="470" y="200" font-size="128" font-weight="700" letter-spacing="-3" fill="#cdd6f4"
+        font-family="Inter,'Noto Sans','Segoe UI',Helvetica,Arial,sans-serif">kome</text>
+  <text x="474" y="252" font-size="27" fill="#a6adc8"
+        font-family="Inter,'Noto Sans','Segoe UI',Helvetica,Arial,sans-serif">One command. Your whole Plasma desktop, re-themed.</text>
+
+  <!-- Palette as rice grains -->
+  <g transform="translate(486 312)">
+    <use href="#grain" x="0"   transform="rotate(-18 0 0)"   fill="#f5e0dc"/>
+    <use href="#grain" x="40"  transform="rotate(14 40 0)"   fill="#f2cdcd"/>
+    <use href="#grain" x="80"  transform="rotate(-8 80 0)"   fill="#f5c2e7"/>
+    <use href="#grain" x="120" transform="rotate(20 120 0)"  fill="#cba6f7"/>
+    <use href="#grain" x="160" transform="rotate(-14 160 0)" fill="#f38ba8"/>
+    <use href="#grain" x="200" transform="rotate(10 200 0)"  fill="#eba0ac"/>
+    <use href="#grain" x="240" transform="rotate(-20 240 0)" fill="#fab387"/>
+    <use href="#grain" x="280" transform="rotate(16 280 0)"  fill="#f9e2af"/>
+    <use href="#grain" x="320" transform="rotate(-10 320 0)" fill="#a6e3a1"/>
+    <use href="#grain" x="360" transform="rotate(18 360 0)"  fill="#94e2d5"/>
+    <use href="#grain" x="400" transform="rotate(-16 400 0)" fill="#89dceb"/>
+    <use href="#grain" x="440" transform="rotate(12 440 0)"  fill="#74c7ec"/>
+    <use href="#grain" x="480" transform="rotate(-12 480 0)" fill="#89b4fa"/>
+    <use href="#grain" x="520" transform="rotate(20 520 0)"  fill="#b4befe"/>
+  </g>
+</svg>

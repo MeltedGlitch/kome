@@ -361,8 +361,12 @@ Separation rule: **global** settings (which units run) live in `kome.conf`;
 
 - Units fill their templates (e.g. `units/10-colors/kde.colors.in`) from the
   `KOME_*` values.
-- Placeholders need formats: `{{accent}}` / `{{accent.hex}}` → `#b4befe`,
-  `{{accent.rgb}}` → `180,190,254` (KDE), possibly `{{accent.rgba:0.8}}`.
+- Placeholder syntax: inside `{{ }}` goes a role or a function call, with an
+  optional output format after `:` (`hex`, the default, or `rgb`):
+  `{{accent}}` → `#b4befe`, `{{accent:rgb}}` → `180,190,254` (KDE),
+  `{{mix(base,text,0.1):rgb}}`, `{{lighten(base,0.05)}}`,
+  `{{darken(crust,0.2)}}`. An unknown placeholder is an error with
+  `FILE:LINE` — never silently left empty.
 - KDE colour schemes need **derived shades** (hover, inactive, disabled,
   shadows). Plain `sed` cannot do colour maths → a small **POSIX awk** engine
   (`lib/kome/color.awk`): hex↔rgb, mix, lighten/darken, contrast ratio.

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 330" width="1280" height="330" role="img" aria-labelledby="t d">
+  <title id="t">kome v0.1 presets</title>
+  <desc id="d">Four presets drawn as small windows in their real colours: Breeze, Breeze Dark, Catppuccin Latte and Catppuccin Mocha.</desc>
+  <defs>
+    <style>
+      .name { font: 600 22px Inter, 'Noto Sans', 'Segoe UI', Helvetica, Arial, sans-serif; }
+      .cmd  { font: 16px 'JetBrains Mono', 'Noto Sans Mono', Menlo, Consolas, monospace; }
+    </style>
+  </defs>
+
+  <!--
+    One card = a mini window (titlebar, sidebar, content lines, accent
+    button) plus a swatch row. Each <g> sets the preset's real colours.
+  -->
+
+  <!-- Breeze -->
+  <g transform="translate(16 16)">
+    <rect width="296" height="230" rx="14" fill="#eff0f1" stroke="#bdc3c7"/>
+    <path d="M0 14a14 14 0 0 1 14-14h268a14 14 0 0 1 14 14v22H0z" fill="#dee0e2"/>
+    <circle cx="20" cy="18" r="5" fill="#da4453"/><circle cx="38" cy="18" r="5" fill="#fdbc4b"/><circle cx="56" cy="18" r="5" fill="#27ae60"/>
+    <rect x="12" y="48" width="70" height="130" rx="8" fill="#fcfcfc"/>
+    <rect x="22" y="62" width="50" height="8" rx="4" fill="#3daee9"/>
+    <rect x="22" y="80" width="40" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="22" y="98" width="46" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="94" y="48" width="190" height="130" rx="8" fill="#fcfcfc"/>
+    <rect x="106" y="62" width="140" height="10" rx="5" fill="#232629"/>
+    <rect x="106" y="82" width="160" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="106" y="98" width="120" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="106" y="140" width="76" height="26" rx="8" fill="#3daee9"/>
+    <g transform="translate(14 200)">
+      <circle r="8" fill="#da4453"/><circle cx="24" r="8" fill="#f67400"/><circle cx="48" r="8" fill="#fdbc4b"/><circle cx="72" r="8" fill="#27ae60"/>
+      <circle cx="96" r="8" fill="#1abc9c"/><circle cx="120" r="8" fill="#3daee9"/><circle cx="144" r="8" fill="#9b59b6"/>
+    </g>
+    <text class="name" x="4" y="282" fill="#8c8fa1">Breeze</text>
+    <text class="cmd" x="4" y="306" fill="#8c8fa1">kome apply breeze</text>
+  </g>
+
+  <!-- Breeze Dark -->
+  <g transform="translate(332 16)">
+    <rect width="296" height="230" rx="14" fill="#2a2e32" stroke="#4d4d4d"/>
+    <path d="M0 14a14 14 0 0 1 14-14h268a14 14 0 0 1 14 14v22H0z" fill="#31363b"/>
+    <circle cx="20" cy="18" r="5" fill="#da4453"/><circle cx="38" cy="18" r="5" fill="#fdbc4b"/><circle cx="56" cy="18" r="5" fill="#27ae60"/>
+    <rect x="12" y="48" width="70" height="130" rx="8" fill="#1b1e20"/>
+    <rect x="22" y="62" width="50" height="8" rx="4" fill="#3daee9"/>
+    <rect x="22" y="80" width="40" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="22" y="98" width="46" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="94" y="48" width="190" height="130" rx="8" fill="#1b1e20"/>
+    <rect x="106" y="62" width="140" height="10" rx="5" fill="#fcfcfc"/>
+    <rect x="106" y="82" width="160" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="106" y="98" width="120" height="8" rx="4" fill="#7f8c8d"/>
+    <rect x="106" y="140" width="76" height="26" rx="8" fill="#3daee9"/>
+    <g transform="translate(14 200)">
+      <circle r="8" fill="#da4453"/><circle cx="24" r="8" fill="#f67400"/><circle cx="48" r="8" fill="#fdbc4b"/><circle cx="72" r="8" fill="#27ae60"/>
+      <circle cx="96" r="8" fill="#1abc9c"/><circle cx="120" r="8" fill="#3daee9"/><circle cx="144" r="8" fill="#9b59b6"/>
+    </g>
+    <text class="name" x="4" y="282" fill="#8c8fa1">Breeze Dark</text>
+    <text class="cmd" x="4" y="306" fill="#8c8fa1">kome apply breeze-dark</text>
+  </g>
+
+  <!-- Catppuccin Latte -->
+  <g transform="translate(648 16)">
+    <rect width="296" height="230" rx="14" fill="#eff1f5" stroke="#ccd0da"/>
+    <path d="M0 14a14 14 0 0 1 14-14h268a14 14 0 0 1 14 14v22H0z" fill="#e6e9ef"/>
+    <circle cx="20" cy="18" r="5" fill="#d20f39"/><circle cx="38" cy="18" r="5" fill="#df8e1d"/><circle cx="56" cy="18" r="5" fill="#40a02b"/>
+    <rect x="12" y="48" width="70" height="130" rx="8" fill="#e6e9ef"/>
+    <rect x="22" y="62" width="50" height="8" rx="4" fill="#1e66f5"/>
+    <rect x="22" y="80" width="40" height="8" rx="4" fill="#9ca0b0"/>
+    <rect x="22" y="98" width="46" height="8" rx="4" fill="#9ca0b0"/>
+    <rect x="94" y="48" width="190" height="130" rx="8" fill="#e6e9ef"/>
+    <rect x="106" y="62" width="140" height="10" rx="5" fill="#4c4f69"/>
+    <rect x="106" y="82" width="160" height="8" rx="4" fill="#9ca0b0"/>
+    <rect x="106" y="98" width="120" height="8" rx="4" fill="#9ca0b0"/>
+    <rect x="106" y="140" width="76" height="26" rx="8" fill="#1e66f5"/>
+    <g transform="translate(14 200)">
+      <circle r="8" fill="#dc8a78"/><circle cx="24" r="8" fill="#ea76cb"/><circle cx="48" r="8" fill="#8839ef"/><circle cx="72" r="8" fill="#d20f39"/>
+      <circle cx="96" r="8" fill="#fe640b"/><circle cx="120" r="8" fill="#df8e1d"/><circle cx="144" r="8" fill="#40a02b"/><circle cx="168" r="8" fill="#179299"/>
+      <circle cx="192" r="8" fill="#04a5e5"/><circle cx="216" r="8" fill="#1e66f5"/><circle cx="240" r="8" fill="#7287fd"/>
+    </g>
+    <text class="name" x="4" y="282" fill="#8c8fa1">Catppuccin Latte</text>
+    <text class="cmd" x="4" y="306" fill="#8c8fa1">kome apply latte</text>
+  </g>
+
+  <!-- Catppuccin Mocha -->
+  <g transform="translate(964 16)">
+    <rect width="296" height="230" rx="14" fill="#1e1e2e" stroke="#45475a"/>
+    <path d="M0 14a14 14 0 0 1 14-14h268a14 14 0 0 1 14 14v22H0z" fill="#181825"/>
+    <circle cx="20" cy="18" r="5" fill="#f38ba8"/><circle cx="38" cy="18" r="5" fill="#f9e2af"/><circle cx="56" cy="18" r="5" fill="#a6e3a1"/>
+    <rect x="12" y="48" width="70" height="130" rx="8" fill="#181825"/>
+    <rect x="22" y="62" width="50" height="8" rx="4" fill="#b4befe"/>
+    <rect x="22" y="80" width="40" height="8" rx="4" fill="#6c7086"/>
+    <rect x="22" y="98" width="46" height="8" rx="4" fill="#6c7086"/>
+    <rect x="94" y="48" width="190" height="130" rx="8" fill="#181825"/>
+    <rect x="106" y="62" width="140" height="10" rx="5" fill="#cdd6f4"/>
+    <rect x="106" y="82" width="160" height="8" rx="4" fill="#6c7086"/>
+    <rect x="106" y="98" width="120" height="8" rx="4" fill="#6c7086"/>
+    <rect x="106" y="140" width="76" height="26" rx="8" fill="#b4befe"/>
+    <g transform="translate(14 200)">
+      <circle r="8" fill="#f5e0dc"/><circle cx="24" r="8" fill="#f5c2e7"/><circle cx="48" r="8" fill="#cba6f7"/><circle cx="72" r="8" fill="#f38ba8"/>
+      <circle cx="96" r="8" fill="#fab387"/><circle cx="120" r="8" fill="#f9e2af"/><circle cx="144" r="8" fill="#a6e3a1"/><circle cx="168" r="8" fill="#94e2d5"/>
+      <circle cx="192" r="8" fill="#89dceb"/><circle cx="216" r="8" fill="#89b4fa"/><circle cx="240" r="8" fill="#b4befe"/>
+    </g>
+    <text class="name" x="4" y="282" fill="#8c8fa1">Catppuccin Mocha</text>
+    <text class="cmd" x="4" y="306" fill="#8c8fa1">kome apply mocha</text>
+  </g>
+</svg>

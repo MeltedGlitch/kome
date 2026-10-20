@@ -14,6 +14,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
   `ini_dump`): strict, no inline comments, `FILE:LINE` errors.
 - Colour engine (`lib/kome/color.awk`): validate, `r,g,b`, mix,
   lighten, darken, WCAG luminance and contrast.
+- README redesign (English and Spanish): banner, preset cards drawn in
+  their real palettes, badges, roadmap, FAQ, contributing guide.
+- Template placeholder syntax fixed in the design (`{{role:format}}`,
+  `{{mix(a,b,t)}}`, …).
 
 ### Fixed
 
