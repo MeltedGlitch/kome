@@ -12,6 +12,9 @@ self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
 root=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd)
 libexec=$root/libexec/kome
 
+KOME_ROOT=$root
+export KOME_ROOT
+
 # shellcheck source=lib/kome/common.sh
 . "$root/lib/kome/common.sh"
 
@@ -73,6 +76,4 @@ if [ -z "$exe" ] || [ ! -x "$exe" ]; then
 	die "$EX_USAGE" "unknown command: $cmd" "run 'kome --help' to see the commands"
 fi
 
-KOME_ROOT=$root
-export KOME_ROOT
 exec "$exe" "$@"

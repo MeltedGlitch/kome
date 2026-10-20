@@ -10,3 +10,5 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 - Repository skeleton: dispatcher (`kome --help`, `kome --version`),
   shared helpers, Makefile (per-user install by default), CI, licence.
+- INI reader for kome's own files (`lib/kome/ini.awk`, `ini_get`,
+  `ini_dump`): strict, no inline comments, `FILE:LINE` errors.

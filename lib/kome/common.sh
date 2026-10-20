@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Helpers shared by every kome program. Sourced, never executed.
+# The sourcing script must set KOME_ROOT (the install root) first.
 
 KOME_PROG=${KOME_PROG:-kome}
 
@@ -22,4 +23,16 @@ die() {
 	err "$2"
 	[ -n "${3-}" ] && hint "$3"
 	exit "$_code"
+}
+
+# ini_get <file> <Section> <key>
+# Print one value; return 1 if absent, 65 if the file is malformed.
+ini_get() {
+	awk -v get="$2.$3" -f "$KOME_ROOT/lib/kome/ini.awk" "$1"
+}
+
+# ini_dump <file>...
+# Print every entry as Section.key=value.
+ini_dump() {
+	awk -f "$KOME_ROOT/lib/kome/ini.awk" "$@"
 }
