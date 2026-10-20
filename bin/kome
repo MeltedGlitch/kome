@@ -1,0 +1,78 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome — dispatcher. `kome <command> [args]` runs libexec/kome/kome-<command>.
+
+set -eu
+
+KOME_VERSION=0.1.0-dev
+
+# Resolve the install root (bin/..), following a symlink to this script.
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+root=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd)
+libexec=$root/libexec/kome
+
+# shellcheck source=lib/kome/common.sh
+. "$root/lib/kome/common.sh"
+
+commands() {
+	found=
+	for f in "$libexec"/kome-*; do
+		if [ -x "$f" ]; then
+			printf '  %s\n' "${f##*/kome-}"
+			found=1
+		fi
+	done
+	if [ -z "$found" ]; then
+		printf '  (none yet)\n'
+	fi
+}
+
+usage() {
+	cat <<EOF
+usage: kome <command> [options]
+       kome -h | --help
+       kome --version
+
+Change the whole look of KDE Plasma 6 in one command.
+
+commands:
+$(commands)
+
+Run 'kome <command> --help' for help on a command.
+EOF
+}
+
+case ${1-} in
+'')
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+--version)
+	printf 'kome %s\n' "$KOME_VERSION"
+	exit "$EX_OK"
+	;;
+-*)
+	die "$EX_USAGE" "unknown option: $1" "run 'kome --help'"
+	;;
+esac
+
+cmd=$1
+shift
+
+case $cmd in
+*/*) exe= ;;
+*) exe=$libexec/kome-$cmd ;;
+esac
+
+if [ -z "$exe" ] || [ ! -x "$exe" ]; then
+	die "$EX_USAGE" "unknown command: $cmd" "run 'kome --help' to see the commands"
+fi
+
+KOME_ROOT=$root
+export KOME_ROOT
+exec "$exe" "$@"
