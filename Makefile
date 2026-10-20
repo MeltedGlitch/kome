@@ -19,6 +19,7 @@ install:
 	install -Dm755 bin/kome $(BINDIR)/kome
 	install -Dm644 lib/kome/common.sh $(LIBDIR)/common.sh
 	install -Dm644 lib/kome/ini.awk $(LIBDIR)/ini.awk
+	install -Dm644 lib/kome/color.awk $(LIBDIR)/color.awk
 
 uninstall:
 	rm -f $(BINDIR)/kome

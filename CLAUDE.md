@@ -147,7 +147,7 @@ For the owner, "one click on any PC" = `dotfiles` bootstrap (e.g.
 
 | Concept | What it is | Contains |
 |---|---|---|
-| **Palette** | Colours only | Named roles: `base`, `mantle`, `crust`, `surface0..2`, `overlay0..2`, `text`, `subtext0..1`, `accent`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `mauve`, `pink`… (final role list: open question) |
+| **Palette** | Colours only | Catppuccin's 26 roles + `accent`: `base mantle crust surface0 surface1 surface2 overlay0 overlay1 overlay2 text subtext0 subtext1 rosewater flamingo pink mauve red maroon peach yellow green teal sky sapphire blue lavender accent`. Every palette defines all 27, as `#rrggbb` only. Other upstream palettes (Nord, Tokyo Night…) are mapped onto these roles |
 | **Style** | Shape only | v0.1: UI font and monospace font. Later (with `decoration`/`style`/`panel`): corner radius, window button shape, titlebar height, panel layout, opacity |
 | **Preset** | A palette + a style + a few extras | Icon folder accent, light/dark flag, optional wallpaper path |
 | **Unit** | One appearance target | Implements the unit contract (§6) |
@@ -520,7 +520,6 @@ templates only.
 
 ## 16. Open questions
 
-- Exact palette role list (adopt Catppuccin's naming as the canonical set?).
 - Unit metadata format: header comments in `unit` vs a sidecar `unit.ini`.
 - **`gtk`: verify during v0.1** whether Plasma's own colour sync to GTK
   (`kde-gtk-config`, `colors.css`) is enough, so kome needs no CSS of its own.
@@ -583,6 +582,7 @@ templates only.
 | 2026-10-21 | Licence: GPL-3.0-or-later. Palettes credit upstream and keep their licence notice. |
 | 2026-10-21 | Name: **kome** (米). Free in Fedora, Debian, Arch, AUR, crates.io; no binary/man page clash. Env vars `KOME_*`, paths `…/kome/`. |
 | 2026-10-21 | v0.1 design frozen; implementation starts with the repo skeleton. |
+| 2026-10-21 | Palette roles: Catppuccin's 26 names + `accent`, values `#rrggbb` only. |
 
 ---
 

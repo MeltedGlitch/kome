@@ -25,14 +25,21 @@ die() {
 	exit "$_code"
 }
 
+# kome_awk <awk args>...
+# Run awk with a fixed locale, so output never depends on the user's
+# language (e.g. "0,5" instead of "0.5" for decimals).
+kome_awk() {
+	LC_ALL=C awk "$@"
+}
+
 # ini_get <file> <Section> <key>
 # Print one value; return 1 if absent, 65 if the file is malformed.
 ini_get() {
-	awk -v get="$2.$3" -f "$KOME_ROOT/lib/kome/ini.awk" "$1"
+	kome_awk -v get="$2.$3" -f "$KOME_ROOT/lib/kome/ini.awk" "$1"
 }
 
 # ini_dump <file>...
 # Print every entry as Section.key=value.
 ini_dump() {
-	awk -f "$KOME_ROOT/lib/kome/ini.awk" "$@"
+	kome_awk -f "$KOME_ROOT/lib/kome/ini.awk" "$@"
 }
