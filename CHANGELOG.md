@@ -29,6 +29,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `colors` unit: generates a KDE colour scheme from the palette (or applies
   a shipped KDE scheme via `color_scheme=`), alternating `Kome-<preset>-A/B`
   because Plasma ignores re-applying the active scheme; `restore` verb.
+- `breeze` and `breeze-dark` presets: KDE's shipped schemes, Noto Sans and
+  Hack, plus approximate Breeze palettes for integrations.
 
 ### Fixed
 

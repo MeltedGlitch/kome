@@ -138,3 +138,11 @@ style=soft'
 	[ "$status" -eq 0 ]
 	[[ "$output" == "usage: kome list"* ]]
 }
+
+@test "breeze presets point to KDE's shipped schemes" {
+	run preset_resolve breeze-dark
+	[[ "$output" == *"KOME_COLOR_SCHEME=BreezeDark"* ]]
+	run preset_resolve breeze
+	[[ "$output" == *"KOME_COLOR_SCHEME=BreezeLight"* ]]
+	[[ "$output" == *"KOME_FONT_UI=Noto Sans"* ]]
+}
