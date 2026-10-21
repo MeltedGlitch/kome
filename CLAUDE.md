@@ -28,15 +28,12 @@ in the Makefile once a unit exists.
 
 Open points to raise with the owner before/while doing it:
 
-1. **Restore needs a 4th unit verb.** `apply` takes preset values, but
-   `restore` must re-apply what `current` printed (e.g. `scheme=BreezeDark`).
-   Proposal: `unit restore`, reading `current`'s key=value lines on stdin.
-2. **Same-name re-apply.** `plasma-apply-colorscheme` likely ignores a
+1. ~~Restore verb~~ — decided: 4th verb `restore` (§6).
+2. **Same-name re-apply** (owner is testing it now). `plasma-apply-colorscheme` likely ignores a
    scheme that is already active (to verify), so re-applying an edited
    palette may need alternating file names (`Kome` / `KomeAlt`).
-3. **Breeze presets** should apply KDE's own shipped schemes (`BreezeLight`,
-   `BreezeDark`) rather than generate an approximation from a palette —
-   needs a preset key for that (e.g. `color_scheme=BreezeDark`).
+3. ~~Breeze presets~~ — decided: preset key `color_scheme=<KDE scheme>`
+   makes `colors` apply that shipped scheme instead of generating one (§6).
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -226,7 +223,12 @@ The executable has exactly these verbs:
 unit check     # can this unit work here? (exit codes below), reason on stderr
 unit apply     # apply the values it receives in the environment
 unit current   # print what is currently set, as key=value lines
+unit restore   # re-apply a state printed by `current`, read as key=value lines on stdin
 ```
+
+`current` and `restore` are inverses: `unit current | unit restore` changes
+nothing. Snapshots store `current`'s output per unit; `kome restore` feeds it
+back to `restore`.
 
 `check` exit codes (documented, the same for every unit):
 
@@ -269,7 +271,7 @@ Power users can run any unit directly by path; there is no special subcommand.
 
 | Unit | Kind | Mechanism | Default | Live? |
 |---|---|---|---|---|
-| `colors` | core | generate `.colors` from template → `plasma-apply-colorscheme` | on | yes |
+| `colors` | core | generate `.colors` from template → `plasma-apply-colorscheme`; if the preset sets `color_scheme=` (e.g. `BreezeDark`), apply that installed KDE scheme instead, ungenerated | on | yes |
 | `icons` | core | Papirus (only icon theme with complete coverage of KDE apps). Folder accent via a tiny **derived theme** generated in `$XDG_DATA_HOME/icons/` that inherits from Papirus and overrides only folder icons (no root, works with the distro package, Papirus untouched); `kwriteconfig6` | on | yes |
 | `cursor` | core | `plasma-apply-cursortheme` | on | yes |
 | `fonts` | core | `kwriteconfig6` for all font roles (general, fixed, small, toolbar, menu, window title) | on | mostly |
@@ -638,6 +640,8 @@ templates only.
 | 2026-10-21 | Palette roles: Catppuccin's 26 names + `accent`, values `#rrggbb` only. |
 | 2026-10-21 | Repo layout = install layout; units live in `libexec/kome/units/`. |
 | 2026-10-21 | Value keys are lowercase snake_case (`font_ui` → `KOME_FONT_UI`); resolution order palette → style → preset (preset overrides). |
+| 2026-10-22 | Units get a 4th verb, `restore`, reading `current`'s output on stdin (`current \| restore` is a no-op). |
+| 2026-10-22 | Breeze presets use KDE's shipped schemes via `color_scheme=`; no generated imitation. |
 
 ---
 
