@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 217 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 223 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
 and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -553,10 +553,13 @@ kome/
 │   └── units/
 │       ├── 10-colors/           # unit, unit metadata, kde.colors.in
 │       ├── 20-icons/  30-cursor/  40-fonts/  50-rendering/
-│       └── 60-gtk/  70-wallpaper/  90-kitty/
+│       └── 70-wallpaper/  90-kitty/  91-ghostty/
 ├── lib/kome/
-│   ├── common.sh                # logging, errors, hints, INI/template helpers
+│   ├── common.sh                # exit codes, messages, INI/template/XDG helpers, manifest
 │   ├── preset.sh                # find/list/resolve presets, palettes, styles
+│   ├── units.sh                 # units, snapshots, effects, panel refresh, preset_pick
+│   ├── deps.sh                  # ingredients → install commands
+│   ├── themefile.sh             # integrations: one theme file + one include line
 │   ├── ini.awk                  # INI reader for kome's own files
 │   ├── color.awk                # colour maths
 │   ├── template.awk             # {{placeholder}} filling
@@ -715,6 +718,10 @@ templates only.
 | 2026-10-22 | Fix (design review): `restore`/`purge` called every unit's `restore`, even units kome never applied — e.g. it would have rewritten the user's wallpapers through Plasma with `wallpaper` off. `snapshot_restore` now restores only units kome has applied (`touched`) and only when their state differs from the snapshot. |
 | 2026-10-22 | Fix (tests): session variables (`FREETYPE_PROPERTIES`…) leaked from the developer's session into tests; the fake Plasma unsets them. |
 | 2026-10-22 | Man pages `kome(1)` and `kome.conf(5)` in scdoc, shipped pre-generated in `doc/man/` (`make man` regenerates); installed to `$PREFIX/share/man`; CI fails if the generated pages are out of date (ignoring scdoc's version line). |
+| 2026-10-22 | Code review (owner: "fix everything as you see best"). Exit codes named in `common.sh` (`EX_*`, and `CHECK_*` for the unit contract). Non-POSIX `sed` removed (`\|` in icons, `\x1b` in doctor) — which exposed a bug: accent `blue` also took Papirus's `bluegrey` folders. Shared helpers instead of copies: `need_tools`, `data_dirs`/`icon_dirs`/`first_path`, `unit_save`/`unit_applied`, `ingredient_names`. kitty and Ghostty share `lib/kome/themefile.sh` (an integration = one theme file + one include line). |
+| 2026-10-22 | Review: one mechanism for after-change effects — each unit's state is compared before/after (apply) or recorded when restored (restore, purge); `effect_note`/`effects_report` drive the restart/re-login notices and the panel refresh. Notices no longer appear when nothing changed, and restore now gives them too. `shell_state` removed. |
+| 2026-10-22 | Review: one default-preset rule for apply, deps and doctor (`preset_pick`): the preset given, else `Preset=` in kome.conf, else the active one. |
+| 2026-10-22 | Review: `kind=` dropped from `unit.ini` (unread); `min_plasma=` is now checked by `kome doctor`. Core vs integration stays a documentation concept. |
 
 ---
 

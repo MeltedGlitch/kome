@@ -75,6 +75,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- With `icon_accent=blue`, Papirus's bluegrey folders leaked into the
+  generated icon theme.
+- "Restart your apps" / "log out" notices appeared even when nothing had
+  changed; `kome restore` now gives them when it does change something.
+- `apply`, `deps` and `doctor` now pick the default preset the same way:
+  `Preset=` in kome.conf, else the active one.
 - `kome restore` no longer touches parts of the desktop kome never changed.
 - `kome restore original` lost changes you made by hand to a unit kome had
   not applied yet (e.g. one turned on later): such units are now saved
