@@ -19,7 +19,7 @@ usage() {
 usage: kome apply [-n] [-v] [--partial] [preset]
 
 Apply a look to the whole desktop. Without a preset, uses Preset= from
-$KOME_CONF.
+$KOME_CONF, else the active one.
 
   -n, --dry-run  show what would be applied, change nothing
   -v, --verbose  say what each unit does
@@ -54,10 +54,8 @@ done
 
 say() { [ -z "$verbose" ] || printf 'kome: %s\n' "$*" >&2; }
 
-if [ -z "$preset" ]; then
-	preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) ||
-		die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome apply <preset>'"
-fi
+preset=$(preset_pick "$preset") ||
+	die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome apply <preset>'"
 preset_export "$preset" || exit
 
 # 1. Check every enabled unit before touching anything.

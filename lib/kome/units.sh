@@ -8,6 +8,17 @@ KOME_UNITS_DIR=${KOME_UNITS_DIR:-$KOME_ROOT/libexec/kome/units}
 KOME_SNAP_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kome/snapshots
 KOME_CONF=$KOME_USER_DIR/kome.conf
 
+# preset_pick [name]
+# The preset to use, the same way for every command: the one given, else
+# Preset= in kome.conf, else the active one. Return 1 if there is none.
+preset_pick() {
+	if [ -n "${1-}" ]; then
+		printf '%s\n' "$1"
+	elif ! ini_get "$KOME_CONF" General Preset 2>/dev/null; then
+		[ -s "$KOME_STATE_DIR/active" ] && cat "$KOME_STATE_DIR/active"
+	fi
+}
+
 # units_all
 # Print every unit directory, in run order (NN-name sorts by NN).
 units_all() {

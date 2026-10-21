@@ -35,12 +35,14 @@ run.\&
 .PP
 .SH COMMANDS
 .PP
+Where a command takes a \fIpreset\fR, it defaults to \fBPreset=\fR in \fBkome.\&conf\fR(5),
+else the active one.\&
+.PP
 \fBapply\fR [\fB-n\fR] [\fB-v\fR] [\fB--partial\fR] [\fIpreset\fR]
 .RS 4
 Apply a look.\& Checks every unit first: if something the preset needs is
 missing, nothing is changed (see \fBdeps\fR).\& Then saves the desktop and
-applies each unit in order.\& Without \fIpreset\fR, uses \fBPreset=\fR from
-\fBkome.\&conf\fR(5).\& Applying the same look twice changes nothing.\&
+applies each unit in order.\& Applying the same look twice changes nothing.\&
 .PP
 \fB-n\fR, \fB--dry-run\fR: show what would be applied, change nothing.\&
 .br

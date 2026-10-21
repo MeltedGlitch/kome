@@ -157,3 +157,19 @@ color_scheme=NotInstalled'
 	run "$KOME" apply mocha latte
 	[ "$status" -eq 64 ]
 }
+
+@test "without a preset or kome.conf, apply re-applies the active one" {
+	"$KOME" apply latte
+	"$KOME" apply
+	[ "$(cat "$XDG_STATE_HOME/kome/active")" = "latte" ]
+}
+
+@test "kome.conf's Preset= wins over the active one, for every command" {
+	"$KOME" apply latte
+	mkdir -p "$XDG_CONFIG_HOME/kome"
+	printf '[General]\nPreset=mocha\n' >"$XDG_CONFIG_HOME/kome/kome.conf"
+	run "$KOME" doctor
+	[[ "$output" == *"preset: mocha"* ]]
+	run "$KOME" apply -n
+	[[ "$output" == *"preset: mocha"* ]]
+}

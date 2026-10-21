@@ -20,7 +20,8 @@ _~/.config/kome/kome.conf_ holds global settings.
 
 *[General]*
 	*Preset=*_name_
-		The preset used by a bare *kome apply* or *kome deps*.
+		The preset used by *kome apply*, *kome deps* and *kome doctor* when
+		none is given (without it, they use the active one).
 
 	*RefreshPanel=on*|*off*
 		Whether kome refreshes Plasma's panel after changing icons (default

@@ -26,7 +26,7 @@ your package manager. kome never runs it: copy it, or run it yourself, e.g.
   sh -c "\$(kome deps mocha)"
 
 Optional extras (e.g. for window borders) come after a '# optional' line.
-Without a preset, uses Preset= from $KOME_CONF.
+Without a preset, uses Preset= from $KOME_CONF, else the active one.
 EOF
 }
 
@@ -39,11 +39,8 @@ case ${1-} in
 esac
 [ $# -le 1 ] || die "$EX_USAGE" "only one preset at a time" "run 'kome deps <preset>'"
 
-preset=${1-}
-if [ -z "$preset" ]; then
-	preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) ||
-		die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome deps <preset>'"
-fi
+preset=$(preset_pick "${1-}") ||
+	die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome deps <preset>'"
 preset_export "$preset" || exit
 
 required=

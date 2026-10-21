@@ -21,7 +21,7 @@ usage() {
 usage: kome doctor [--info] [--fix] [preset]
 
 Check every unit: what can be themed here, what is missing and why. The
-preset (default: the active one, else Preset= in kome.conf) decides which
+preset (default: Preset= in kome.conf, else the active one) decides which
 fonts, icons and cursors are needed. Exit status 1 if something is wrong.
 
   --info  also print facts about this system (Plasma, session, screens…)
@@ -49,13 +49,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-if [ -z "$preset" ]; then
-	if [ -s "$KOME_STATE_DIR/active" ]; then
-		preset=$(cat "$KOME_STATE_DIR/active")
-	else
-		preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) || preset=
-	fi
-fi
+preset=$(preset_pick "$preset") || preset=
 if [ -n "$preset" ]; then
 	preset_export "$preset" || exit
 	printf 'preset: %s\n' "$preset"

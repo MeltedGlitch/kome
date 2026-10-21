@@ -28,11 +28,13 @@ run.
 
 # COMMANDS
 
+Where a command takes a _preset_, it defaults to *Preset=* in *kome.conf*(5),
+else the active one.
+
 *apply* [*-n*] [*-v*] [*--partial*] [_preset_]
 	Apply a look. Checks every unit first: if something the preset needs is
 	missing, nothing is changed (see *deps*). Then saves the desktop and
-	applies each unit in order. Without _preset_, uses *Preset=* from
-	*kome.conf*(5). Applying the same look twice changes nothing.
+	applies each unit in order. Applying the same look twice changes nothing.
 
 	*-n*, *--dry-run*: show what would be applied, change nothing.++
 *-v*, *--verbose*: say what each unit does.++
