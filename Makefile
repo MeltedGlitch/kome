@@ -11,7 +11,7 @@ PREFIX ?= $(HOME)/.local
 
 DEST = $(DESTDIR)$(PREFIX)
 
-SCRIPTS = bin/kome lib/kome/*.sh libexec/kome/kome-*
+SCRIPTS = bin/kome lib/kome/*.sh libexec/kome/kome-* libexec/kome/units/*/unit
 
 all:
 	@echo "Nothing to build. Run 'make install' (PREFIX=$(PREFIX))."

@@ -9,31 +9,25 @@
 
 ## Current state (update at the end of every session)
 
-**Last session: 2026-10-21.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 62 bats tests passing (also under `gawk --posix`).
+**Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
+branch `main`, CI green, 76 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (`bin/kome`), `lib/kome/{common.sh, preset.sh, ini.awk,
 color.awk, template.awk, resolve.awk}`, palettes Catppuccin Mocha/Latte,
 style `soft`, presets `mocha`/`latte`, `kome list`, Makefile (per-user
 install, repo layout = install layout), README (EN/ES) with banner and
-preset cards.
+preset cards, and the **`colors` unit** (`libexec/kome/units/10-colors/`:
+check/apply/current/restore, template `kde.colors.in`, verified parseable by
+real `kreadconfig6`, WCAG contrast checked for Mocha and Latte).
 
-**Next step: the `colors` unit** (`libexec/kome/units/10-colors/`): `unit`
-with `check`/`apply`/`current`, template `kde.colors.in` (roles → KDE
-`[Colors:*]` groups), rendered to `$XDG_DATA_HOME/color-schemes/`, applied
-with `plasma-apply-colorscheme`. Tests must stub `plasma-apply-colorscheme`
-and `kreadconfig6` on `PATH` and use temp `XDG_*` dirs — never touch the
-real desktop from tests. Add `libexec/kome/units/*/unit` back to `SCRIPTS`
-in the Makefile once a unit exists.
+Verified on the owner's machine: Plasma ignores re-applying the active
+scheme (exit 0, localized message) → `colors` alternates
+`Kome-<preset>-A/B` and never overwrites the active file.
 
-Open points to raise with the owner before/while doing it:
-
-1. ~~Restore verb~~ — decided: 4th verb `restore` (§6).
-2. **Same-name re-apply** (owner is testing it now). `plasma-apply-colorscheme` likely ignores a
-   scheme that is already active (to verify), so re-applying an edited
-   palette may need alternating file names (`Kome` / `KomeAlt`).
-3. ~~Breeze presets~~ — decided: preset key `color_scheme=<KDE scheme>`
-   makes `colors` apply that shipped scheme instead of generating one (§6).
+**Next:** the owner tests `colors` live on his desktop (backup with
+`unit current`, apply mocha, then `unit restore`). Then: `breeze` /
+`breeze-dark` presets (need a Breeze palette for integrations + `color_scheme=`),
+snapshots + `kome apply`/`kome restore`, then the remaining units.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.

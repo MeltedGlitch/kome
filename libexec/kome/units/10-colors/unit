@@ -1,0 +1,123 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# colors — the Plasma colour scheme.
+#
+# apply: generates a scheme from the palette into
+# $XDG_DATA_HOME/color-schemes/ and applies it with plasma-apply-colorscheme.
+# If the preset sets color_scheme= (e.g. BreezeDark), that installed KDE
+# scheme is applied instead and nothing is generated.
+#
+# Plasma silently ignores re-applying the active scheme, so each preset
+# alternates between two files, Kome-<preset>-A and Kome-<preset>-B, and the
+# active one is never overwritten. That also keeps the scheme a snapshot
+# points to intact until the apply after next.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: colors"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+
+scheme_dir=${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes
+
+# Plasma's default when kdeglobals has no ColorScheme key is BreezeLight.
+current_scheme() {
+	kreadconfig6 --file kdeglobals --group General --key ColorScheme --default BreezeLight
+}
+
+# installed <scheme> — is <scheme>.colors in the user or system data dirs?
+installed() {
+	_dirs=${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
+	_IFS=$IFS
+	IFS=:
+	for _d in $_dirs; do
+		if [ -f "$_d/color-schemes/$1.colors" ]; then
+			IFS=$_IFS
+			return 0
+		fi
+	done
+	IFS=$_IFS
+	return 1
+}
+
+set_scheme() {
+	plasma-apply-colorscheme "$1" >/dev/null ||
+		die 3 "plasma-apply-colorscheme failed for '$1'" "run 'plasma-apply-colorscheme $1' to see the error"
+}
+
+do_check() {
+	for _tool in plasma-apply-colorscheme kreadconfig6; do
+		if ! command -v "$_tool" >/dev/null 2>&1; then
+			err "$_tool not found: this needs KDE Plasma 6"
+			hint "run 'kome doctor' on a Plasma 6 session"
+			exit 3
+		fi
+	done
+	if [ -n "${KOME_COLOR_SCHEME-}" ] && ! installed "$KOME_COLOR_SCHEME"; then
+		printf 'color-scheme:%s\n' "$KOME_COLOR_SCHEME"
+		exit 2
+	fi
+	exit 0
+}
+
+do_apply() {
+	if [ -n "${KOME_COLOR_SCHEME-}" ]; then
+		set_scheme "$KOME_COLOR_SCHEME"
+		return
+	fi
+	[ -n "${KOME_PRESET-}" ] ||
+		die "$EX_USAGE" "KOME_PRESET is not set" "apply a look with 'kome apply <preset>'"
+
+	_scheme=Kome-$KOME_PRESET-A
+	if [ "$(current_scheme)" = "$_scheme" ]; then
+		_scheme=Kome-$KOME_PRESET-B
+	fi
+	_template=$(template_find colors kde.colors.in)
+	KOME_SCHEME=$_scheme
+	export KOME_SCHEME
+	template_render "$_template" "$scheme_dir/$_scheme.colors" ||
+		die 65 "could not generate the colour scheme from $_template"
+	set_scheme "$_scheme"
+}
+
+do_restore() {
+	_scheme=
+	while IFS= read -r _line; do
+		case $_line in
+		scheme=*) _scheme=${_line#scheme=} ;;
+		esac
+	done
+	[ -n "$_scheme" ] ||
+		die 65 "no 'scheme=' line on stdin" "pipe in the output of 'unit current'"
+	if [ "$(current_scheme)" != "$_scheme" ]; then
+		set_scheme "$_scheme"
+	fi
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the colour scheme can be set here (2: scheme missing)
+  apply    apply the colours from the KOME_* environment
+  current  print the active colour scheme as scheme=<name>
+  restore  re-apply a scheme printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) printf 'scheme=%s\n' "$(current_scheme)" ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

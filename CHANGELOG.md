@@ -26,6 +26,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Preset resolution (`lib/kome/preset.sh`): user files override shipped
   ones; palettes are validated (all 27 roles, real colours).
 - `kome list`.
+- `colors` unit: generates a KDE colour scheme from the palette (or applies
+  a shipped KDE scheme via `color_scheme=`), alternating `Kome-<preset>-A/B`
+  because Plasma ignores re-applying the active scheme; `restore` verb.
 
 ### Fixed
 

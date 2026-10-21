@@ -24,6 +24,20 @@ data_find() {
 	return 1
 }
 
+# template_find <unit> <file>
+# Print the template to use: the user's copy in templates/<unit>/ if there is
+# one, else the unit's own.
+template_find() {
+	if [ -f "$KOME_USER_DIR/templates/$1/$2" ]; then
+		printf '%s\n' "$KOME_USER_DIR/templates/$1/$2"
+		return
+	fi
+	for _u in "$KOME_ROOT"/libexec/kome/units/*-"$1"; do
+		printf '%s\n' "$_u/$2"
+		return
+	done
+}
+
 # data_list <kind>
 # Print every available name of <kind>, sorted, once each.
 data_list() {
