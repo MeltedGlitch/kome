@@ -51,6 +51,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
   manifest plus kome's snapshots and state; keeps your own config.
 - `kome status` (`-v`): the active preset and, per unit, whether it is as
   applied, changed by hand (exit 1) or skipped.
+- `kome doctor` (`--info`, `--fix`): what each unit can do here and why
+  not; detects Plasma's accent-from-wallpaper; system facts.
 
 ### Fixed
 

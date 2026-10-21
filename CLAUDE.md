@@ -10,26 +10,26 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 139 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 165 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
-`mocha`, `latte`; styles `soft`, `breeze` (empty fonts = KDE default);
-units **`colors`** (tested live: OK), **`fonts`** (live: OK, owner installed
-Inter + JetBrains Mono) and **`cursor`** and **`icons`**, each with `unit.ini`;
-commands `list`, `apply` (`-n`, `-v`, `--partial`), `restore
-original|previous`, **`deps`** (verified Fedora/Debian/Arch names). Tests
-share a fake Plasma + fake KConfig (`tests/helpers.bash`) and fake units.
+`mocha`, `latte`; styles `soft`, `breeze`; units `colors`, `icons`,
+`fonts`, `cursor` (each with `unit.ini`, all tested live by the owner);
+commands `list`, `apply`, `restore`, `deps`, `status`, `doctor`
+(`--info`, `--fix`), `purge` (manifest). Tests share a fake Plasma, fake
+KConfig, fake icon themes and fake units (`tests/helpers.bash`).
 
-Owner's cursors: `breeze_cursors` active; others in `~/.icons` (Apple,
-WhiteSur, Layan, Vimix); no Catppuccin cursors yet.
+Owner's machine (from `kome doctor --info`): Fedora 44, Plasma/KWin 6.7.5,
+Wayland, Intel + NVIDIA RTX 4070, HDMI-A-1 2560x1440@143.91 and DP-1
+2560x1440@144 (he said one is 165 Hz), both scale 1.25. Files generated
+before the manifest existed (older `Kome-*.colors`, `kome-*` icon themes)
+are not in his manifest: `purge` won't remove them.
 
-Owner's machine has no Papirus yet (`kome apply mocha` stops and points to
-`kome deps mocha`).
-
-**Next:** owner tests `icons` live and tries to break things. Then `doctor`,
-`status`, `purge` + manifest (generated colour schemes and icon themes
-must be in it), then `rendering` (owner: don't advance it out of order).
+**Next:** owner tries `status`, `doctor`, `purge` and tries to break them.
+Then: `gtk` unit (verify Plasma's own GTK colour sync first), `kitty`
+integration (+ `doctor --fix` include line), `rendering` (opt-in),
+`wallpaper` (opt-in), man pages, completions.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -594,8 +594,8 @@ templates only.
   `kome deps` suggest there?
 - Should `make uninstall` suggest running `kome purge` first?
 - Klassy vs Darkly as the widget style for non-default presets (v0.2).
-- Where exactly the optional-ingredient notice is shown (proposal: a summary
-  at the end of `kome apply`, plus `kome doctor`).
+- Plasma's automatic light/dark theme switching: which kdeglobals key
+  enables it (verify on Plasma 6.7) so `kome doctor` can detect it.
 - Panel layouts to offer (full bar, floating centred dock, top bar + dock…) and
   their multi-monitor behaviour (v0.2).
 
@@ -666,6 +666,7 @@ templates only.
 | 2026-10-22 | Verified on the owner's machine: switching to a newly used icon theme leaves some panel/desktop icons stale until hovered **even with KDE's own `plasma-changeicons` and plain Papirus-Dark** — a Plasma limitation, not kome's. Documented in the README FAQ; not to be "fixed" again. |
 | 2026-10-22 | Manifest: `$XDG_STATE_HOME/kome/manifest`, one `path <absolute path>` line per generated file/dir (units call `manifest_add`); future line kinds (e.g. include lines) get their own keyword. `purge` asks `[y/N]` on a TTY, needs `--yes` otherwise, and deletes only manifest paths inside `$HOME` or the XDG data/config/state dirs. |
 | 2026-10-22 | After each apply/restore kome records the expected state per unit in `$XDG_STATE_HOME/kome/applied/`; `kome status` compares `current` against it. |
+| 2026-10-22 | `kome doctor`: per-unit ok/missing/optional/off/absent/error lines (exit 1 on missing or error), detects `accentColorFromWallpaper=true` (fixed via `--fix` with `[y/N]`), `--info` facts incl. one line per screen. Automatic light/dark switching detection deferred until its config key is verified. |
 
 ---
 

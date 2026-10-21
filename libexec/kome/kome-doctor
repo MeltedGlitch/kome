@@ -1,0 +1,169 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome doctor — what can be themed here, and why not.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome doctor [--info] [--fix] [preset]
+
+Check every unit: what can be themed here, what is missing and why. The
+preset (default: the active one, else Preset= in kome.conf) decides which
+fonts, icons and cursors are needed. Exit status 1 if something is wrong.
+
+  --info  also print facts about this system (Plasma, session, screens…)
+  --fix   offer to fix what doctor found; asks before each change
+EOF
+}
+
+info=
+fix=
+preset=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--info) info=1 ;;
+	--fix) fix=1 ;;
+	-h | --help)
+		usage
+		exit "$EX_OK"
+		;;
+	-*) die "$EX_USAGE" "unknown option: $1" "run 'kome doctor --help'" ;;
+	*)
+		[ -z "$preset" ] || die "$EX_USAGE" "only one preset at a time" "run 'kome doctor <preset>'"
+		preset=$1
+		;;
+	esac
+	shift
+done
+
+if [ -z "$preset" ]; then
+	if [ -s "$KOME_STATE_DIR/active" ]; then
+		preset=$(cat "$KOME_STATE_DIR/active")
+	else
+		preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) || preset=
+	fi
+fi
+if [ -n "$preset" ]; then
+	preset_export "$preset" || exit
+	printf 'preset: %s\n' "$preset"
+else
+	printf 'preset: none (checking only what this system can do)\n'
+fi
+
+# 1. Units.
+errfile=$(mktemp)
+trap 'rm -f "$errfile"' EXIT
+problems=
+for u in $(units_all); do
+	name=$(unit_name "$u")
+	what=$(unit_meta "$u" description) || what=$name
+	if ! unit_enabled "$u"; then
+		printf '%-9s %-10s %s (opt-in: add %s=on under [Units] in kome.conf)\n' off "$name" "$what" "$name"
+		continue
+	fi
+	check_status=0
+	check_out=$("$u/unit" check 2>"$errfile") || check_status=$?
+	reason=$(cat "$errfile")
+	needs=$(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ *$//')
+	case $check_status in
+	0) printf '%-9s %-10s %s\n' ok "$name" "$what" ;;
+	1) printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what" ;;
+	2)
+		printf '%-9s %-10s needs %s\n' missing "$name" "$needs"
+		problems=1
+		;;
+	4) printf '%-9s %-10s install %s to also theme %s\n' optional "$name" "$needs" "$(unit_label "$u")" ;;
+	*)
+		printf '%-9s %-10s %s\n' error "$name" "$(printf '%s\n' "$reason" | grep -v '^hint:' | head -n 1 | sed 's/^kome: [a-z]*: error: //')"
+		problems=1
+		;;
+	esac
+done
+[ -z "$problems" ] || [ -z "$preset" ] || hint "run 'kome deps $preset' to see what to install"
+
+# 2. Plasma settings that would silently undo kome's look.
+traps=
+if command -v kreadconfig6 >/dev/null 2>&1 &&
+	[ "$(kreadconfig6 --file kdeglobals --group General --key accentColorFromWallpaper)" = true ]; then
+	printf 'warning: Plasma takes the accent colour from the wallpaper, overriding the preset\n'
+	traps="$traps accent"
+fi
+
+if [ -n "$traps" ] && [ -z "$fix" ]; then
+	hint "run 'kome doctor --fix' to turn it off"
+	problems=1
+fi
+
+# 3. --fix: every change here touches a Plasma setting, so ask first.
+ask() {
+	if [ ! -t 0 ]; then
+		printf 'kome: skipped (not a terminal): %s\n' "$1" >&2
+		hint "run 'kome doctor --fix' in a terminal"
+		return 1
+	fi
+	printf '%s [y/N] ' "$1" >&2
+	read -r _answer || _answer=
+	case $_answer in y | Y | yes) return 0 ;; *) return 1 ;; esac
+}
+
+if [ -n "$fix" ]; then
+	case " $traps " in
+	*" accent "*)
+		if ask "Stop Plasma from taking the accent colour from the wallpaper?"; then
+			kwriteconfig6 --file kdeglobals --group General --key accentColorFromWallpaper false
+			printf 'fixed: the accent colour no longer comes from the wallpaper\n'
+		else
+			problems=1
+		fi
+		;;
+	esac
+	[ -n "$traps" ] || printf 'kome: nothing to fix\n' >&2
+fi
+
+# 4. --info: facts, for bug reports and advice.
+fact() { printf '%-15s %s\n' "$1:" "$2"; }
+first_line() { "$@" 2>/dev/null | head -n 1; }
+
+if [ -n "$info" ]; then
+	printf '\n'
+	if [ -r /etc/os-release ]; then
+		fact system "$(sed -n 's/^PRETTY_NAME=//p' /etc/os-release | tr -d '"')"
+	fi
+	fact plasma "$(first_line plasmashell --version || :)"
+	fact kwin "$(first_line kwin_wayland --version || :)"
+	fact session "${XDG_SESSION_TYPE:-unknown} (${XDG_CURRENT_DESKTOP:-unknown desktop})"
+	if command -v lspci >/dev/null 2>&1; then
+		lspci | grep -iE 'vga|3d controller|display' | sed 's/^[^ ]* [^:]*: //' | while IFS= read -r gpu; do
+			fact gpu "$gpu"
+		done
+	fi
+	if command -v kreadconfig6 >/dev/null 2>&1; then
+		for key in XftAntialias XftHintStyle XftSubPixel; do
+			fact "$key" "$(kreadconfig6 --file kdeglobals --group General --key "$key")"
+		done
+	fi
+	fact stem_darkening "$(case ${FREETYPE_PROPERTIES-} in *no-stem-darkening=0*) echo on ;; *) echo off ;; esac)"
+	# One line per enabled screen: name, current mode (the one marked *), scale.
+	if command -v kscreen-doctor >/dev/null 2>&1; then
+		kscreen-doctor -o 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '
+			function flush() { if (name != "" && on) printf "%-15s %s %s, scale %s\n", "screen:", name, mode, scale }
+			$1 == "Output:" { flush(); name = $3; on = 0; mode = "?"; scale = "?"; next }
+			$1 == "enabled" { on = 1 }
+			$1 == "Modes:" { for (i = 2; i <= NF; i++) if ($i ~ /\*/) { m = $i; sub(/^[0-9]+:/, "", m); gsub(/[!*]/, "", m); mode = m } }
+			$1 == "Scale:" { scale = $2 }
+			END { flush() }'
+	fi
+fi
+
+[ -z "$problems" ] || exit 1
