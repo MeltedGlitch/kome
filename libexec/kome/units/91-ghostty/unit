@@ -41,18 +41,18 @@ reload() {
 do_check() {
 	if ! command -v ghostty >/dev/null 2>&1; then
 		printf 'app:ghostty\n'
-		exit 1
+		exit "$CHECK_ABSENT"
 	fi
 	if ! included; then
 		printf 'fix:add "%s" to %s\n' "$include" "$conf"
 	fi
-	exit 0
+	exit "$CHECK_READY"
 }
 
 do_apply() {
 	_template=$(template_find ghostty ghostty-theme.in)
 	template_render "$_template" "$theme" ||
-		die 65 "could not generate the Ghostty theme from $_template"
+		die "$EX_DATAERR" "could not generate the Ghostty theme from $_template"
 	manifest_add "$theme"
 	reload
 	if ! included; then
@@ -81,7 +81,7 @@ do_restore() {
 		printf '%s\n' "$_saved" | sed -n 's/^line=//p' >"$theme.kome-tmp"
 		mv -f "$theme.kome-tmp" "$theme"
 		;;
-	*) die 65 "no 'theme=' line on stdin" "pipe in the output of 'unit current'" ;;
+	*) die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'" ;;
 	esac
 	reload
 }

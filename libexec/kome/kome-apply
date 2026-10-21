@@ -72,13 +72,13 @@ for u in $(units_all); do
 	fi
 	unit_check "$u"
 	case $check_status in
-	0) apply_units="$apply_units $u" ;;
-	1) say "$name: not installed here, skipped" ;;
-	2) missing="$missing$(printf '%s\n' "$check_out" | sed "s/^/  /; s/\$/  ($name)/")
+	"$CHECK_READY") apply_units="$apply_units $u" ;;
+	"$CHECK_ABSENT") say "$name: not installed here, skipped" ;;
+	"$CHECK_MISSING") missing="$missing$(printf '%s\n' "$check_out" | sed "s/^/  /; s/\$/  ($name)/")
 " ;;
-	4) notices="${notices}install $(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ $//') to also theme $(unit_label "$u")
+	"$CHECK_OPTIONAL") notices="${notices}install $(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ $//') to also theme $(unit_label "$u")
 " ;;
-	*) die 69 "'$name' cannot run here" "run 'kome doctor' to see why" ;;
+	*) die "$EX_UNAVAILABLE" "'$name' cannot run here" "run 'kome doctor' to see why" ;;
 	esac
 done
 
@@ -87,7 +87,7 @@ if [ -n "$missing" ] && [ -z "$partial" ]; then
 	printf '%s' "$missing" >&2
 	hint "run 'kome deps $preset' to see how to install them,"
 	hint "or 'kome apply --partial $preset' to apply everything else"
-	exit 69
+	exit "$EX_UNAVAILABLE"
 fi
 
 if [ -n "$dry" ]; then
@@ -130,7 +130,7 @@ for u in $apply_units; do
 		: >"$KOME_STATE_DIR/failed"
 		err "'$name' failed; the desktop may be half-applied"
 		hint "run 'kome restore previous' to go back"
-		exit 70
+		exit "$EX_SOFTWARE"
 	fi
 	"$u/unit" current >"$applied.tmp/$name" 2>/dev/null || rm -f "$applied.tmp/$name"
 	say "$name: applied"

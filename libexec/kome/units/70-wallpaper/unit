@@ -32,11 +32,11 @@ image_path() {
 }
 
 do_check() {
-	[ -n "${KOME_WALLPAPER-}" ] || exit 0
+	[ -n "${KOME_WALLPAPER-}" ] || exit "$CHECK_READY"
 	if ! command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
 		err "plasma-apply-wallpaperimage not found: this needs KDE Plasma 6"
 		hint "run 'kome doctor' on a Plasma 6 session"
-		exit 3
+		exit "$CHECK_ERROR"
 	fi
 	_img=$(image_path)
 	case $_img in
@@ -44,22 +44,22 @@ do_check() {
 	*)
 		err "wallpaper=$KOME_WALLPAPER must be an absolute path or start with ~/"
 		hint "set e.g. wallpaper=~/Pictures/wallpaper.jpg in the preset"
-		exit 3
+		exit "$CHECK_ERROR"
 		;;
 	esac
 	if [ ! -r "$_img" ]; then
 		err "the preset's wallpaper does not exist: $_img"
 		hint "fix wallpaper= in the preset, or remove it to keep your wallpaper"
-		exit 3
+		exit "$CHECK_ERROR"
 	fi
-	exit 0
+	exit "$CHECK_READY"
 }
 
 do_apply() {
 	[ -n "${KOME_WALLPAPER-}" ] || return 0
 	_img=$(image_path)
 	plasma-apply-wallpaperimage "$_img" >/dev/null ||
-		die 3 "plasma-apply-wallpaperimage failed for $_img" "run 'plasma-apply-wallpaperimage $_img' to see the error"
+		die "$EX_UNAVAILABLE" "plasma-apply-wallpaperimage failed for $_img" "run 'plasma-apply-wallpaperimage $_img' to see the error"
 	kwriteconfig6 --notify --file kscreenlockerrc --group Greeter --group Wallpaper \
 		--group org.kde.image --group General --key Image "file://$_img"
 }
@@ -107,7 +107,7 @@ js_string() {
 do_restore() {
 	_saved=$(cat)
 	printf '%s\n' "$_saved" | grep -q '^lock=' ||
-		die 65 "no 'lock=' line on stdin" "pipe in the output of 'unit current'"
+		die "$EX_DATAERR" "no 'lock=' line on stdin" "pipe in the output of 'unit current'"
 
 	# One Plasma script that puts every desktop's wallpaper back.
 	_js=
@@ -124,7 +124,7 @@ do_restore() {
 	if [ -n "$_js" ]; then
 		dbus-send --session --dest=org.kde.plasmashell --type=method_call --print-reply=literal \
 			/PlasmaShell org.kde.PlasmaShell.evaluateScript "string:$_js" >/dev/null ||
-			die 3 "Plasma did not take the wallpaper back" "is plasmashell running? run 'kome doctor'"
+			die "$EX_UNAVAILABLE" "Plasma did not take the wallpaper back" "is plasmashell running? run 'kome doctor'"
 	fi
 
 	_lock=$(printf '%s\n' "$_saved" | sed -n 's/^lock=//p')

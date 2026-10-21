@@ -8,9 +8,21 @@
 KOME_PROG=${KOME_PROG:-kome}
 KOME_STATE_DIR=${XDG_STATE_HOME:-$HOME/.local/state}/kome
 
-# Exit codes, sysexits(3) style.
+# Exit codes, sysexits(3) style (documented in kome(1)).
 EX_OK=0
-EX_USAGE=64
+EX_USAGE=64       # wrong usage: unknown command, option or preset
+EX_DATAERR=65     # a malformed preset, palette, style, template or state
+EX_NOINPUT=66     # no such snapshot
+EX_UNAVAILABLE=69 # something needed is missing, or a tool failed
+EX_SOFTWARE=70    # a unit failed while applying or restoring
+EX_TEMPFAIL=75    # another kome is busy
+
+# `unit check` exit codes (the unit contract, CLAUDE.md §6).
+CHECK_READY=0
+CHECK_ABSENT=1   # an integration's app is not installed (may print app:<name>)
+CHECK_MISSING=2  # a required ingredient is missing (names on stdout)
+CHECK_ERROR=3    # cannot run here (reason on stderr)
+CHECK_OPTIONAL=4 # an optional ingredient is missing (names on stdout)
 
 # Messages always go to stderr; stdout is reserved for data.
 err() { printf '%s: error: %s\n' "$KOME_PROG" "$*" >&2; }

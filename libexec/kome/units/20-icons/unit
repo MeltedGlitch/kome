@@ -95,20 +95,20 @@ do_check() {
 		if ! command -v "$_tool" >/dev/null 2>&1; then
 			err "$_tool not found: this needs KDE Plasma 6"
 			hint "run 'kome doctor' on a Plasma 6 session"
-			exit 3
+			exit "$CHECK_ERROR"
 		fi
 	done
-	[ -n "${KOME_ICON_THEME-}" ] || exit 0
+	[ -n "${KOME_ICON_THEME-}" ] || exit "$CHECK_READY"
 	if ! theme_dir "$KOME_ICON_THEME" >/dev/null; then
 		printf 'icons:%s\n' "$KOME_ICON_THEME"
-		exit 2
+		exit "$CHECK_MISSING"
 	fi
 	if [ -n "${KOME_ICON_ACCENT-}" ] && ! folder_source "$KOME_ICON_THEME" "$KOME_ICON_ACCENT" >/dev/null; then
 		err "the icon theme '$KOME_ICON_THEME' has no '$KOME_ICON_ACCENT' folders"
 		hint "set icon_accent= in the preset to a colour it has (e.g. blue, violet, teal), or remove it"
-		exit 3
+		exit "$CHECK_ERROR"
 	fi
-	exit 0
+	exit "$CHECK_READY"
 }
 
 # fallback_theme — KDE's own icons in the look's mode, for icons the base
@@ -224,7 +224,7 @@ do_restore() {
 		esac
 	done
 	[ -n "$_found" ] ||
-		die 65 "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
+		die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
 	set_theme "$_theme"
 }
 

@@ -48,7 +48,7 @@ installed() {
 
 set_scheme() {
 	plasma-apply-colorscheme "$1" >/dev/null ||
-		die 3 "plasma-apply-colorscheme failed for '$1'" "run 'plasma-apply-colorscheme $1' to see the error"
+		die "$EX_UNAVAILABLE" "plasma-apply-colorscheme failed for '$1'" "run 'plasma-apply-colorscheme $1' to see the error"
 }
 
 do_check() {
@@ -56,14 +56,14 @@ do_check() {
 		if ! command -v "$_tool" >/dev/null 2>&1; then
 			err "$_tool not found: this needs KDE Plasma 6"
 			hint "run 'kome doctor' on a Plasma 6 session"
-			exit 3
+			exit "$CHECK_ERROR"
 		fi
 	done
 	if [ -n "${KOME_COLOR_SCHEME-}" ] && ! installed "$KOME_COLOR_SCHEME"; then
 		printf 'color-scheme:%s\n' "$KOME_COLOR_SCHEME"
-		exit 2
+		exit "$CHECK_MISSING"
 	fi
-	exit 0
+	exit "$CHECK_READY"
 }
 
 do_apply() {
@@ -97,7 +97,7 @@ do_apply() {
 	KOME_SCHEME=$_scheme
 	export KOME_SCHEME
 	template_render "$_template" "$scheme_dir/$_scheme.colors" ||
-		die 65 "could not generate the colour scheme from $_template"
+		die "$EX_DATAERR" "could not generate the colour scheme from $_template"
 	manifest_add "$scheme_dir/$_scheme.colors"
 	set_scheme "$_scheme"
 }
@@ -110,7 +110,7 @@ do_restore() {
 		esac
 	done
 	[ -n "$_scheme" ] ||
-		die 65 "no 'scheme=' line on stdin" "pipe in the output of 'unit current'"
+		die "$EX_DATAERR" "no 'scheme=' line on stdin" "pipe in the output of 'unit current'"
 	if [ "$(current_scheme)" != "$_scheme" ]; then
 		set_scheme "$_scheme"
 	fi

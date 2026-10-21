@@ -33,10 +33,10 @@ do_check() {
 		if ! command -v "$_tool" >/dev/null 2>&1; then
 			err "$_tool not found: this needs KDE Plasma 6"
 			hint "run 'kome doctor' on a Plasma 6 session"
-			exit 3
+			exit "$CHECK_ERROR"
 		fi
 	done
-	exit 0
+	exit "$CHECK_READY"
 }
 
 write_keys() {
@@ -47,9 +47,9 @@ write_keys() {
 
 do_apply() {
 	template_render "$(template_find rendering fontconfig.conf.in)" "$fc_file" ||
-		die 65 "could not generate the fontconfig file"
+		die "$EX_DATAERR" "could not generate the fontconfig file"
 	template_render "$(template_find rendering env.sh.in)" "$env_file" ||
-		die 65 "could not generate the Plasma login script"
+		die "$EX_DATAERR" "could not generate the Plasma login script"
 	manifest_add "$fc_file"
 	manifest_add "$env_file"
 	write_keys
@@ -79,7 +79,7 @@ restore_file() {
 do_restore() {
 	_saved=$(cat)
 	printf '%s\n' "$_saved" | grep -q '^fc|' ||
-		die 65 "no 'fc|' lines on stdin" "pipe in the output of 'unit current'"
+		die "$EX_DATAERR" "no 'fc|' lines on stdin" "pipe in the output of 'unit current'"
 	restore_file fc "$fc_file" "$_saved"
 	restore_file env "$env_file" "$_saved"
 	printf '%s\n' "$KEYS" | while IFS=: read -r _name _key _value; do

@@ -35,13 +35,13 @@ esac
 [ $# -le 1 ] || die "$EX_USAGE" "too many arguments" "run 'kome restore --help'"
 
 [ -d "$KOME_SNAP_DIR/$which" ] ||
-	die 66 "there is no '$which' snapshot yet: kome has not changed this desktop" "run 'kome apply <preset>' first"
+	die "$EX_NOINPUT" "there is no '$which' snapshot yet: kome has not changed this desktop" "run 'kome apply <preset>' first"
 
 lock_take
 shell_before=$(shell_state)
 if ! snapshot_restore "$which"; then
 	hint "run 'kome restore $which' again, or 'kome doctor' to see what is wrong"
-	exit 70
+	exit "$EX_SOFTWARE"
 fi
 
 if [ -s "$KOME_SNAP_DIR/$which/.preset" ]; then

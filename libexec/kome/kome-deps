@@ -53,9 +53,9 @@ for u in $(units_all); do
 	# Only ingredients matter here; a unit that cannot run is doctor's job.
 	unit_check "$u" 2>/dev/null
 	case $check_status in
-	2) required="$required$check_out
+	"$CHECK_MISSING") required="$required$check_out
 " ;;
-	4) optional="$optional$check_out
+	"$CHECK_OPTIONAL") optional="$optional$check_out
 " ;;
 	esac
 done

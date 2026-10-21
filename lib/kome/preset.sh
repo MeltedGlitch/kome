@@ -62,19 +62,19 @@ preset_resolve() {
 	fi
 	_pname=$(ini_get "$_rfile" Preset palette) || {
 		err "$_rfile: missing 'palette=' in [Preset]"
-		return 65
+		return "$EX_DATAERR"
 	}
 	_sname=$(ini_get "$_rfile" Preset style) || {
 		err "$_rfile: missing 'style=' in [Preset]"
-		return 65
+		return "$EX_DATAERR"
 	}
 	_pfile=$(data_find palettes "$_pname") || {
 		err "$_rfile: no palette named '$_pname'"
-		return 65
+		return "$EX_DATAERR"
 	}
 	_sfile=$(data_find styles "$_sname") || {
 		err "$_rfile: no style named '$_sname'"
-		return 65
+		return "$EX_DATAERR"
 	}
 	_dump=$(ini_dump "$_pfile" "$_sfile" "$_rfile") || return
 	printf '%s\n' "$_dump" | kome_awk \

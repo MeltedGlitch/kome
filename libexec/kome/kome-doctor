@@ -81,7 +81,7 @@ for u in $(units_all); do
 	needs=$(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ *$//')
 	fixes_here=$(printf '%s\n' "$check_out" | sed -n 's/^fix://p')
 	case $check_status in
-	0)
+	"$CHECK_READY")
 		printf '%-9s %-10s %s\n' ok "$name" "$what"
 		if [ -n "$fixes_here" ]; then
 			printf '%s\n' "$fixes_here" | while IFS= read -r f; do
@@ -90,7 +90,7 @@ for u in $(units_all); do
 			unit_fixes="$unit_fixes $u"
 		fi
 		;;
-	1)
+	"$CHECK_ABSENT")
 		app_cmd=
 		[ -z "$check_out" ] || app_cmd=$(deps_commands "$check_out" 2>/dev/null | head -n 1)
 		if [ -n "$app_cmd" ]; then
@@ -99,11 +99,11 @@ for u in $(units_all); do
 			printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what"
 		fi
 		;;
-	2)
+	"$CHECK_MISSING")
 		printf '%-9s %-10s needs %s\n' missing "$name" "$needs"
 		problems=1
 		;;
-	4) printf '%-9s %-10s install %s to also theme %s\n' optional "$name" "$needs" "$(unit_label "$u")" ;;
+	"$CHECK_OPTIONAL") printf '%-9s %-10s install %s to also theme %s\n' optional "$name" "$needs" "$(unit_label "$u")" ;;
 	*)
 		printf '%-9s %-10s %s\n' error "$name" "$(printf '%s\n' "$reason" | grep -v '^hint:' | head -n 1 | sed 's/^kome: [a-z]*: error: //')"
 		problems=1

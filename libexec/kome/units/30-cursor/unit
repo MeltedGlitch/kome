@@ -42,7 +42,7 @@ installed() {
 set_theme() {
 	[ "$(current_theme)" != "$1" ] || return 0
 	plasma-apply-cursortheme "$1" >/dev/null ||
-		die 3 "plasma-apply-cursortheme failed for '$1'" "run 'plasma-apply-cursortheme $1' to see the error"
+		die "$EX_UNAVAILABLE" "plasma-apply-cursortheme failed for '$1'" "run 'plasma-apply-cursortheme $1' to see the error"
 }
 
 do_check() {
@@ -50,14 +50,14 @@ do_check() {
 		if ! command -v "$_tool" >/dev/null 2>&1; then
 			err "$_tool not found: this needs KDE Plasma 6"
 			hint "run 'kome doctor' on a Plasma 6 session"
-			exit 3
+			exit "$CHECK_ERROR"
 		fi
 	done
 	if [ -n "${KOME_CURSOR_THEME-}" ] && ! installed "$KOME_CURSOR_THEME"; then
 		printf 'cursor:%s\n' "$KOME_CURSOR_THEME"
-		exit 4
+		exit "$CHECK_OPTIONAL"
 	fi
-	exit 0
+	exit "$CHECK_READY"
 }
 
 do_apply() {
@@ -72,7 +72,7 @@ do_restore() {
 		esac
 	done
 	[ -n "$_theme" ] ||
-		die 65 "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
+		die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
 	set_theme "$_theme"
 }
 

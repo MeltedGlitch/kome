@@ -41,7 +41,7 @@ do_check() {
 		if ! command -v "$_tool" >/dev/null 2>&1; then
 			err "$_tool not found: this needs KDE Plasma 6"
 			hint "run 'kome doctor' on a Plasma 6 session"
-			exit 3
+			exit "$CHECK_ERROR"
 		fi
 	done
 	_missing=
@@ -51,14 +51,14 @@ do_check() {
 			_missing=1
 		fi
 	done
-	[ -z "$_missing" ] || exit 2
-	exit 0
+	[ -z "$_missing" ] || exit "$CHECK_MISSING"
+	exit "$CHECK_READY"
 }
 
 do_apply() {
 	_size=${KOME_FONT_SIZE:-10}
 	case $_size in
-	'' | *[!0-9]* | 0*) die 65 "font_size=$_size must be a whole number of points" "set e.g. font_size=10 in the style" ;;
+	'' | *[!0-9]* | 0*) die "$EX_DATAERR" "font_size=$_size must be a whole number of points" "set e.g. font_size=10 in the style" ;;
 	esac
 	_small=$((_size > 8 ? _size - 2 : _size))
 	printf '%s\n' "$ROLES" | while IFS=: read -r _name _group _key _kind _variant; do

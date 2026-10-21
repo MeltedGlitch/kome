@@ -73,12 +73,12 @@ snapshot_take() {
 	for _u in $(units_all); do
 		unit_check "$_u"
 		case $check_status in
-		1 | 3) continue ;; # not installed / cannot run here: nothing to save
+		"$CHECK_ABSENT" | "$CHECK_ERROR") continue ;; # nothing to save here
 		esac
 		"$_u/unit" current >"$_tmp/$(unit_name "$_u")" || {
 			rm -rf "$_tmp"
 			err "could not read the current state of '$(unit_name "$_u")'"
-			return 70
+			return "$EX_SOFTWARE"
 		}
 	done
 	cat "$KOME_STATE_DIR/active" >"$_tmp/.preset" 2>/dev/null || : >"$_tmp/.preset"
@@ -99,7 +99,7 @@ snapshot_complete() {
 		! grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
 		unit_check "$_u"
 		case $check_status in
-		1 | 3) continue ;;
+		"$CHECK_ABSENT" | "$CHECK_ERROR") continue ;;
 		esac
 		"$_u/unit" current >"$KOME_SNAP_DIR/$1/.$_n.tmp" &&
 			mv "$KOME_SNAP_DIR/$1/.$_n.tmp" "$KOME_SNAP_DIR/$1/$_n"
@@ -126,7 +126,7 @@ snapshot_restore() {
 		[ "$("$_u/unit" current 2>/dev/null)" != "$(cat "$_f")" ] || continue
 		"$_u/unit" restore <"$_f" || {
 			err "could not restore '$(unit_name "$_u")'"
-			return 70
+			return "$EX_SOFTWARE"
 		}
 	done
 }
@@ -135,7 +135,7 @@ snapshot_restore() {
 lock_take() {
 	mkdir -p "$KOME_STATE_DIR"
 	if ! mkdir "$KOME_STATE_DIR/lock" 2>/dev/null; then
-		die 75 "another kome is already changing the desktop" \
+		die "$EX_TEMPFAIL" "another kome is already changing the desktop" \
 			"wait for it to finish; if none is running, remove $KOME_STATE_DIR/lock"
 	fi
 	trap 'rmdir "$KOME_STATE_DIR/lock" 2>/dev/null' EXIT
