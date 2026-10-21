@@ -36,8 +36,14 @@ Open threads:
   connected; proposal: a softer Disabled effect for light looks.
 - `kome doctor`: detect Plasma's automatic light/dark switching (key to
   verify).
+- `wallpaper` is **not tested live**: the owner declined (one screen has an
+  animated wallpaper from an unknown plugin; he cannot recreate it if
+  restore failed). Unverified: restoring non-image plugins whose own config
+  kome never touches. Safe read-only check offered: `unit current`. Must be
+  verified (with a backup of `plasma-org.kde.plasma.desktop-appletsrc`)
+  before a public release.
 
-**Next:** owner tries `wallpaper` live and reads `man kome`. v0.1 is feature-complete: review, then tag. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**Next:** v0.1 is feature-complete: end-to-end review, then tag `v0.1.0` (repo stays private). (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
