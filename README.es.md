@@ -224,6 +224,15 @@ También puedes aplicar todo lo posible con `--partial`.
 </details>
 
 <details>
+<summary><b>Algunos iconos del panel no han cambiado.</b></summary>
+
+Es cosa de Plasma, no de kome: tras cambiar de tema de iconos, Plasma solo
+repinta algunos iconos del panel y del escritorio cuando pasas el ratón por
+encima — también si cambias los iconos desde Ajustes del sistema. Pasa el
+ratón, o reinicia el panel con `systemctl --user restart plasma-plasmashell`.
+</details>
+
+<details>
 <summary><b>¿Me cambia el wallpaper?</b></summary>
 
 No. Tus wallpapers se quedan. El soporte de wallpaper existe, pero hay que

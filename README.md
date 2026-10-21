@@ -222,6 +222,15 @@ zypper…). You can also apply as much as possible with `--partial`.
 </details>
 
 <details>
+<summary><b>Some panel icons did not change.</b></summary>
+
+That is Plasma, not kome: after switching icon themes, Plasma repaints some
+panel and desktop icons only when you hover them — even when you change
+icons in System Settings. Hover them, or restart the panel with
+`systemctl --user restart plasma-plasmashell`.
+</details>
+
+<details>
 <summary><b>Does it change my wallpaper?</b></summary>
 
 No. Your wallpapers are kept. Wallpaper support exists but is opt-in.

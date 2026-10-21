@@ -664,6 +664,7 @@ templates only.
 | 2026-10-22 | Fix: `original` was frozen at the first apply, so units added later (fonts, cursor) were never saved and `restore original` skipped them. Now each apply first adds to `original` every unit it lacks that kome has never applied (tracked in `$XDG_STATE_HOME/kome/touched`). |
 | 2026-10-22 | `icons` unit: preset keys `icon_theme` (Mocha `Papirus-Dark`, Latte `Papirus-Light`, Breeze `breeze`/`breeze-dark`) + `icon_accent`. The accent theme `kome-<preset>-A/B` in `$XDG_DATA_HOME/icons/` inherits from the base and only symlinks folder icons (papirus-folders' rule), found by following `Inherits=`; the base theme is never modified. |
 | 2026-10-22 | Fix (found live by the owner): after an icon change the panel kept old icons until hovered. `icons` now signals every KIconLoader group (0–5) plus KGlobalSettings IconChanged (4), as System Settings does. |
+| 2026-10-22 | Verified on the owner's machine: switching to a newly used icon theme leaves some panel/desktop icons stale until hovered **even with KDE's own `plasma-changeicons` and plain Papirus-Dark** — a Plasma limitation, not kome's. Documented in the README FAQ; not to be "fixed" again. |
 
 ---
 
