@@ -38,6 +38,43 @@ die() {
 	exit "$_code"
 }
 
+# need_tools <tool>... — for a unit's check: stop with CHECK_ERROR, and say
+# why, if a tool it needs is not installed.
+need_tools() {
+	for _tool in "$@"; do
+		if ! command -v "$_tool" >/dev/null 2>&1; then
+			err "$_tool not found: this needs KDE Plasma 6"
+			hint "run 'kome doctor' on a Plasma 6 session"
+			exit "$CHECK_ERROR"
+		fi
+	done
+}
+
+# data_dirs — the user's data dir, then the system ones, one per line.
+data_dirs() {
+	printf '%s\n' "${XDG_DATA_HOME:-$HOME/.local/share}"
+	printf '%s\n' "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" | tr ':' '\n'
+}
+
+# icon_dirs — where icon and cursor themes live: ~/.icons, then each data dir.
+icon_dirs() {
+	printf '%s\n' "$HOME/.icons"
+	data_dirs | sed 's|$|/icons|'
+}
+
+# first_path <test> <relative path>
+# Read directories on stdin; print the first <dir>/<relative path> that
+# passes `test <test>` (-f, -d…). Return 1 if none does.
+first_path() {
+	while IFS= read -r _dir; do
+		if [ -n "$_dir" ] && test "$1" "$_dir/$2"; then
+			printf '%s\n' "$_dir/$2"
+			return 0
+		fi
+	done
+	return 1
+}
+
 # kome_awk <awk args>...
 # Run awk with a fixed locale, so output never depends on the user's
 # language (e.g. "0,5" instead of "0.5" for decimals).

@@ -22,21 +22,7 @@ current_theme() {
 
 # installed <theme> — a <theme>/cursors dir in any icon theme location.
 installed() {
-	_dirs=$HOME/.icons:${XDG_DATA_HOME:-$HOME/.local/share}/icons
-	_IFS=$IFS
-	IFS=:
-	for _d in $_dirs ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
-		case $_d in
-		*/icons | "$HOME/.icons") ;;
-		*) _d=$_d/icons ;;
-		esac
-		if [ -d "$_d/$1/cursors" ]; then
-			IFS=$_IFS
-			return 0
-		fi
-	done
-	IFS=$_IFS
-	return 1
+	icon_dirs | first_path -d "$1/cursors" >/dev/null
 }
 
 set_theme() {
@@ -46,13 +32,7 @@ set_theme() {
 }
 
 do_check() {
-	for _tool in plasma-apply-cursortheme kreadconfig6; do
-		if ! command -v "$_tool" >/dev/null 2>&1; then
-			err "$_tool not found: this needs KDE Plasma 6"
-			hint "run 'kome doctor' on a Plasma 6 session"
-			exit "$CHECK_ERROR"
-		fi
-	done
+	need_tools plasma-apply-cursortheme kreadconfig6
 	if [ -n "${KOME_CURSOR_THEME-}" ] && ! installed "$KOME_CURSOR_THEME"; then
 		printf 'cursor:%s\n' "$KOME_CURSOR_THEME"
 		exit "$CHECK_OPTIONAL"

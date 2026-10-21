@@ -78,7 +78,7 @@ for u in $(units_all); do
 	check_status=0
 	check_out=$("$u/unit" check 2>"$errfile") || check_status=$?
 	reason=$(cat "$errfile")
-	needs=$(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ *$//')
+	needs=$(ingredient_names "$check_out")
 	fixes_here=$(printf '%s\n' "$check_out" | sed -n 's/^fix://p')
 	case $check_status in
 	"$CHECK_READY")

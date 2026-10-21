@@ -33,11 +33,7 @@ image_path() {
 
 do_check() {
 	[ -n "${KOME_WALLPAPER-}" ] || exit "$CHECK_READY"
-	if ! command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
-		err "plasma-apply-wallpaperimage not found: this needs KDE Plasma 6"
-		hint "run 'kome doctor' on a Plasma 6 session"
-		exit "$CHECK_ERROR"
-	fi
+	need_tools plasma-apply-wallpaperimage kwriteconfig6
 	_img=$(image_path)
 	case $_img in
 	/*) ;;

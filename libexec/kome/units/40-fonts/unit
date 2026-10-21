@@ -37,13 +37,7 @@ installed() {
 }
 
 do_check() {
-	for _tool in kreadconfig6 kwriteconfig6 fc-list; do
-		if ! command -v "$_tool" >/dev/null 2>&1; then
-			err "$_tool not found: this needs KDE Plasma 6"
-			hint "run 'kome doctor' on a Plasma 6 session"
-			exit "$CHECK_ERROR"
-		fi
-	done
+	need_tools kreadconfig6 kwriteconfig6 fc-list
 	_missing=
 	for _family in "${KOME_FONT_UI-}" "${KOME_FONT_MONO-}"; do
 		if [ -n "$_family" ] && ! installed "$_family"; then

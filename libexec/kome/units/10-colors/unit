@@ -33,17 +33,7 @@ current_scheme() {
 
 # installed <scheme> — is <scheme>.colors in the user or system data dirs?
 installed() {
-	_dirs=${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
-	_IFS=$IFS
-	IFS=:
-	for _d in $_dirs; do
-		if [ -f "$_d/color-schemes/$1.colors" ]; then
-			IFS=$_IFS
-			return 0
-		fi
-	done
-	IFS=$_IFS
-	return 1
+	data_dirs | first_path -f "color-schemes/$1.colors" >/dev/null
 }
 
 set_scheme() {
@@ -52,13 +42,7 @@ set_scheme() {
 }
 
 do_check() {
-	for _tool in plasma-apply-colorscheme kreadconfig6; do
-		if ! command -v "$_tool" >/dev/null 2>&1; then
-			err "$_tool not found: this needs KDE Plasma 6"
-			hint "run 'kome doctor' on a Plasma 6 session"
-			exit "$CHECK_ERROR"
-		fi
-	done
+	need_tools plasma-apply-colorscheme kreadconfig6
 	if [ -n "${KOME_COLOR_SCHEME-}" ] && ! installed "$KOME_COLOR_SCHEME"; then
 		printf 'color-scheme:%s\n' "$KOME_COLOR_SCHEME"
 		exit "$CHECK_MISSING"

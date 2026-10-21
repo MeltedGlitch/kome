@@ -61,6 +61,28 @@ unit_check() {
 	check_out=$("$1/unit" check) || check_status=$?
 }
 
+# unit_applied <dir> — has kome ever applied this unit?
+unit_applied() {
+	grep -qx "$(unit_name "$1")" "$KOME_STATE_DIR/touched" 2>/dev/null
+}
+
+# unit_save <dir> <file>
+# Write the unit's current state to <file> (atomically). A unit that is not
+# installed or cannot run here has nothing to save: return 1, write nothing.
+unit_save() {
+	unit_check "$1"
+	case $check_status in
+	"$CHECK_ABSENT" | "$CHECK_ERROR") return 1 ;;
+	esac
+	if "$1/unit" current >"$2.kome-tmp"; then
+		mv -f "$2.kome-tmp" "$2"
+	else
+		rm -f "$2.kome-tmp"
+		err "could not read the current state of '$(unit_name "$1")'"
+		return "$EX_SOFTWARE"
+	fi
+}
+
 # snapshot_take <name>
 # Save every unit's current state (enabled or not) as snapshots/<name>/<unit>,
 # plus the active preset in snapshots/<name>/.preset. Atomic: the old snapshot
@@ -71,14 +93,11 @@ snapshot_take() {
 	rm -rf "$_tmp"
 	mkdir "$_tmp"
 	for _u in $(units_all); do
-		unit_check "$_u"
-		case $check_status in
-		"$CHECK_ABSENT" | "$CHECK_ERROR") continue ;; # nothing to save here
-		esac
-		"$_u/unit" current >"$_tmp/$(unit_name "$_u")" || {
+		unit_save "$_u" "$_tmp/$(unit_name "$_u")" || {
+			_rc=$?
+			[ "$_rc" -eq 1 ] && continue
 			rm -rf "$_tmp"
-			err "could not read the current state of '$(unit_name "$_u")'"
-			return "$EX_SOFTWARE"
+			return "$_rc"
 		}
 	done
 	cat "$KOME_STATE_DIR/active" >"$_tmp/.preset" 2>/dev/null || : >"$_tmp/.preset"
@@ -95,22 +114,18 @@ snapshot_take() {
 # applied are listed in $KOME_STATE_DIR/touched).
 snapshot_complete() {
 	for _u in $(units_all); do
-		_n=$(unit_name "$_u")
-		! grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
-		unit_check "$_u"
-		case $check_status in
-		"$CHECK_ABSENT" | "$CHECK_ERROR") continue ;;
-		esac
-		"$_u/unit" current >"$KOME_SNAP_DIR/$1/.$_n.tmp" &&
-			mv "$KOME_SNAP_DIR/$1/.$_n.tmp" "$KOME_SNAP_DIR/$1/$_n"
+		unit_applied "$_u" || unit_save "$_u" "$KOME_SNAP_DIR/$1/$(unit_name "$_u")" || :
 	done
 }
 
 # unit_touched <dir> — remember that kome has applied this unit.
 unit_touched() {
-	_n=$(unit_name "$1")
-	grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null ||
-		printf '%s\n' "$_n" >>"$KOME_STATE_DIR/touched"
+	unit_applied "$1" || unit_name "$1" >>"$KOME_STATE_DIR/touched"
+}
+
+# ingredient_names <check output> — "font:Inter\ncursor:x" → "Inter x".
+ingredient_names() {
+	printf '%s\n' "$1" | sed -n 's/^[a-z-]*://p' | tr '\n' ' ' | sed 's/ $//'
 }
 
 # snapshot_restore <name>
@@ -122,7 +137,7 @@ snapshot_restore() {
 		_n=$(unit_name "$_u")
 		_f=$KOME_SNAP_DIR/$1/$_n
 		[ -f "$_f" ] || continue
-		grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
+		unit_applied "$_u" || continue
 		[ "$("$_u/unit" current 2>/dev/null)" != "$(cat "$_f")" ] || continue
 		"$_u/unit" restore <"$_f" || {
 			err "could not restore '$(unit_name "$_u")'"
