@@ -1,0 +1,116 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# rendering — crisp font rendering (opt-in: rendering=on in kome.conf).
+#
+# apply: writes a fontconfig drop-in (greyscale antialiasing, slight
+# hinting) that every app reads, a Plasma login script that turns on
+# FreeType stem darkening, and the same choices in kdeglobals for KDE apps.
+# All of it is kome's own files and keys; nothing of the user's is edited.
+# Takes full effect after logging out and back in.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: rendering"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+fc_file=$config/fontconfig/conf.d/90-kome-rendering.conf
+env_file=$config/plasma-workspace/env/kome-rendering.sh
+
+# kdeglobals [General] keys: "<state name>:<key>:<value kome sets>"
+KEYS="antialias:XftAntialias:true
+hintstyle:XftHintStyle:hintslight
+subpixel:XftSubPixel:none"
+
+do_check() {
+	for _tool in kreadconfig6 kwriteconfig6; do
+		if ! command -v "$_tool" >/dev/null 2>&1; then
+			err "$_tool not found: this needs KDE Plasma 6"
+			hint "run 'kome doctor' on a Plasma 6 session"
+			exit 3
+		fi
+	done
+	exit 0
+}
+
+write_keys() {
+	printf '%s\n' "$KEYS" | while IFS=: read -r _name _key _value; do
+		kwriteconfig6 --notify --file kdeglobals --group General --key "$_key" "$_value"
+	done
+}
+
+do_apply() {
+	template_render "$(template_find rendering fontconfig.conf.in)" "$fc_file" ||
+		die 65 "could not generate the fontconfig file"
+	template_render "$(template_find rendering env.sh.in)" "$env_file" ||
+		die 65 "could not generate the Plasma login script"
+	manifest_add "$fc_file"
+	manifest_add "$env_file"
+	write_keys
+}
+
+# The state: both files' lines ("fc=…", "env=…", or "fc=none"/"env=none")
+# and the raw kdeglobals values (empty: never set).
+do_current() {
+	if [ -f "$fc_file" ]; then sed 's/^/fc|/' "$fc_file"; else printf 'fc|none\n'; fi
+	if [ -f "$env_file" ]; then sed 's/^/env|/' "$env_file"; else printf 'env|none\n'; fi
+	printf '%s\n' "$KEYS" | while IFS=: read -r _name _key _value; do
+		printf '%s=%s\n' "$_name" "$(kreadconfig6 --file kdeglobals --group General --key "$_key")"
+	done
+}
+
+# restore_file <prefix> <file> <saved state>
+restore_file() {
+	if printf '%s\n' "$3" | grep -qx "$1|none"; then
+		rm -f "$2"
+	elif printf '%s\n' "$3" | grep -q "^$1|"; then
+		mkdir -p "$(dirname -- "$2")"
+		printf '%s\n' "$3" | sed -n "s/^$1|//p" >"$2.kome-tmp"
+		mv -f "$2.kome-tmp" "$2"
+	fi
+}
+
+do_restore() {
+	_saved=$(cat)
+	printf '%s\n' "$_saved" | grep -q '^fc|' ||
+		die 65 "no 'fc|' lines on stdin" "pipe in the output of 'unit current'"
+	restore_file fc "$fc_file" "$_saved"
+	restore_file env "$env_file" "$_saved"
+	printf '%s\n' "$KEYS" | while IFS=: read -r _name _key _value; do
+		_line=$(printf '%s\n' "$_saved" | grep "^$_name=" | tail -n 1) || continue
+		if [ -z "${_line#*=}" ]; then
+			kwriteconfig6 --notify --file kdeglobals --group General --key "$_key" --delete
+		else
+			kwriteconfig6 --notify --file kdeglobals --group General --key "$_key" "${_line#*=}"
+		fi
+	done
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if font rendering can be set here
+  apply    write the fontconfig file, the Plasma login script, kdeglobals keys
+  current  print both files (fc|…, env|…) and the kdeglobals values
+  restore  bring back the state printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 200 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 208 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
 and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -37,7 +37,7 @@ Open threads:
 - `kome doctor`: detect Plasma's automatic light/dark switching (key to
   verify).
 
-**Next:** `rendering` (opt-in), `wallpaper` (opt-in), man pages.
+**Next:** owner tries `rendering` live; then `wallpaper` (opt-in), man pages.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -471,7 +471,8 @@ fractional scaling).
 - **Slight (or no) hinting.** Keep true glyph shapes; at this pixel density
   there is enough resolution.
 - **FreeType stem darkening** (`FREETYPE_PROPERTIES="cff:no-stem-darkening=0
-  autofitter:no-stem-darkening=0"`, via `~/.config/environment.d/`). Emboldens
+  autofitter:no-stem-darkening=0"`, via a Plasma login script in
+  `~/.config/plasma-workspace/env/`, which works with or without systemd). Emboldens
   stems like macOS; without it Linux text looks thin and washed out. Needs a
   re-login.
 - **UI font: Inter** (screen-optimised, closest to San Francisco). Some styles
@@ -485,7 +486,7 @@ Implementation: a dedicated, opt-in `rendering` unit (separate from `fonts`:
 different lifecycle — global, not per preset, needs a re-login), switched on
 with `rendering=on` in `kome.conf`. It applies the values above, fixed; there
 are no tuning keys. Power users override its commented template (§6). It owns
-a user-level fontconfig file + an `environment.d` file. The `original`
+a fontconfig drop-in, a Plasma login script and three kdeglobals keys. The `original`
 snapshot must capture the prior state of both.
 
 ---
@@ -702,6 +703,8 @@ templates only.
 | 2026-10-22 | Plasma keeps old panel icons until hovered (KDE bug 374276, also with `plasma-changeicons`). Owner's decision, a deliberate exception to principle 10's "ask first": kome refreshes the panel automatically, only when an icon change really happened — via systemd's `plasma-plasmashell` unit, or `plasmashell --replace` on systems without systemd; opt-out `RefreshPanel=off`. New `takes_effect=shell`. |
 | 2026-10-22 | Fix: re-applying the same look switched `colors`/`icons` between A and B (same content, new name), breaking idempotence and, with the panel refresh, restarting the panel for nothing. Both units now compare what they would generate with the active one and do nothing when identical; they alternate only when the content changes. |
 | 2026-10-22 | Verified live: panel refresh after icon changes and idempotent re-apply work on the owner's machine. |
+| 2026-10-22 | `rendering` unit (opt-in, relogin): fontconfig drop-in `~/.config/fontconfig/conf.d/90-kome-rendering.conf` (greyscale AA, slight hinting), stem darkening via a **Plasma login script** `~/.config/plasma-workspace/env/kome-rendering.sh` instead of `environment.d` (which only systemd reads — principle 7), plus `XftAntialias/XftHintStyle/XftSubPixel` in kdeglobals. |
+| 2026-10-22 | Fix (found by a test): `original` kept a disabled unit's state from kome's first run, so turning the unit on later and restoring lost the user's own changes made meanwhile. Now every apply refreshes `original` for each unit kome has never applied; an entry freezes only once kome applies that unit. Supersedes the earlier "fill only missing units" rule. |
 
 ---
 

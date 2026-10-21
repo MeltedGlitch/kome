@@ -87,13 +87,15 @@ snapshot_take() {
 }
 
 # snapshot_complete <name>
-# Add to an existing snapshot every unit it lacks that kome has never applied
-# (e.g. a unit added by a kome upgrade): its current state is still the
-# user's own. Units kome has applied are listed in $KOME_STATE_DIR/touched.
+# Refresh, in an existing snapshot, every unit kome has never applied: its
+# current state is still entirely the user's own, so it — not what it was at
+# kome's first run — is what restoring must bring back. Covers units turned
+# on later, units added by a kome upgrade, and changes the user made by hand
+# meanwhile. A unit's entry freezes once kome applies it (units kome has
+# applied are listed in $KOME_STATE_DIR/touched).
 snapshot_complete() {
 	for _u in $(units_all); do
 		_n=$(unit_name "$_u")
-		[ ! -f "$KOME_SNAP_DIR/$1/$_n" ] || continue
 		! grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
 		unit_check "$_u"
 		case $check_status in

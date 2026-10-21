@@ -66,9 +66,15 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - After an icon change, kome refreshes Plasma's panel (with or without
   systemd), which otherwise keeps old icons until hovered;
   `RefreshPanel=off` in kome.conf turns it off.
+- `rendering` unit (opt-in, `rendering=on` in kome.conf): greyscale
+  antialiasing and slight hinting for every app (fontconfig), FreeType stem
+  darkening through a Plasma login script, and the same for KDE apps.
 
 ### Fixed
 
+- `kome restore original` lost changes you made by hand to a unit kome had
+  not applied yet (e.g. one turned on later): such units are now saved
+  fresh until kome first applies them.
 - Applying the same look twice no longer regenerates colours or icons.
 - Tray icons looked grey or white in kome's icon themes: the generated
   theme now keeps the base theme's KDE settings, above all
