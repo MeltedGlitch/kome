@@ -13,6 +13,8 @@ export KOME_ROOT
 . "$KOME_ROOT/lib/kome/preset.sh"
 # shellcheck source=lib/kome/units.sh
 . "$KOME_ROOT/lib/kome/units.sh"
+# shellcheck source=lib/kome/deps.sh
+. "$KOME_ROOT/lib/kome/deps.sh"
 
 usage() {
 	cat <<EOF
@@ -88,7 +90,15 @@ for u in $(units_all); do
 			unit_fixes="$unit_fixes $u"
 		fi
 		;;
-	1) printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what" ;;
+	1)
+		app_cmd=
+		[ -z "$check_out" ] || app_cmd=$(deps_commands "$check_out" 2>/dev/null | head -n 1)
+		if [ -n "$app_cmd" ]; then
+			printf '%-9s %-10s %s (not installed: %s)\n' absent "$name" "$what" "$app_cmd"
+		else
+			printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what"
+		fi
+		;;
 	2)
 		printf '%-9s %-10s needs %s\n' missing "$name" "$needs"
 		problems=1

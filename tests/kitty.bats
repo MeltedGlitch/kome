@@ -113,3 +113,10 @@ setup() {
 	[ "$status" -eq 1 ]
 	[[ "$output" == *"kitty      changed by hand"* ]]
 }
+
+@test "doctor recommends installing kitty, with the command" {
+	run "$KOME" doctor mocha
+	[[ "$output" == *"absent    kitty      Kitty terminal colours (not installed: "*"kitty)"* ]]
+	run "$UNIT" check
+	[ "$output" = "app:kitty" ]
+}

@@ -57,6 +57,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
   `kome-theme.conf`, live reload; `kome doctor --fix` adds the one
   `include` line to `kitty.conf`, and `kome purge` takes it out again.
 - Template function `by_mode(dark,light)`.
+- `kome doctor` recommends apps kome can theme that are not installed
+  (e.g. kitty), with the install command.
 
 ### Fixed
 

@@ -13,8 +13,8 @@ export KOME_ROOT
 . "$KOME_ROOT/lib/kome/preset.sh"
 # shellcheck source=lib/kome/units.sh
 . "$KOME_ROOT/lib/kome/units.sh"
-
-TABLE=$KOME_DATA_DIR/deps/packages.ini
+# shellcheck source=lib/kome/deps.sh
+. "$KOME_ROOT/lib/kome/deps.sh"
 
 usage() {
 	cat <<EOF
@@ -46,22 +46,6 @@ if [ -z "$preset" ]; then
 fi
 preset_export "$preset" || exit
 
-# The first package manager found wins; distro knowledge stays in the table.
-pm=
-for _pm in dnf zypper pacman apt; do
-	if command -v "$_pm" >/dev/null 2>&1; then
-		pm=$_pm
-		break
-	fi
-done
-case $pm in
-dnf) install="sudo dnf install" ;;
-zypper) install="sudo zypper install" ;;
-pacman) install="sudo pacman -S --needed" ;;
-apt) install="sudo apt install" ;;
-*) install= ;;
-esac
-
 required=
 optional=
 for u in $(units_all); do
@@ -82,31 +66,9 @@ if [ -z "$required$optional" ]; then
 	exit "$EX_OK"
 fi
 
-# packages <ingredients> — print the install command; explain the rest on stderr.
-packages() {
-	_pkgs=
-	printf '%s' "$1" | {
-		while IFS= read -r _ing; do
-			[ -n "$_ing" ] || continue
-			_pkg=
-			[ -z "$pm" ] || _pkg=$(ini_get "$TABLE" "$_ing" "$pm" 2>/dev/null) || _pkg=
-			if [ -n "$_pkg" ]; then
-				_pkgs="$_pkgs $_pkg"
-			elif _cmd=$(ini_get "$TABLE" "$_ing" install 2>/dev/null); then
-				printf '%s\n' "$_cmd"
-			elif _url=$(ini_get "$TABLE" "$_ing" url 2>/dev/null); then
-				printf 'kome: %s is not packaged for %s; get it from %s\n' "${_ing#*:}" "${pm:-your system}" "$_url" >&2
-			else
-				printf 'kome: install %s with your package manager\n' "${_ing#*:}" >&2
-			fi
-		done
-		[ -z "$_pkgs" ] || printf '%s%s\n' "$install" "$_pkgs"
-	}
-}
-
-[ -n "$install" ] || warn "no known package manager found (dnf, zypper, pacman, apt)"
-packages "$required"
+[ -n "$KOME_INSTALL" ] || warn "no known package manager found (dnf, zypper, pacman, apt)"
+[ -z "$required" ] || deps_commands "$required"
 if [ -n "$optional" ]; then
 	printf '# optional\n'
-	packages "$optional"
+	deps_commands "$optional"
 fi

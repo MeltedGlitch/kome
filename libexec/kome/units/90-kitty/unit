@@ -33,7 +33,10 @@ reload() {
 }
 
 do_check() {
-	command -v kitty >/dev/null 2>&1 || exit 1
+	if ! command -v kitty >/dev/null 2>&1; then
+		printf 'app:kitty\n'
+		exit 1
+	fi
 	if ! included; then
 		printf 'fix:add "%s" to %s\n' "$include" "$conf"
 	fi
@@ -94,7 +97,7 @@ usage() {
 	cat <<EOF
 usage: unit check | apply | current | restore | fix
 
-  check    exit 0 if kitty is installed (1: it is not); announces fixes
+  check    exit 0 if kitty is installed (1 and app:kitty: it is not); announces fixes
   apply    write kome-theme.conf from the KOME_* colours, reload kitty
   current  print the theme file as theme=none|kome and line=… lines
   restore  write back the theme printed by 'current', read from stdin
