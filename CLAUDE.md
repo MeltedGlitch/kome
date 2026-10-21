@@ -10,24 +10,25 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 76 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 93 bats tests passing (also under `gawk --posix`).
 
-Done: dispatcher (`bin/kome`), `lib/kome/{common.sh, preset.sh, ini.awk,
-color.awk, template.awk, resolve.awk}`, palettes Catppuccin Mocha/Latte,
-style `soft`, presets `mocha`/`latte`, `kome list`, Makefile (per-user
-install, repo layout = install layout), README (EN/ES) with banner and
-preset cards, and the **`colors` unit** (`libexec/kome/units/10-colors/`:
-check/apply/current/restore, template `kde.colors.in`, verified parseable by
-real `kreadconfig6`, WCAG contrast checked for Mocha and Latte).
+Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
+`{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`
+(KDE's shipped schemes via `color_scheme=`), `mocha`, `latte`; styles
+`soft`, `breeze`; the **`colors` unit** (check/apply/current/restore,
+alternating `Kome-<preset>-A/B`, tested live by the owner: looks good);
+commands `list`, **`apply`** (`-n`, `-v`, `--partial`, `kome.conf`
+`Preset=`, `[Units] name=off`) and **`restore original|previous`**
+(snapshots in `$XDG_DATA_HOME/kome/snapshots/`, failed-apply mark, lock).
+Tests share a fake Plasma (`tests/helpers.bash`).
 
-Verified on the owner's machine: Plasma ignores re-applying the active
-scheme (exit 0, localized message) → `colors` alternates
-`Kome-<preset>-A/B` and never overwrites the active file.
+Interim rule until unit metadata exists: every unit is on by default;
+`kome.conf` `[Units] <name>=off` turns one off.
 
-**Next:** the owner tests `colors` live on his desktop (backup with
-`unit current`, apply mocha, then `unit restore`). Then: `breeze` /
-`breeze-dark` presets (need a Breeze palette for integrations + `color_scheme=`),
-snapshots + `kome apply`/`kome restore`, then the remaining units.
+**Next:** owner tries `kome apply mocha` / `kome restore original` for
+real. Then decide the unit metadata format (needed for opt-in units and
+for notice texts like "install Klassy to theme window borders"), then the
+`fonts`, `cursor` and `icons` units.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.

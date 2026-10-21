@@ -1,37 +1,14 @@
 #!/usr/bin/env bats
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# The colors unit. Plasma's tools are replaced by stubs on PATH and every
-# XDG dir points into the test's temp dir: the real desktop is never touched.
+# The colors unit, against a fake Plasma (see helpers.bash).
+
+load helpers
 
 setup() {
-	KOME_ROOT="$BATS_TEST_DIRNAME/.."
+	fake_plasma
 	UNIT="$KOME_ROOT/libexec/kome/units/10-colors/unit"
 	. "$KOME_ROOT/lib/kome/common.sh"
-
-	export XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/config"
-	export XDG_DATA_HOME="$BATS_TEST_TMPDIR/data"
-	export XDG_DATA_DIRS="$BATS_TEST_TMPDIR/system"
-	mkdir -p "$XDG_DATA_DIRS/color-schemes"
-	touch "$XDG_DATA_DIRS/color-schemes/BreezeDark.colors"
-
-	# Stubs: the "active scheme" lives in a file; applying logs and updates it.
-	stubs="$BATS_TEST_TMPDIR/stubs"
-	mkdir -p "$stubs"
-	export STATE="$BATS_TEST_TMPDIR/active" LOG="$BATS_TEST_TMPDIR/applied"
-	printf 'BreezeDark\n' >"$STATE"
-	cat >"$stubs/kreadconfig6" <<'EOF'
-#!/bin/sh
-cat "$STATE"
-EOF
-	cat >"$stubs/plasma-apply-colorscheme" <<'EOF'
-#!/bin/sh
-printf '%s\n' "$1" >>"$LOG"
-printf '%s\n' "$1" >"$STATE"
-EOF
-	chmod +x "$stubs"/*
-	export PATH="$stubs:$PATH"
-
 	. "$KOME_ROOT/lib/kome/preset.sh"
 }
 

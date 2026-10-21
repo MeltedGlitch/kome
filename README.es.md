@@ -175,10 +175,12 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [x] Dispatcher, funciones comunes, CI
 - [x] Lector de INI
 - [x] Motor de color (mezclar, aclarar, oscurecer, contraste WCAG)
-- [ ] Motor de plantillas
-- [ ] Units: `colors`, `icons`, `cursor`, `fonts`, `rendering`, `gtk`, `wallpaper`, `kitty`
-- [ ] Comandos: `apply`, `list`, `status`, `doctor`, `deps`, `restore`, `purge`
-- [ ] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
+- [x] Motor de plantillas
+- [x] Unit `colors`
+- [ ] Units: `icons`, `cursor`, `fonts`, `rendering`, `gtk`, `wallpaper`, `kitty`
+- [x] Comandos: `apply`, `list`, `restore`
+- [ ] Comandos: `status`, `doctor`, `deps`, `purge`
+- [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages y autocompletado
 
 **v0.2** — más presets; decoración de ventanas (Klassy), estilo de widgets y

@@ -1,0 +1,51 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome restore — go back to a saved desktop.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome restore original | previous
+
+  original  your desktop as it was before kome ever ran
+  previous  your desktop as it was before the last 'kome apply'
+EOF
+}
+
+case ${1-} in
+original | previous) which=$1 ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+'') die "$EX_USAGE" "say which desktop to restore" "run 'kome restore original' or 'kome restore previous'" ;;
+*) die "$EX_USAGE" "unknown snapshot: $1" "run 'kome restore original' or 'kome restore previous'" ;;
+esac
+[ $# -le 1 ] || die "$EX_USAGE" "too many arguments" "run 'kome restore --help'"
+
+[ -d "$KOME_SNAP_DIR/$which" ] ||
+	die 66 "there is no '$which' snapshot yet: kome has not changed this desktop" "run 'kome apply <preset>' first"
+
+lock_take
+if ! snapshot_restore "$which"; then
+	hint "run 'kome restore $which' again, or 'kome doctor' to see what is wrong"
+	exit 70
+fi
+
+if [ -s "$KOME_SNAP_DIR/$which/.preset" ]; then
+	cp "$KOME_SNAP_DIR/$which/.preset" "$KOME_STATE_DIR/active"
+else
+	rm -f "$KOME_STATE_DIR/active"
+fi
+rm -f "$KOME_STATE_DIR/failed"

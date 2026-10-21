@@ -1,0 +1,126 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome apply — apply a look.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome apply [-n] [-v] [--partial] [preset]
+
+Apply a look to the whole desktop. Without a preset, uses Preset= from
+$KOME_CONF.
+
+  -n, --dry-run  show what would be applied, change nothing
+  -v, --verbose  say what each unit does
+  --partial      apply what is possible even if something is missing
+
+Your desktop is saved first: 'kome restore previous' undoes this apply,
+'kome restore original' brings back your desktop from before kome.
+EOF
+}
+
+dry=
+verbose=
+partial=
+preset=
+while [ $# -gt 0 ]; do
+	case $1 in
+	-n | --dry-run) dry=1 ;;
+	-v | --verbose) verbose=1 ;;
+	--partial) partial=1 ;;
+	-h | --help)
+		usage
+		exit "$EX_OK"
+		;;
+	-*) die "$EX_USAGE" "unknown option: $1" "run 'kome apply --help'" ;;
+	*)
+		[ -z "$preset" ] || die "$EX_USAGE" "only one preset can be applied" "run 'kome apply <preset>'"
+		preset=$1
+		;;
+	esac
+	shift
+done
+
+say() { [ -z "$verbose" ] || printf 'kome: %s\n' "$*" >&2; }
+
+if [ -z "$preset" ]; then
+	preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) ||
+		die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome apply <preset>'"
+fi
+preset_export "$preset" || exit
+
+# 1. Check every enabled unit before touching anything.
+apply_units=
+missing=
+notices=
+for u in $(units_all); do
+	name=$(unit_name "$u")
+	if ! unit_enabled "$name"; then
+		say "$name: off in kome.conf"
+		continue
+	fi
+	unit_check "$u"
+	case $check_status in
+	0) apply_units="$apply_units $u" ;;
+	1) say "$name: not installed here, skipped" ;;
+	2) missing="$missing$(printf '%s\n' "$check_out" | sed "s/^/  /; s/\$/  ($name)/")
+" ;;
+	4) notices="$notices$name: skipped, it needs $(printf '%s' "$check_out" | tr '\n' ' ')
+" ;;
+	*) die 69 "'$name' cannot run here" "run 'kome doctor' to see why" ;;
+	esac
+done
+
+if [ -n "$missing" ] && [ -z "$partial" ]; then
+	err "'$preset' needs things that are not installed:"
+	printf '%s' "$missing" >&2
+	hint "run 'kome deps $preset' to see how to install them,"
+	hint "or 'kome apply --partial $preset' to apply everything else"
+	exit 69
+fi
+
+if [ -n "$dry" ]; then
+	printf 'preset: %s (%s)\n' "$preset" "${KOME_NAME:-$preset}"
+	for u in $apply_units; do printf 'apply: %s\n' "$(unit_name "$u")"; done
+	env | grep '^KOME_' | grep -v '^KOME_ROOT=' | sort
+	exit "$EX_OK"
+fi
+
+# 2. Save the desktop, then apply.
+lock_take
+[ -d "$KOME_SNAP_DIR/original" ] || snapshot_take original
+if [ -f "$KOME_STATE_DIR/failed" ]; then
+	warn "the last apply failed, so 'previous' still holds the last good look"
+else
+	snapshot_take previous
+fi
+
+for u in $apply_units; do
+	name=$(unit_name "$u")
+	if ! "$u/unit" apply; then
+		: >"$KOME_STATE_DIR/failed"
+		err "'$name' failed; the desktop may be half-applied"
+		hint "run 'kome restore previous' to go back"
+		exit 70
+	fi
+	say "$name: applied"
+done
+
+printf '%s\n' "$preset" >"$KOME_STATE_DIR/active"
+rm -f "$KOME_STATE_DIR/failed"
+
+if [ -n "$notices" ]; then
+	printf 'kome: %s' "$notices" >&2
+	hint "run 'kome deps $preset' to see what to install"
+fi

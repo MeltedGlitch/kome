@@ -31,6 +31,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   because Plasma ignores re-applying the active scheme; `restore` verb.
 - `breeze` and `breeze-dark` presets: KDE's shipped schemes, Noto Sans and
   Hack, plus approximate Breeze palettes for integrations.
+- `kome apply` (`-n`, `-v`, `--partial`, preset from `kome.conf`) and
+  `kome restore original|previous`: snapshots of every unit before each
+  apply, a failed apply never overwrites `previous`, one kome at a time.
 
 ### Fixed
 

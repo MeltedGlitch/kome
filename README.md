@@ -173,10 +173,12 @@ something new means adding one directory; the core does not change.
 - [x] Dispatcher, shared helpers, CI
 - [x] INI reader
 - [x] Colour engine (mix, lighten, darken, WCAG contrast)
-- [ ] Template engine
-- [ ] Units: `colors`, `icons`, `cursor`, `fonts`, `rendering`, `gtk`, `wallpaper`, `kitty`
-- [ ] Commands: `apply`, `list`, `status`, `doctor`, `deps`, `restore`, `purge`
-- [ ] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
+- [x] Template engine
+- [x] Unit `colors`
+- [ ] Units: `icons`, `cursor`, `fonts`, `rendering`, `gtk`, `wallpaper`, `kitty`
+- [x] Commands: `apply`, `list`, `restore`
+- [ ] Commands: `status`, `doctor`, `deps`, `purge`
+- [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages and shell completions
 
 **v0.2** — more presets; window decorations (Klassy), widget style and panel
