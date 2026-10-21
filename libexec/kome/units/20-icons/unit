@@ -11,8 +11,9 @@
 # KDE's Breeze in the look's own mode (breeze for light, breeze-dark for
 # dark): without that, a light look showed white icons from the dark
 # fallback. The original theme is never modified,
-# so no root is needed. Like colors, each preset alternates between
-# kome-<preset>-A and -B and never rewrites the active theme.
+# so no root is needed. Like colors, when the result changes each preset
+# alternates between kome-<preset>-A and -B and never rewrites the active
+# theme; when nothing changed, apply does nothing.
 
 set -eu
 
@@ -120,11 +121,26 @@ fallback_theme() {
 	fi
 }
 
+# signature <theme dir> — its index.theme and every link, to compare themes.
+signature() {
+	cat "$1/index.theme"
+	(cd "$1" && find . -type l | sort | while IFS= read -r _l; do
+		printf '%s -> %s\n' "$_l" "$(readlink "$_l")"
+	done)
+}
+
 # derive <name> <base> <accent> — write the folder-colour theme.
 derive() {
+	derive_into "$user_icons/.$1.kome-tmp" "$@"
+	rm -rf "${user_icons:?}/${1:?}"
+	mv "$user_icons/.$1.kome-tmp" "$user_icons/$1"
+}
+
+# derive_into <dir> <name> <base> <accent> — build the theme in <dir>.
+derive_into() {
+	_tmp=$1
+	shift
 	_src=$(folder_source "$2" "$3")
-	_out=$user_icons/$1
-	_tmp=$user_icons/.$1.kome-tmp
 	rm -rf "$_tmp"
 	mkdir -p "$_tmp"
 	_dirs=
@@ -160,8 +176,6 @@ derive() {
 			printf '\n[%s]\nContext=Places\nSize=%s\nScale=%s\nType=Fixed\n' "$_sub" "$_size" "$_scale"
 		done
 	} >"$_tmp/index.theme"
-	rm -rf "${user_icons:?}/${1:?}"
-	mv "$_tmp" "$_out"
 }
 
 do_apply() {
@@ -172,8 +186,25 @@ do_apply() {
 	fi
 	[ -n "${KOME_PRESET-}" ] ||
 		die "$EX_USAGE" "KOME_PRESET is not set" "apply a look with 'kome apply <preset>'"
+	_current=$(current_theme)
+
+	# Idempotent: if the active theme is this preset's and identical to what
+	# we would generate, there is nothing to do.
+	case $_current in
+	"kome-$KOME_PRESET-A" | "kome-$KOME_PRESET-B")
+		if [ -d "$user_icons/$_current" ]; then
+			_probe=$user_icons/.$_current.kome-probe
+			derive_into "$_probe" "$_current" "$KOME_ICON_THEME" "$KOME_ICON_ACCENT"
+			_same=
+			[ "$(signature "$_probe")" != "$(signature "$user_icons/$_current")" ] || _same=1
+			rm -rf "$_probe"
+			[ -z "$_same" ] || return 0
+		fi
+		;;
+	esac
+
 	_name=kome-$KOME_PRESET-A
-	if [ "$(current_theme)" = "$_name" ]; then
+	if [ "$_current" = "$_name" ]; then
 		_name=kome-$KOME_PRESET-B
 	fi
 	derive "$_name" "$KOME_ICON_THEME" "$KOME_ICON_ACCENT"

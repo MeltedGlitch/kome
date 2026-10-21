@@ -230,10 +230,12 @@ También puedes aplicar todo lo posible con `--partial`.
 <details>
 <summary><b>Algunos iconos del panel no han cambiado.</b></summary>
 
-Es cosa de Plasma, no de kome: tras cambiar de tema de iconos, Plasma solo
-repinta algunos iconos del panel y del escritorio cuando pasas el ratón por
-encima — también si cambias los iconos desde Ajustes del sistema. Pasa el
-ratón, o reinicia el panel con `systemctl --user restart plasma-plasmashell`.
+Es un fallo conocido de Plasma: tras cambiar de tema de iconos, Plasma solo
+repinta algunos iconos del panel cuando pasas el ratón por encima — también
+si los cambias desde Ajustes del sistema. Por eso, cada vez que kome cambia
+tus iconos, refresca el panel por ti (parpadea un segundo). ¿No lo quieres?
+Pon `RefreshPanel=off` en `[General]` de `~/.config/kome/kome.conf` y kome
+solo te dirá cómo hacerlo tú.
 </details>
 
 <details>

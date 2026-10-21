@@ -14,6 +14,12 @@ setup() {
 @test "units record what they generate in the manifest" {
 	"$KOME" apply mocha
 	"$KOME" apply mocha
+	[ "$(grep -c 'Kome-mocha-' "$state/manifest")" -eq 1 ]
+	# A changed palette makes a second scheme, which is recorded too.
+	mkdir -p "$XDG_CONFIG_HOME/kome/presets"
+	printf '[Preset]\nname=Mocha\npalette=catppuccin-mocha\nstyle=soft\nmode=dark\nicon_theme=Papirus-Dark\nicon_accent=violet\naccent=#cba6f7\n' \
+		>"$XDG_CONFIG_HOME/kome/presets/mocha.ini"
+	"$KOME" apply mocha
 	grep -qx "path $XDG_DATA_HOME/color-schemes/Kome-mocha-A.colors" "$state/manifest"
 	grep -qx "path $XDG_DATA_HOME/color-schemes/Kome-mocha-B.colors" "$state/manifest"
 	grep -qx "path $XDG_DATA_HOME/icons/kome-mocha-A" "$state/manifest"

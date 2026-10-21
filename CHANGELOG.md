@@ -63,9 +63,13 @@ and the project uses [Semantic Versioning](https://semver.org/).
   your own included), and `kome --commands`.
 - `ghostty` integration: terminal colours from the palette, live reload,
   one `config-file` line added by `kome doctor --fix`, removed by purge.
+- After an icon change, kome refreshes Plasma's panel (with or without
+  systemd), which otherwise keeps old icons until hovered;
+  `RefreshPanel=off` in kome.conf turns it off.
 
 ### Fixed
 
+- Applying the same look twice no longer regenerates colours or icons.
 - Tray icons looked grey or white in kome's icon themes: the generated
   theme now keeps the base theme's KDE settings, above all
   `FollowsColorScheme`, so Plasma recolours them again.

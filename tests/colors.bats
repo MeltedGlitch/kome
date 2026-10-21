@@ -54,10 +54,17 @@ setup() {
 	[ "$(ini_get_kde "$f" General Name)" = "kome: Catppuccin Mocha" ]
 }
 
-@test "apply alternates names and never overwrites the active scheme" {
+@test "applying the same colours twice changes nothing" {
 	preset_export mocha
 	"$UNIT" apply
 	"$UNIT" apply
+	[ "$(tr '\n' ' ' <"$LOG")" = "Kome-mocha-A " ]
+}
+
+@test "changed colours alternate names and never overwrite the active scheme" {
+	preset_export mocha
+	"$UNIT" apply
+	KOME_ACCENT='#cba6f7' "$UNIT" apply
 	"$UNIT" apply
 	[ "$(tr '\n' ' ' <"$LOG")" = "Kome-mocha-A Kome-mocha-B Kome-mocha-A " ]
 }

@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 192 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 200 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -254,14 +254,20 @@ Format=1
 description=Plasma colour scheme          # for kome doctor and --help
 kind=core                                 # core | integration
 default=on                                # on | off (opt-in units)
-takes_effect=live                         # live | restart | relogin
+takes_effect=live                         # live | restart | relogin | shell
 min_plasma=6.0
 gives=the colours of Plasma and KDE apps  # "install X to also theme <gives>"
 ```
 
 `kome.conf` `[Units] <name>=on|off` overrides `default`. After an apply,
 units with `takes_effect=restart|relogin` produce a notice saying what
-needs a restart or a re-login.
+needs a restart or a re-login. `takes_effect=shell` (icons) means Plasma's
+shell does not repaint the change by itself (a known Plasma bug): when such
+a unit's state really changed, `apply`, `restore` and `purge` end by
+refreshing the panel — `systemctl --user restart plasma-plasmashell` when
+Plasma runs under systemd, else `plasmashell --replace`, else (no Plasma
+session) only a hint. `kome.conf` `[General] RefreshPanel=off` keeps only
+the hint.
 
 `kome doctor` is nothing more than running `check` on every unit.
 
@@ -685,6 +691,8 @@ templates only.
 | 2026-10-22 | Fix (tests): the fake Plasma inherited the host PATH, so a real kitty/dnf on the developer's machine changed test results. Tests now run with a hermetic PATH (stubs + basic tools only). |
 | 2026-10-22 | Found live (Latte): icons missing from Papirus (e.g. KDE Connect's phone) fell back to a dark variant and showed white on white. The derived icon theme now inherits `<base>,breeze,hicolor` for light looks and `<base>,breeze-dark,hicolor` for dark ones (owner's idea: a mode-matched fallback under the chosen pack). |
 | 2026-10-22 | Root cause of the grey/white tray icons (found from the owner's screenshot and index.theme files): the derived theme lacked `FollowsColorScheme=true`, so Plasma stopped recolouring monochrome icons. The derived `[Icon Theme]` now copies every key of the base theme's except Name, Comment, Inherits, Directories, ScaledDirectories and Hidden. KDE Connect probably picks its tray icon at startup (to verify). |
+| 2026-10-22 | Plasma keeps old panel icons until hovered (KDE bug 374276, also with `plasma-changeicons`). Owner's decision, a deliberate exception to principle 10's "ask first": kome refreshes the panel automatically, only when an icon change really happened — via systemd's `plasma-plasmashell` unit, or `plasmashell --replace` on systems without systemd; opt-out `RefreshPanel=off`. New `takes_effect=shell`. |
+| 2026-10-22 | Fix: re-applying the same look switched `colors`/`icons` between A and B (same content, new name), breaking idempotence and, with the panel refresh, restarting the panel for nothing. Both units now compare what they would generate with the active one and do nothing when identical; they alternate only when the content changes. |
 
 ---
 

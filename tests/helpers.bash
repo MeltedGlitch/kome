@@ -88,6 +88,27 @@ EOF
 #!/bin/sh
 printf 'pkill %s\n' "$*" >>"$LOG"
 EOF
+	# Plasma's shell: systemd-managed if $SYSTEMD_SHELL is set, running if
+	# $SHELL_RUNNING is set; every restart/replace is logged to $LOG.
+	cat >"$stubs/systemctl" <<'EOF'
+#!/bin/sh
+case "$*" in
+*is-active*) [ -n "${SYSTEMD_SHELL-}" ] ;;
+*restart*) printf 'systemctl %s\n' "$*" >>"$LOG" ;;
+esac
+EOF
+	cat >"$stubs/pgrep" <<'EOF'
+#!/bin/sh
+[ -n "${SHELL_RUNNING-}" ]
+EOF
+	cat >"$stubs/plasmashell" <<'EOF'
+#!/bin/sh
+printf 'plasmashell %s\n' "$*" >>"$LOG"
+EOF
+	cat >"$stubs/nohup" <<'EOF'
+#!/bin/sh
+"$@"
+EOF
 	cat >"$stubs/dbus-send" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$*" >>"$DBUSLOG"
@@ -99,7 +120,7 @@ EOF
 	sysbin="$BATS_TEST_TMPDIR/sysbin"
 	mkdir -p "$sysbin"
 	for _t in sh bash awk sed grep cat tr sort head tail cut wc mkdir rm rmdir mv cp ln \
-		readlink dirname basename env find mktemp ls touch chmod md5sum tee sleep; do
+		readlink dirname basename env find mktemp ls touch chmod md5sum tee sleep cmp; do
 		if _p=$(command -v "$_t"); then
 			ln -sf "$_p" "$sysbin/$_t"
 		fi

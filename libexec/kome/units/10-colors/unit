@@ -8,10 +8,11 @@
 # If the preset sets color_scheme= (e.g. BreezeDark), that installed KDE
 # scheme is applied instead and nothing is generated.
 #
-# Plasma silently ignores re-applying the active scheme, so each preset
-# alternates between two files, Kome-<preset>-A and Kome-<preset>-B, and the
-# active one is never overwritten. That also keeps the scheme a snapshot
-# points to intact until the apply after next.
+# Plasma silently ignores re-applying the active scheme, so when the colours
+# change each preset alternates between two files, Kome-<preset>-A and
+# Kome-<preset>-B, and the active one is never overwritten. That also keeps
+# the scheme a snapshot points to intact until the apply after next. When
+# nothing changed, apply does nothing at all.
 
 set -eu
 
@@ -73,11 +74,26 @@ do_apply() {
 	[ -n "${KOME_PRESET-}" ] ||
 		die "$EX_USAGE" "KOME_PRESET is not set" "apply a look with 'kome apply <preset>'"
 
+	_template=$(template_find colors kde.colors.in)
+	_current=$(current_scheme)
+
+	# Idempotent: if the active scheme is this preset's and has exactly the
+	# content we would generate, there is nothing to do.
+	case $_current in
+	"Kome-$KOME_PRESET-A" | "Kome-$KOME_PRESET-B")
+		KOME_SCHEME=$_current
+		export KOME_SCHEME
+		if [ -f "$scheme_dir/$_current.colors" ] &&
+			template_fill "$_template" 2>/dev/null | cmp -s - "$scheme_dir/$_current.colors"; then
+			return 0
+		fi
+		;;
+	esac
+
 	_scheme=Kome-$KOME_PRESET-A
-	if [ "$(current_scheme)" = "$_scheme" ]; then
+	if [ "$_current" = "$_scheme" ]; then
 		_scheme=Kome-$KOME_PRESET-B
 	fi
-	_template=$(template_find colors kde.colors.in)
 	KOME_SCHEME=$_scheme
 	export KOME_SCHEME
 	template_render "$_template" "$scheme_dir/$_scheme.colors" ||

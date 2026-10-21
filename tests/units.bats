@@ -23,7 +23,7 @@ conf() {
 		[ -n "$(get gives)" ] || { echo "$ini: gives"; false; }
 		case $(get kind) in core | integration) ;; *) echo "$ini: kind"; false ;; esac
 		case $(get default) in on | off) ;; *) echo "$ini: default"; false ;; esac
-		case $(get takes_effect) in live | restart | relogin) ;; *) echo "$ini: takes_effect"; false ;; esac
+		case $(get takes_effect) in live | restart | relogin | shell) ;; *) echo "$ini: takes_effect"; false ;; esac
 		[[ "$(get min_plasma)" =~ ^6\.[0-9]+$ ]] || { echo "$ini: min_plasma"; false; }
 	done
 }

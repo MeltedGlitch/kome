@@ -228,10 +228,12 @@ zypper…). You can also apply as much as possible with `--partial`.
 <details>
 <summary><b>Some panel icons did not change.</b></summary>
 
-That is Plasma, not kome: after switching icon themes, Plasma repaints some
-panel and desktop icons only when you hover them — even when you change
-icons in System Settings. Hover them, or restart the panel with
-`systemctl --user restart plasma-plasmashell`.
+That is a known Plasma bug: after switching icon themes, Plasma repaints
+some panel icons only when you hover them — even when you change icons in
+System Settings. So whenever kome changes your icons it refreshes the panel
+for you (it blinks for a second). Don't want that? Put `RefreshPanel=off`
+under `[General]` in `~/.config/kome/kome.conf` and kome will only tell you
+how to do it yourself.
 </details>
 
 <details>

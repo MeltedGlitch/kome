@@ -79,10 +79,21 @@ setup() {
 	[ "$(find "$XDG_DATA_DIRS/icons" -exec ls -ld {} + | md5sum)" = "$before" ]
 }
 
-@test "apply alternates A/B and never rewrites the active theme" {
+@test "applying the same icons twice changes nothing" {
 	preset_export mocha
 	"$UNIT" apply
+	: >"$KCONFIGLOG"
 	"$UNIT" apply
+	[ "$(kcfg kdeglobals Icons Theme)" = "kome-mocha-A" ]
+	[ ! -s "$KCONFIGLOG" ]
+	[ ! -e "$user_icons/kome-mocha-B" ]
+	[ -z "$(ls -A "$user_icons" | grep kome-probe)" ]
+}
+
+@test "changed icons alternate A/B and never rewrite the active theme" {
+	preset_export mocha
+	"$UNIT" apply
+	KOME_ICON_ACCENT=blue "$UNIT" apply
 	[ "$(kcfg kdeglobals Icons Theme)" = "kome-mocha-B" ]
 	[ -d "$user_icons/kome-mocha-A" ]
 	"$UNIT" apply
