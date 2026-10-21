@@ -1,0 +1,93 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome status — the active look, and what was changed by hand since.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome status [-v]
+
+Show the active preset and, for every unit, whether it is still as kome
+left it. Exit status 1 if something was changed by hand since.
+
+  -v, --verbose  show what changed
+EOF
+}
+
+verbose=
+case ${1-} in
+'') ;;
+-v | --verbose) verbose=1 ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+*) die "$EX_USAGE" "unexpected argument: $1" "run 'kome status --help'" ;;
+esac
+
+applied=$KOME_STATE_DIR/applied
+if [ ! -d "$applied" ]; then
+	printf 'preset: none\n'
+	printf 'kome: kome has not changed this desktop yet\n' >&2
+	hint "run 'kome list' to see the presets, then 'kome apply <preset>'"
+	exit "$EX_OK"
+fi
+
+if [ -s "$KOME_STATE_DIR/active" ]; then
+	preset=$(cat "$KOME_STATE_DIR/active")
+	title=$preset
+	if file=$(data_find presets "$preset"); then
+		title=$(ini_get "$file" Preset name 2>/dev/null) || title=$preset
+	fi
+	printf 'preset: %s (%s)\n' "$preset" "$title"
+else
+	printf 'preset: none (your original desktop)\n'
+fi
+
+if [ -f "$KOME_STATE_DIR/failed" ]; then
+	printf 'kome: the last apply failed and may have left the desktop half-applied\n' >&2
+	hint "run 'kome restore previous' to go back"
+fi
+
+drift=
+for u in $(units_all); do
+	name=$(unit_name "$u")
+	if [ ! -f "$applied/$name" ]; then
+		printf '%-10s skipped\n' "$name"
+		continue
+	fi
+	if ! now=$("$u/unit" current 2>/dev/null); then
+		printf '%-10s unknown (cannot read it here)\n' "$name"
+		continue
+	fi
+	if [ "$now" = "$(cat "$applied/$name")" ]; then
+		printf '%-10s as applied\n' "$name"
+		continue
+	fi
+	printf '%-10s changed by hand\n' "$name"
+	drift=1
+	if [ -n "$verbose" ]; then
+		printf '%s\n' "$now" | grep -vxF -f "$applied/$name" | sed 's/^/             now: /' || :
+		grep -vxF -e "$now" "$applied/$name" | sed 's/^/             was: /' || :
+	fi
+done
+
+if [ -n "$drift" ]; then
+	if [ -s "$KOME_STATE_DIR/active" ]; then
+		hint "run 'kome apply $preset' to undo your changes, or keep them"
+	else
+		hint "run 'kome restore original' to undo your changes, or keep them"
+	fi
+	exit 1
+fi

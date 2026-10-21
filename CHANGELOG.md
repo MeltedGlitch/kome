@@ -49,6 +49,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
   itself is never modified, no root); Breeze presets use KDE's icons.
 - `kome purge`: restores `original`, then deletes everything in the
   manifest plus kome's snapshots and state; keeps your own config.
+- `kome status` (`-v`): the active preset and, per unit, whether it is as
+  applied, changed by hand (exit 1) or skipped.
 
 ### Fixed
 
