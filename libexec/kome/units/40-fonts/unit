@@ -64,11 +64,11 @@ do_apply() {
 	printf '%s\n' "$ROLES" | while IFS=: read -r _name _group _key _kind _variant; do
 		if [ "$_kind" = mono ]; then _family=${KOME_FONT_MONO-}; else _family=${KOME_FONT_UI-}; fi
 		if [ -z "$_family" ]; then
-			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" --delete
+			kwriteconfig6 --notify --file kdeglobals --group "$_group" --key "$_key" --delete
 			continue
 		fi
 		if [ "$_variant" = small ]; then _pt=$_small; else _pt=$_size; fi
-		kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" "$(qfont "$_family" "$_pt")"
+		kwriteconfig6 --notify --file kdeglobals --group "$_group" --key "$_key" "$(qfont "$_family" "$_pt")"
 	done
 	notify
 }
@@ -91,9 +91,9 @@ do_restore() {
 		_line=$(printf '%s\n' "$_saved" | grep "^$_name=" | tail -n 1) || continue
 		_value=${_line#*=}
 		if [ -z "$_value" ]; then
-			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" --delete
+			kwriteconfig6 --notify --file kdeglobals --group "$_group" --key "$_key" --delete
 		else
-			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" "$_value"
+			kwriteconfig6 --notify --file kdeglobals --group "$_group" --key "$_key" "$_value"
 		fi
 	done
 	notify

@@ -56,6 +56,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- GTK apps kept the old icons and fonts: kome now writes KDE settings with
+  `kwriteconfig6 --notify`, so Plasma syncs them to GTK.
 - After an icon change, the panel showed the old icons until hovered:
   every icon group is now told to reload.
 - `kome restore original` now also restores units added after the first

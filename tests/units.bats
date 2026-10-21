@@ -95,3 +95,11 @@ colors=off'
 	"$KOME" apply mocha
 	[ ! -e "$XDG_DATA_HOME/kome/snapshots/original/colors" ]
 }
+
+@test "every KDE setting kome writes is notified, so GTK and Plasma follow" {
+	unset KOME_UNITS_DIR
+	"$KOME" apply mocha
+	"$KOME" restore original
+	[ -s "$KCONFIGLOG" ]
+	! grep -v '^notify ' "$KCONFIGLOG"
+}

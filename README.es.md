@@ -177,7 +177,7 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [x] Motor de color (mezclar, aclarar, oscurecer, contraste WCAG)
 - [x] Motor de plantillas
 - [x] Units `colors`, `icons`, `fonts`, `cursor`
-- [ ] Units: `gtk`, `kitty`, `rendering`, `wallpaper`
+- [ ] Units: `kitty`, `rendering`, `wallpaper`
 - [x] Comandos: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages y autocompletado

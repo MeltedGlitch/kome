@@ -121,7 +121,7 @@ if [ -n "$fix" ]; then
 	case " $traps " in
 	*" accent "*)
 		if ask "Stop Plasma from taking the accent colour from the wallpaper?"; then
-			kwriteconfig6 --file kdeglobals --group General --key accentColorFromWallpaper false
+			kwriteconfig6 --notify --file kdeglobals --group General --key accentColorFromWallpaper false
 			printf 'fixed: the accent colour no longer comes from the wallpaper\n'
 		else
 			problems=1

@@ -9,6 +9,7 @@
 #   $LOG      every scheme plasma-apply-colorscheme was asked to apply
 #   $FONTS    installed font families, one per line (read by fc-list)
 #   $DBUSLOG  every dbus-send call
+#   $KCONFIGLOG  every kwriteconfig6 write, as "notify|silent <file/group>/<key>"
 #   FAIL_APPLY=1 makes plasma-apply-colorscheme fail
 
 fake_plasma() {
@@ -25,7 +26,7 @@ fake_plasma() {
 	export FAKECFG="$BATS_TEST_TMPDIR/kconfig"
 	export STATE="$FAKECFG/kdeglobals/General/ColorScheme"
 	export LOG="$BATS_TEST_TMPDIR/applied" DBUSLOG="$BATS_TEST_TMPDIR/dbus"
-	export FONTS="$BATS_TEST_TMPDIR/fonts"
+	export FONTS="$BATS_TEST_TMPDIR/fonts" KCONFIGLOG="$BATS_TEST_TMPDIR/kconfig.log"
 	mkdir -p "$(dirname "$STATE")"
 	printf 'BreezeDark\n' >"$STATE"
 	printf '%s\n' Inter 'JetBrains Mono' 'Noto Sans' Hack >"$FONTS"
@@ -50,17 +51,19 @@ if [ -f "$FAKECFG/$path/$key" ]; then cat "$FAKECFG/$path/$key"; else printf '%s
 EOF
 	cat >"$stubs/kwriteconfig6" <<'EOF'
 #!/bin/sh
-path= key= del= val=
+path= key= del= val= notify=
 while [ $# -gt 0 ]; do
 	case $1 in
 	--file) path=$2; shift ;;
 	--group) path=$path/$2; shift ;;
 	--key) key=$2; shift ;;
 	--delete) del=1 ;;
+	--notify) notify=notify ;;
 	*) val=$1 ;;
 	esac
 	shift
 done
+printf '%s %s/%s\n' "${notify:-silent}" "$path" "$key" >>"$KCONFIGLOG"
 mkdir -p "$FAKECFG/$path"
 if [ -n "$del" ]; then rm -f "$FAKECFG/$path/$key"; else printf '%s\n' "$val" >"$FAKECFG/$path/$key"; fi
 EOF
