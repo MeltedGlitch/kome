@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 223 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 230 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
 and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -43,7 +43,7 @@ Open threads:
   verified (with a backup of `plasma-org.kde.plasma.desktop-appletsrc`)
   before a public release.
 
-**v0.1.0 tagged and released** (private repo). **Next: v0.2** — starting with the `decoration` unit (Klassy). (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**v0.1.0 tagged and released** (private repo). **v0.2 in progress:** `decoration` unit done (soft style: Klassy, 8 px corners, accent circles on the right; owner's choices). Owner has not installed Klassy yet. **Next:** `style` (widget style), `panel`. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -195,7 +195,7 @@ For the owner, "one click on any PC" = `dotfiles` bootstrap (e.g.
 | Concept | What it is | Contains |
 |---|---|---|
 | **Palette** | Colours only | Catppuccin's 26 roles + `accent`: `base mantle crust surface0 surface1 surface2 overlay0 overlay1 overlay2 text subtext0 subtext1 rosewater flamingo pink mauve red maroon peach yellow green teal sky sapphire blue lavender accent`. Every palette defines all 27, as `#rrggbb` only. Other upstream palettes (Nord, Tokyo Night…) are mapped onto these roles |
-| **Style** | Shape only | v0.1: UI font, monospace font and `font_size` (points, default 10; an empty font = KDE's default). Later (with `decoration`/`style`/`panel`): corner radius, window button shape, titlebar height, panel layout, opacity |
+| **Style** | Shape only | UI font, monospace font, `font_size` (points, default 10; an empty font = KDE's default); window decoration (`decoration`, `window_radius`, `window_buttons`, `buttons_left/right`; empty = KDE's default). Later (with `style`/`panel`): widget style, panel layout, opacity |
 | **Preset** | A palette + a style + a few extras | Icon folder accent (a Papirus folder colour name: `violet`, `blue`, `indigo`…), cursor theme, light/dark flag, optional KDE `color_scheme`, optional wallpaper path |
 | **Unit** | One appearance target | Implements the unit contract (§6) |
 | **Snapshot** | Saved state of everything `kome` can touch | Used by `kome restore`. Only two exist: `original` and `previous` |
@@ -315,7 +315,7 @@ Power users can run any unit directly by path; there is no special subcommand.
 | `gtk` | — | **Not a unit** (verified 2026-10-22): Plasma's kde-gtk-config already syncs colours (`colors.css`), cursor, icons and fonts to GTK whenever kome changes them through Plasma's tools or `kwriteconfig6 --notify`. `gtk.css` belongs to Plasma; kome never touches it. Flatpak theming: deferred | — | — |
 | `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen (`kscreenlockerrc`), only from the preset's `wallpaper=` (absolute or `~/`). `current` reads each desktop's plugin and image from `plasma-org.kde.plasma.desktop-appletsrc`; `restore` puts every screen back (slideshows, per-screen images) through Plasma scripting over D-Bus (`evaluateScript`, `desktopById`). Never on by default: the user's wallpapers are kept | **opt-in** | yes |
 | `kitty` | integration | generated theme file included from `kitty.conf`; reload all instances (SIGUSR1 / remote control) | on | yes |
-| `decoration` (v0.2) | core | Klassy (**optional ingredient**: without it windows are left untouched, with a notice) via its config + KWin reconfigure over D-Bus (`dbus-send`/`busctl`) | on | yes |
+| `decoration` | core | KWin decoration from the style: `decoration=klassy|breeze`, `window_radius`, `window_buttons=circles|icons`, `buttons_left/right` (KWin letters). Writes only its keys in `kwinrc` `[org.kde.kdecoration2]` and `klassy/klassyrc` (`Windeco`, `ButtonColors`), then `org.kde.KWin.reconfigure` over D-Bus. Klassy (≥ Plasma 6.6) is an **optional ingredient** (detected by `klassy-settings`): without it windows are left untouched, with a notice. Colours come from the colour scheme | on | yes |
 | `style` (v0.2) | core | widget style (Klassy / Darkly / Breeze) via `kwriteconfig6` | on | new apps only |
 | `panel` (v0.2) | core | Plasma desktop scripting (JS) via D-Bus `evaluateScript`; multi-monitor aware; destroys custom widgets | **opt-in** | yes |
 
@@ -553,7 +553,7 @@ kome/
 │   └── units/
 │       ├── 10-colors/           # unit, unit metadata, kde.colors.in
 │       ├── 20-icons/  30-cursor/  40-fonts/  50-rendering/
-│       └── 70-wallpaper/  90-kitty/  91-ghostty/
+│       └── 60-decoration/  70-wallpaper/  90-kitty/  91-ghostty/
 ├── lib/kome/
 │   ├── common.sh                # exit codes, messages, INI/template/XDG helpers, manifest
 │   ├── preset.sh                # find/list/resolve presets, palettes, styles
@@ -723,6 +723,7 @@ templates only.
 | 2026-10-22 | Review: one default-preset rule for apply, deps and doctor (`preset_pick`): the preset given, else `Preset=` in kome.conf, else the active one. |
 | 2026-10-22 | Review: `kind=` dropped from `unit.ini` (unread); `min_plasma=` is now checked by `kome doctor`. Core vs integration stays a documentation concept. |
 | 2026-10-22 | **v0.1.0 tagged and released** on GitHub (private). Development moves to v0.2 (`0.2.0-dev`). |
+| 2026-10-22 | `decoration` unit (v0.2). The style describes windows in generic words; only the unit knows Klassy's keys (read from Klassy's kcfg: `klassy/klassyrc`, `[Windeco] WindowCornerRadius/ButtonShape`, `[ButtonColors] ButtonBackgroundColors*`). Owner's choices for `soft`: small accent circles on the right (`ShapeSmallCircle`, `Accent`, close red on hover), 8 px corners, normal title bar, buttons `M` / `IAX`. Breeze presets reset to `org.kde.breeze` and KDE's button layout. Klassy via COPR `errornointernet/klassy` (package `klassy`, verified, Fedora 44 built). |
 
 ---
 

@@ -6,6 +6,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `decoration` unit: window corners and title bar buttons from the style,
+  through Klassy (optional: without it windows keep their frame); the
+  Breeze presets go back to KDE's own decoration.
+
 ## [0.1.0] - 2026-10-22
 
 ### Added

@@ -109,6 +109,20 @@ _styles/<name>.ini_ has a *[Style]* section:
 	Size in points, a whole number (default 10). Small fonts are 2 points
 	less.
 
+*decoration*
+	*klassy* or *breeze* (empty: leave the windows alone). Klassy is
+	optional: if it is not installed, windows keep their frame.
+
+*window_radius*
+	Window corner radius in pixels (Klassy).
+
+*window_buttons*
+	*circles* (small circles in the accent colour) or *icons* (Klassy).
+
+*buttons_left*, *buttons_right*
+	Title bar buttons in KWin's letters: *M* menu, *S* all desktops, *H*
+	help, *I* minimise, *A* maximise, *X* close (empty: KDE's default).
+
 # TEMPLATES
 
 Each unit fills its templates from these values. To change what a unit

@@ -185,8 +185,11 @@ something new means adding one directory; the core does not change.
 - [x] Shell completions (bash, zsh, fish)
 - [x] Man pages (`man kome`, `man kome.conf`)
 
-**v0.2** — more presets; window decorations (Klassy), widget style and panel
-layouts; a small graphical picker.
+**v0.2**
+
+- [x] Window decorations (corners, title bar buttons) with Klassy
+- [ ] Widget style, panel layouts
+- [ ] More presets, a small graphical picker
 
 <a id="faq"></a>
 

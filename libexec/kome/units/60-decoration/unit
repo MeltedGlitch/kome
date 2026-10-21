@@ -1,0 +1,152 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# decoration — the window decoration: the engine KWin draws windows with,
+# the corner radius, and the title bar buttons.
+#
+# The style says it in generic words (decoration=klassy|breeze,
+# window_radius, window_buttons=circles|icons, buttons_left/right in KWin's
+# letters: M menu, S all desktops, H help, I minimise, A maximise, X close);
+# only this unit knows how Klassy spells them. Klassy is an optional
+# ingredient: without it the windows keep their frame, with a notice. Its
+# colours come from the colour scheme (the colors unit), so nothing here is
+# about colour. Empty values mean KDE's default (the key is deleted).
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: decoration"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+
+# Every key this unit owns: "<state name>:<file>:<group>:<key>".
+KEYS="library:kwinrc:org.kde.kdecoration2:library
+theme:kwinrc:org.kde.kdecoration2:theme
+buttons_left:kwinrc:org.kde.kdecoration2:ButtonsOnLeft
+buttons_right:kwinrc:org.kde.kdecoration2:ButtonsOnRight
+radius:klassy/klassyrc:Windeco:WindowCornerRadius
+shape:klassy/klassyrc:Windeco:ButtonShape
+background:klassy/klassyrc:ButtonColors:ButtonBackgroundColorsActive
+background_inactive:klassy/klassyrc:ButtonColors:ButtonBackgroundColorsInactive
+close_hover:klassy/klassyrc:ButtonColors:NegativeCloseBackgroundHoverPressActive"
+
+# set_key <state name> <value> — write it, or delete it when empty.
+set_key() {
+	_entry=$(printf '%s\n' "$KEYS" | grep "^$1:")
+	_rest=${_entry#*:}
+	_file=${_rest%%:*}
+	_rest=${_rest#*:}
+	_group=${_rest%%:*}
+	_key=${_rest#*:}
+	if [ -z "$2" ]; then
+		kwriteconfig6 --notify --file "$_file" --group "$_group" --key "$_key" --delete
+	else
+		kwriteconfig6 --notify --file "$_file" --group "$_group" --key "$_key" "$2"
+	fi
+}
+
+# Tell KWin to reload its decoration settings.
+reconfigure() {
+	dbus-send --session --dest=org.kde.KWin --type=method_call /KWin org.kde.KWin.reconfigure 2>/dev/null || :
+}
+
+do_check() {
+	need_tools kreadconfig6 kwriteconfig6
+	case ${KOME_DECORATION-} in
+	'' | breeze) ;;
+	klassy)
+		if ! command -v klassy-settings >/dev/null 2>&1; then
+			printf 'decoration:Klassy\n'
+			exit "$CHECK_OPTIONAL"
+		fi
+		;;
+	*)
+		err "decoration=$KOME_DECORATION is not known (use klassy or breeze)"
+		hint "fix decoration= in the style, or remove it to keep your windows as they are"
+		exit "$CHECK_ERROR"
+		;;
+	esac
+	case ${KOME_WINDOW_BUTTONS-} in
+	'' | circles | icons) ;;
+	*)
+		err "window_buttons=$KOME_WINDOW_BUTTONS is not known (use circles or icons)"
+		hint "fix window_buttons= in the style"
+		exit "$CHECK_ERROR"
+		;;
+	esac
+	exit "$CHECK_READY"
+}
+
+do_apply() {
+	case ${KOME_DECORATION-} in
+	'') return 0 ;;
+	breeze)
+		set_key library org.kde.breeze
+		set_key theme Breeze
+		;;
+	klassy)
+		set_key library org.kde.klassy
+		set_key theme Klassy
+		set_key radius "${KOME_WINDOW_RADIUS-}"
+		case ${KOME_WINDOW_BUTTONS-} in
+		circles)
+			set_key shape ShapeSmallCircle
+			set_key background Accent
+			set_key background_inactive Accent
+			set_key close_hover true
+			;;
+		icons)
+			set_key shape ShapeIntegratedRoundedRectangle
+			set_key background TitleBarTextNegativeClose
+			set_key background_inactive TitleBarTextNegativeClose
+			set_key close_hover true
+			;;
+		esac
+		;;
+	esac
+	set_key buttons_left "${KOME_BUTTONS_LEFT-}"
+	set_key buttons_right "${KOME_BUTTONS_RIGHT-}"
+	reconfigure
+}
+
+# The state: every owned key's raw value (empty: never set).
+do_current() {
+	printf '%s\n' "$KEYS" | while IFS=: read -r _name _file _group _key; do
+		printf '%s=%s\n' "$_name" "$(kreadconfig6 --file "$_file" --group "$_group" --key "$_key")"
+	done
+}
+
+do_restore() {
+	_saved=$(cat)
+	printf '%s\n' "$_saved" | grep -q '^library=' ||
+		die "$EX_DATAERR" "no 'library=' line on stdin" "pipe in the output of 'unit current'"
+	printf '%s\n' "$KEYS" | while IFS=: read -r _name _rest; do
+		_line=$(printf '%s\n' "$_saved" | grep "^$_name=" | tail -n 1) || continue
+		set_key "$_name" "${_line#*=}"
+	done
+	reconfigure
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the decoration can be set (4: Klassy is not installed)
+  apply    set the decoration, corners and buttons from the KOME_* values
+  current  print every decoration key kome owns, as name=value
+  restore  set the values printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

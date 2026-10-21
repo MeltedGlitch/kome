@@ -211,3 +211,9 @@ fake_ghostty() {
 	printf '#!/bin/sh\n' >"$stubs/ghostty"
 	chmod +x "$stubs/ghostty"
 }
+
+# fake_klassy — make Klassy "installed" (its klassy-settings tool on PATH).
+fake_klassy() {
+	printf '#!/bin/sh\n' >"$stubs/klassy-settings"
+	chmod +x "$stubs/klassy-settings"
+}

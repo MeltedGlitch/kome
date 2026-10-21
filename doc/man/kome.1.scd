@@ -94,6 +94,9 @@ Each part of the look is a *unit*, run in this order:
 |  fonts
 :[ every KDE font role, from the style
 :[ on
+|  decoration
+:[ window corners and title bar buttons (with Klassy, optional)
+:[ on
 |  rendering
 :[ greyscale antialiasing, slight hinting, stem darkening (needs re-login)
 :[ off

@@ -187,8 +187,11 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [x] Autocompletado (bash, zsh, fish)
 - [x] Man pages (`man kome`, `man kome.conf`)
 
-**v0.2** — más presets; decoración de ventanas (Klassy), estilo de widgets y
-layouts del panel; un pequeño selector gráfico.
+**v0.2**
+
+- [x] Decoración de ventanas (esquinas, botones de la barra) con Klassy
+- [ ] Estilo de widgets, layouts del panel
+- [ ] Más presets, un pequeño selector gráfico
 
 <a id="preguntas-frecuentes"></a>
 
