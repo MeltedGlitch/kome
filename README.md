@@ -91,6 +91,10 @@ fish_add_path ~/.local/bin
 
 </details>
 
+Tab completion for bash and fish works in a new terminal. For zsh, add
+`fpath=(~/.local/share/zsh/site-functions $fpath)` to `~/.zshrc` before
+`compinit`.
+
 Then:
 
 ```sh
@@ -178,7 +182,8 @@ something new means adding one directory; the core does not change.
 - [ ] Units: `rendering`, `wallpaper`
 - [x] Commands: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
-- [ ] Man pages and shell completions
+- [x] Shell completions (bash, zsh, fish)
+- [ ] Man pages
 
 **v0.2** — more presets; window decorations (Klassy), widget style and panel
 layouts; a small graphical picker.

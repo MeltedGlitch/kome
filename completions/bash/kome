@@ -1,0 +1,29 @@
+# bash completion for kome                                 -*- shell-script -*-
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Commands come from `kome --commands` and presets from `kome list`, so new
+# commands and the user's own presets complete without editing this file.
+
+_kome_presets() {
+	kome list 2>/dev/null | cut -f1
+}
+
+_kome() {
+	local cur=${COMP_WORDS[COMP_CWORD]} words
+	if [ "$COMP_CWORD" -eq 1 ]; then
+		words="$(kome --commands 2>/dev/null) --help --version"
+	else
+		case ${COMP_WORDS[1]} in
+		apply) words="-n --dry-run -v --verbose --partial --help $(_kome_presets)" ;;
+		deps) words="--help $(_kome_presets)" ;;
+		doctor) words="--info --fix --help $(_kome_presets)" ;;
+		restore) words="original previous --help" ;;
+		status) words="-v --verbose --help" ;;
+		purge) words="-y --yes --help" ;;
+		*) words="--help" ;;
+		esac
+	fi
+	mapfile -t COMPREPLY < <(compgen -W "$words" -- "$cur")
+}
+
+complete -F _kome kome

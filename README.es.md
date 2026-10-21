@@ -93,6 +93,10 @@ fish_add_path ~/.local/bin
 
 </details>
 
+El autocompletado con Tab funciona en bash y fish al abrir una terminal
+nueva. En zsh, añade `fpath=(~/.local/share/zsh/site-functions $fpath)` a
+`~/.zshrc` antes de `compinit`.
+
 Y luego:
 
 ```sh
@@ -180,7 +184,8 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [ ] Units: `rendering`, `wallpaper`
 - [x] Comandos: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
-- [ ] Man pages y autocompletado
+- [x] Autocompletado (bash, zsh, fish)
+- [ ] Man pages
 
 **v0.2** — más presets; decoración de ventanas (Klassy), estilo de widgets y
 layouts del panel; un pequeño selector gráfico.

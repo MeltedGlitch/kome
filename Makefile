@@ -24,12 +24,20 @@ install:
 		if [ -x "$$f" ]; then m=755; else m=644; fi; \
 		install -Dm$$m "$$f" "$(DEST)/$$f" || exit; done
 
+	install -Dm644 completions/bash/kome $(DEST)/share/bash-completion/completions/kome
+	install -Dm644 completions/zsh/_kome $(DEST)/share/zsh/site-functions/_kome
+	install -Dm644 completions/fish/kome.fish $(DEST)/share/fish/vendor_completions.d/kome.fish
+
 uninstall:
 	rm -f $(DEST)/bin/kome
+	rm -f $(DEST)/share/bash-completion/completions/kome
+	rm -f $(DEST)/share/zsh/site-functions/_kome
+	rm -f $(DEST)/share/fish/vendor_completions.d/kome.fish
 	rm -rf $(DEST)/lib/kome $(DEST)/libexec/kome $(DEST)/share/kome
 
 lint:
 	shellcheck -x $(SCRIPTS)
+	shellcheck -s bash completions/bash/kome
 
 test:
 	bats tests

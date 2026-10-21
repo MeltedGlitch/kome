@@ -1,0 +1,25 @@
+#compdef kome
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# zsh completion for kome. Commands come from `kome --commands` and presets
+# from `kome list`.
+
+_kome() {
+	local -a presets
+	if (( CURRENT == 2 )); then
+		compadd -- ${(f)"$(kome --commands 2>/dev/null)"} --help --version
+		return
+	fi
+	presets=(${(f)"$(kome list 2>/dev/null | cut -f1)"})
+	case $words[2] in
+	apply) compadd -- -n --dry-run -v --verbose --partial --help $presets ;;
+	deps) compadd -- --help $presets ;;
+	doctor) compadd -- --info --fix --help $presets ;;
+	restore) compadd -- original previous --help ;;
+	status) compadd -- -v --verbose --help ;;
+	purge) compadd -- -y --yes --help ;;
+	*) compadd -- --help ;;
+	esac
+}
+
+_kome "$@"

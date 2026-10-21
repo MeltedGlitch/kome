@@ -59,6 +59,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Template function `by_mode(dark,light)`.
 - `kome doctor` recommends apps kome can theme that are not installed
   (e.g. kitty), with the install command.
+- Tab completion for bash, zsh and fish (commands, options, presets —
+  your own included), and `kome --commands`.
 
 ### Fixed
 

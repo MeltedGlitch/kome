@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 178 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 183 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -28,8 +28,8 @@ removes manifest paths and leaves pre-manifest leftovers (owner deletes
 them by hand once; see Deferred).
 
 **Next:** owner tries `status`, `doctor`, `purge` and tries to break them.
-Then: `rendering` (opt-in), `wallpaper` (opt-in), man pages,
-completions.
+Then: `rendering` (opt-in), `wallpaper` (opt-in), man pages.
+Completions done (bash/zsh/fish).
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -679,6 +679,7 @@ templates only.
 | 2026-10-22 | Verified live: GTK followed kome's colours and cursor but not its icons or fonts, because kome wrote kdeglobals without `--notify`. All KDE config writes now use `kwriteconfig6 --notify`. Consequently the `gtk` unit is dropped from v0.1: Plasma's kde-gtk-config does the job. |
 | 2026-10-22 | `kitty` integration: colours only (fonts stay the user's) in `kome-theme.conf`; the `include` line is offered by `check` as `fix:` and added by `kome doctor --fix` via the new optional `fix` verb; manifest gains `line<TAB>file<TAB>text` entries, which `purge` removes (deleting the file only if nothing else is left). Template function `by_mode(dark,light)` swaps terminal black/white for light looks. |
 | 2026-10-22 | Owner's request: `kome doctor` recommends uninstalled apps kome can theme (`check` exit 1 prints `app:<name>`), with the install command from the deps table (`[app:kitty]`); `kome apply` stays silent about them. Package-manager logic moved to `lib/kome/deps.sh`. |
+| 2026-10-22 | Completions for bash, zsh and fish, installed under `$PREFIX/share/{bash-completion/completions,zsh/site-functions,fish/vendor_completions.d}`. They hold no lists: commands come from the new `kome --commands`, presets from `kome list`. |
 
 ---
 

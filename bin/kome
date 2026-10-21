@@ -18,17 +18,13 @@ export KOME_ROOT
 # shellcheck source=lib/kome/common.sh
 . "$root/lib/kome/common.sh"
 
+# commands — every subcommand name, one per line.
 commands() {
-	found=
 	for f in "$libexec"/kome-*; do
 		if [ -x "$f" ]; then
-			printf '  %s\n' "${f##*/kome-}"
-			found=1
+			printf '%s\n' "${f##*/kome-}"
 		fi
 	done
-	if [ -z "$found" ]; then
-		printf '  (none yet)\n'
-	fi
 }
 
 usage() {
@@ -36,11 +32,12 @@ usage() {
 usage: kome <command> [options]
        kome -h | --help
        kome --version
+       kome --commands
 
 Change the whole look of KDE Plasma 6 in one command.
 
 commands:
-$(commands)
+$(commands | sed 's/^/  /')
 
 Run 'kome <command> --help' for help on a command.
 EOF
@@ -57,6 +54,10 @@ case ${1-} in
 	;;
 --version)
 	printf 'kome %s\n' "$KOME_VERSION"
+	exit "$EX_OK"
+	;;
+--commands)
+	commands
 	exit "$EX_OK"
 	;;
 -*)
