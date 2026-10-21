@@ -37,7 +37,7 @@ Open threads:
 - `kome doctor`: detect Plasma's automatic light/dark switching (key to
   verify).
 
-**Next:** owner tries `rendering` live; then `wallpaper` (opt-in), man pages.
+**Next:** `wallpaper` (opt-in), man pages. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -705,6 +705,7 @@ templates only.
 | 2026-10-22 | Verified live: panel refresh after icon changes and idempotent re-apply work on the owner's machine. |
 | 2026-10-22 | `rendering` unit (opt-in, relogin): fontconfig drop-in `~/.config/fontconfig/conf.d/90-kome-rendering.conf` (greyscale AA, slight hinting), stem darkening via a **Plasma login script** `~/.config/plasma-workspace/env/kome-rendering.sh` instead of `environment.d` (which only systemd reads — principle 7), plus `XftAntialias/XftHintStyle/XftSubPixel` in kdeglobals. |
 | 2026-10-22 | Fix (found by a test): `original` kept a disabled unit's state from kome's first run, so turning the unit on later and restoring lost the user's own changes made meanwhile. Now every apply refreshes `original` for each unit kome has never applied; an entry freezes only once kome applies that unit. Supersedes the earlier "fill only missing units" rule. |
+| 2026-10-22 | Verified live: `rendering` applies everything (doctor shows AA true, hintslight, no subpixel, stem darkening on), but the owner cannot perceive a difference: Fedora's defaults already match except stem darkening, which is subtle at ~109 ppi. Kept opt-in — it matters on distros with worse defaults. |
 
 ---
 
