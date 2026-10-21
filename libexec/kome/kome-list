@@ -1,0 +1,39 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome list — list available presets.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+
+usage() {
+	cat <<EOF
+usage: kome list
+
+List the available presets, one per line: the name to use with
+'kome apply', a tab, and the preset's full name. Your own presets in
+$KOME_USER_DIR/presets/ override shipped ones with the same name.
+EOF
+}
+
+case ${1-} in
+'') ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+*)
+	die "$EX_USAGE" "unexpected argument: $1" "run 'kome list --help'"
+	;;
+esac
+
+data_list presets | while IFS= read -r name; do
+	file=$(data_find presets "$name")
+	title=$(ini_get "$file" Preset name 2>/dev/null) || title=$name
+	printf '%s\t%s\n' "$name" "$title"
+done

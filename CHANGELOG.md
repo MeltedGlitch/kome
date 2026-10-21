@@ -21,6 +21,11 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Template engine (`lib/kome/template.awk`, `template_fill`,
   `template_render`): `{{name}}`, `:hex`/`:rgb`, `mix`/`lighten`/`darken`,
   `FILE:LINE` errors, atomic writes.
+- Catppuccin Mocha and Latte palettes, the `soft` style and the `mocha`
+  and `latte` presets.
+- Preset resolution (`lib/kome/preset.sh`): user files override shipped
+  ones; palettes are validated (all 27 roles, real colours).
+- `kome list`.
 
 ### Fixed
 

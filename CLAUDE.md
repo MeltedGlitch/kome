@@ -179,7 +179,7 @@ kome.conf (global settings)─┘        │                │
 
 ### Contract
 
-Every unit is a directory `units/NN-name/` (run-parts style: `NN` sets the
+Every unit is a directory `libexec/kome/units/NN-name/` (run-parts style: `NN` sets the
 order, e.g. `10-colors`, `20-icons`, `90-kitty`) containing an executable
 `unit`, its templates, and its metadata. Units never call or depend on each
 other; the only coupling is the order.
@@ -307,7 +307,7 @@ for future migrations.
 | `$XDG_CONFIG_HOME/kome/kome.conf` | Global settings: preset used by a bare `kome apply`, units on/off |
 | `$XDG_CONFIG_HOME/kome/{presets,palettes,styles,templates}/` | User files (override shipped ones) |
 | `$PREFIX/share/kome/{presets,palettes,styles}/` (default `~/.local/share/kome`) | Shipped data |
-| `$PREFIX/lib/kome/units/` | Shipped units |
+| `$PREFIX/libexec/kome/units/` | Shipped units (internal executables, not for direct use) |
 | `$XDG_STATE_HOME/kome/` | Active preset, manifest, log, lock file |
 | `$XDG_DATA_HOME/kome/snapshots/` | Snapshots `original` and `previous` |
 
@@ -317,12 +317,13 @@ Sketch (field names not final):
 # presets/mocha.ini
 [Preset]
 Format=1
-Name=Catppuccin Mocha
-Palette=catppuccin-mocha
-Style=soft
-IconAccent=lavender
-Mode=dark
-# Wallpaper=/path/to/image.png   (only used if the wallpaper unit is on)
+name=Catppuccin Mocha
+palette=catppuccin-mocha
+style=soft
+mode=dark
+icon_accent=lavender
+# accent=#cba6f7                 (optional: preset keys override palette/style)
+# wallpaper=/path/to/image.png   (only used if the wallpaper unit is on)
 ```
 
 ```ini
@@ -339,8 +340,8 @@ accent=#b4befe
 # styles/soft.ini
 [Style]
 Format=1
-FontUI=Inter
-FontMono=JetBrains Mono
+font_ui=Inter
+font_mono=JetBrains Mono
 ```
 
 ```ini
@@ -355,6 +356,13 @@ kitty=off
 ```
 
 `[Units]` lists only overrides; each unit's default comes from its metadata.
+
+**Key naming.** Section names are CamelCase (`[Preset]`); every value key in
+presets, palettes and styles is lowercase `snake_case`, so it maps directly
+to its variable and placeholder: `font_ui` → `KOME_FONT_UI` → `{{font_ui}}`.
+`Format` is metadata and is not exported. When a preset is resolved, the
+palette is read first, then the style, then the preset, so a preset can
+override any value (e.g. its own `accent`).
 
 Separation rule: **global** settings (which units run) live in `kome.conf`;
 **per-look** settings live in presets/palettes/styles.
@@ -460,21 +468,19 @@ back to the community, like most of the KDE ecosystem.
 ```
 kome/
 ├── bin/kome                     # dispatcher
-├── libexec/kome/                # kome-apply kome-list kome-doctor kome-deps
-│                                # kome-status kome-restore kome-purge
+├── libexec/kome/
+│   ├── kome-list kome-apply …   # one executable per subcommand
+│   └── units/
+│       ├── 10-colors/           # unit, unit metadata, kde.colors.in
+│       ├── 20-icons/  30-cursor/  40-fonts/  50-rendering/
+│       └── 60-gtk/  70-wallpaper/  90-kitty/
 ├── lib/kome/
-│   ├── common.sh                # logging, errors, hints, template fill, manifest
+│   ├── common.sh                # logging, errors, hints, INI/template helpers
+│   ├── preset.sh                # find/list/resolve presets, palettes, styles
 │   ├── ini.awk                  # INI reader for kome's own files
-│   └── color.awk                # colour maths
-├── units/
-│   ├── 10-colors/               # unit, unit metadata, kde.colors.in
-│   ├── 20-icons/
-│   ├── 30-cursor/
-│   ├── 40-fonts/
-│   ├── 50-rendering/
-│   ├── 60-gtk/
-│   ├── 70-wallpaper/
-│   └── 90-kitty/
+│   ├── color.awk                # colour maths
+│   ├── template.awk             # {{placeholder}} filling
+│   └── resolve.awk              # preset → KOME_* variables, palette validation
 ├── share/kome/
 │   ├── palettes/  styles/  presets/   # breeze.ini, breeze-dark.ini = KDE factory
 │   └── deps/                    # ingredient → package name per package manager
@@ -486,6 +492,9 @@ kome/
 │                                # system-wide: sudo make install PREFIX=/usr/local; DESTDIR for packagers
 ├── README.md  README.es.md  CHANGELOG.md  LICENSE  CLAUDE.md
 ```
+
+**The repository has the same layout as an installation**, so kome runs
+identically from a checkout (`./bin/kome`) and from `$PREFIX`.
 
 Language: POSIX `sh` wherever reasonable (bash only if a clear need appears),
 validated with `shellcheck`. Testing Plasma behaviour is manual (a test user or
@@ -591,6 +600,8 @@ templates only.
 | 2026-10-21 | Name: **kome** (米). Free in Fedora, Debian, Arch, AUR, crates.io; no binary/man page clash. Env vars `KOME_*`, paths `…/kome/`. |
 | 2026-10-21 | v0.1 design frozen; implementation starts with the repo skeleton. |
 | 2026-10-21 | Palette roles: Catppuccin's 26 names + `accent`, values `#rrggbb` only. |
+| 2026-10-21 | Repo layout = install layout; units live in `libexec/kome/units/`. |
+| 2026-10-21 | Value keys are lowercase snake_case (`font_ui` → `KOME_FONT_UI`); resolution order palette → style → preset (preset overrides). |
 
 ---
 
