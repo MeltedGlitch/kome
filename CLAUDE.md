@@ -12,24 +12,32 @@
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
 branch `main`, CI green, 200 bats tests passing (also under `gawk --posix`).
 
-Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
-`{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
+Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
+and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
 `mocha`, `latte`; styles `soft`, `breeze`; units `colors`, `icons`,
-`fonts`, `cursor` (each with `unit.ini`, all tested live by the owner) and
-the `kitty` and `ghostty` integrations (not yet tried live);
-commands `list`, `apply`, `restore`, `deps`, `status`, `doctor`
-(`--info`, `--fix`), `purge` (manifest). Tests share a fake Plasma, fake
-KConfig, fake icon themes and fake units (`tests/helpers.bash`).
+`cursor`, `fonts` and integrations `kitty`, `ghostty` (each with
+`unit.ini`); commands `list`, `apply`, `restore`, `deps`, `status`,
+`doctor` (`--info`, `--fix`), `purge`; completions (bash/zsh/fish). Tests
+run against a fake Plasma with a hermetic PATH (`tests/helpers.bash`).
 
-Owner's machine (from `kome doctor --info`): Fedora 44, Plasma/KWin 6.7.5,
-Wayland, Intel + NVIDIA RTX 4070, HDMI-A-1 2560x1440@143.91 and DP-1
-2560x1440@144 (he said one is 165 Hz), both scale 1.25. Verified: `purge`
-removes manifest paths and leaves pre-manifest leftovers (owner deletes
-them by hand once; see Deferred).
+Verified live by the owner: colours, fonts, icons (incl. the
+FollowsColorScheme fix), GTK sync via `--notify`, automatic panel refresh
+after icon changes (systemd path), idempotent re-apply (no refresh), purge.
+Owner switched terminal to Ghostty (COPR); kitty uninstalled.
 
-**Next:** owner tries `status`, `doctor`, `purge` and tries to break them.
-Then: `rendering` (opt-in), `wallpaper` (opt-in), man pages.
-Completions done (bash/zsh/fish).
+Owner's machine: Fedora 44, Plasma/KWin 6.7.5, Wayland, Intel + NVIDIA
+RTX 4070, HDMI-A-1 2560x1440@143.91 and DP-1 2560x1440@144 (he said one is
+165 Hz), both scale 1.25.
+
+Open threads:
+- KDE Connect's tray phone looks very faint on Latte: likely its
+  "disconnected" state drawn with the colour scheme's Disabled effect,
+  which kome copied from Breeze Dark. Owner was asked whether his phone was
+  connected; proposal: a softer Disabled effect for light looks.
+- `kome doctor`: detect Plasma's automatic light/dark switching (key to
+  verify).
+
+**Next:** `rendering` (opt-in), `wallpaper` (opt-in), man pages.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -693,6 +701,7 @@ templates only.
 | 2026-10-22 | Root cause of the grey/white tray icons (found from the owner's screenshot and index.theme files): the derived theme lacked `FollowsColorScheme=true`, so Plasma stopped recolouring monochrome icons. The derived `[Icon Theme]` now copies every key of the base theme's except Name, Comment, Inherits, Directories, ScaledDirectories and Hidden. KDE Connect probably picks its tray icon at startup (to verify). |
 | 2026-10-22 | Plasma keeps old panel icons until hovered (KDE bug 374276, also with `plasma-changeicons`). Owner's decision, a deliberate exception to principle 10's "ask first": kome refreshes the panel automatically, only when an icon change really happened — via systemd's `plasma-plasmashell` unit, or `plasmashell --replace` on systems without systemd; opt-out `RefreshPanel=off`. New `takes_effect=shell`. |
 | 2026-10-22 | Fix: re-applying the same look switched `colors`/`icons` between A and B (same content, new name), breaking idempotence and, with the panel refresh, restarting the panel for nothing. Both units now compare what they would generate with the active one and do nothing when identical; they alternate only when the content changes. |
+| 2026-10-22 | Verified live: panel refresh after icon changes and idempotent re-apply work on the owner's machine. |
 
 ---
 
