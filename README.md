@@ -175,7 +175,7 @@ something new means adding one directory; the core does not change.
 - [x] Colour engine (mix, lighten, darken, WCAG contrast)
 - [x] Template engine
 - [x] Units `colors`, `icons`, `fonts`, `cursor`
-- [ ] Units: `gtk`, `kitty`, `rendering`, `wallpaper`, `gtk`, `wallpaper`, `kitty`
+- [ ] Units: `gtk`, `kitty`, `rendering`, `wallpaper`
 - [x] Commands: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages and shell completions
