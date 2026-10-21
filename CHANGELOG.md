@@ -69,9 +69,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `rendering` unit (opt-in, `rendering=on` in kome.conf): greyscale
   antialiasing and slight hinting for every app (fontconfig), FreeType stem
   darkening through a Plasma login script, and the same for KDE apps.
+- `wallpaper` unit (opt-in, `wallpaper=` in the preset): desktop and lock
+  screen; restoring brings back each screen's own wallpaper or slideshow.
 
 ### Fixed
 
+- `kome restore` no longer touches parts of the desktop kome never changed.
 - `kome restore original` lost changes you made by hand to a unit kome had
   not applied yet (e.g. one turned on later): such units are now saved
   fresh until kome first applies them.

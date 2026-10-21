@@ -103,3 +103,19 @@ colors=off'
 	[ -s "$KCONFIGLOG" ]
 	! grep -v '^notify ' "$KCONFIGLOG"
 }
+
+@test "restore never touches a unit kome has not applied" {
+	fake_unit 10-colors 0 "" default=on
+	fake_unit 70-wallpaper 0 "" default=off
+	"$KOME" apply mocha
+	"$KOME" restore original
+	! grep -q '^wallpaper restore' "$UNITLOG"
+}
+
+@test "restore skips a unit whose state is already the saved one" {
+	fake_unit 10-colors 0 "" default=on
+	"$KOME" apply mocha
+	: >"$UNITLOG"
+	"$KOME" restore original
+	! grep -q '^colors restore' "$UNITLOG"
+}

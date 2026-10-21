@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 208 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 217 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
 and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -37,7 +37,7 @@ Open threads:
 - `kome doctor`: detect Plasma's automatic light/dark switching (key to
   verify).
 
-**Next:** `wallpaper` (opt-in), man pages. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**Next:** man pages; owner tries `wallpaper` live. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -306,9 +306,9 @@ Power users can run any unit directly by path; there is no special subcommand.
 | `icons` | core | Papirus (only icon theme with complete coverage of KDE apps). Folder accent via a tiny **derived theme** generated in `$XDG_DATA_HOME/icons/` that inherits from Papirus and overrides only folder icons (no root, works with the distro package, Papirus untouched); `kwriteconfig6` | on | yes |
 | `cursor` | core | `plasma-apply-cursortheme`. Catppuccin presets use the official Catppuccin cursors as an **optional ingredient** (rarely packaged): if missing, the cursor is left as is, with a notice | on | yes |
 | `fonts` | core | `kwriteconfig6` for all font roles (general, fixed, small, toolbar, menu, window title), size from the style; an empty font name deletes the key so KDE's default applies (used by the Breeze presets) | on | mostly |
-| `rendering` | core | user fontconfig file + `environment.d` (stem darkening), recommended values (§10) | **opt-in** | re-login |
+| `rendering` | core | fontconfig drop-in + Plasma login script (stem darkening) + kdeglobals Xft keys, recommended values (§10) | **opt-in** | re-login |
 | `gtk` | — | **Not a unit** (verified 2026-10-22): Plasma's kde-gtk-config already syncs colours (`colors.css`), cursor, icons and fonts to GTK whenever kome changes them through Plasma's tools or `kwriteconfig6 --notify`. `gtk.css` belongs to Plasma; kome never touches it. Flatpak theming: deferred | — | — |
-| `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen config, only from a path the user gives in a preset. Never on by default: the user's wallpapers are kept | **opt-in** | yes |
+| `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen (`kscreenlockerrc`), only from the preset's `wallpaper=` (absolute or `~/`). `current` reads each desktop's plugin and image from `plasma-org.kde.plasma.desktop-appletsrc`; `restore` puts every screen back (slideshows, per-screen images) through Plasma scripting over D-Bus (`evaluateScript`, `desktopById`). Never on by default: the user's wallpapers are kept | **opt-in** | yes |
 | `kitty` | integration | generated theme file included from `kitty.conf`; reload all instances (SIGUSR1 / remote control) | on | yes |
 | `decoration` (v0.2) | core | Klassy (**optional ingredient**: without it windows are left untouched, with a notice) via its config + KWin reconfigure over D-Bus (`dbus-send`/`busctl`) | on | yes |
 | `style` (v0.2) | core | widget style (Klassy / Darkly / Breeze) via `kwriteconfig6` | on | new apps only |
@@ -706,6 +706,9 @@ templates only.
 | 2026-10-22 | `rendering` unit (opt-in, relogin): fontconfig drop-in `~/.config/fontconfig/conf.d/90-kome-rendering.conf` (greyscale AA, slight hinting), stem darkening via a **Plasma login script** `~/.config/plasma-workspace/env/kome-rendering.sh` instead of `environment.d` (which only systemd reads — principle 7), plus `XftAntialias/XftHintStyle/XftSubPixel` in kdeglobals. |
 | 2026-10-22 | Fix (found by a test): `original` kept a disabled unit's state from kome's first run, so turning the unit on later and restoring lost the user's own changes made meanwhile. Now every apply refreshes `original` for each unit kome has never applied; an entry freezes only once kome applies that unit. Supersedes the earlier "fill only missing units" rule. |
 | 2026-10-22 | Verified live: `rendering` applies everything (doctor shows AA true, hintslight, no subpixel, stem darkening on), but the owner cannot perceive a difference: Fedora's defaults already match except stem darkening, which is subtle at ~109 ppi. Kept opt-in — it matters on distros with worse defaults. |
+| 2026-10-22 | `wallpaper` unit (opt-in): see the catalogue; preset key `wallpaper=`. |
+| 2026-10-22 | Fix (design review): `restore`/`purge` called every unit's `restore`, even units kome never applied — e.g. it would have rewritten the user's wallpapers through Plasma with `wallpaper` off. `snapshot_restore` now restores only units kome has applied (`touched`) and only when their state differs from the snapshot. |
+| 2026-10-22 | Fix (tests): session variables (`FREETYPE_PROPERTIES`…) leaked from the developer's session into tests; the fake Plasma unsets them. |
 
 ---
 

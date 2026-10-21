@@ -1,0 +1,161 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# wallpaper — desktop and lock screen wallpaper (opt-in: wallpaper=on in
+# kome.conf, and a `wallpaper=` path in the preset).
+#
+# apply: sets the preset's image on every desktop with
+# plasma-apply-wallpaperimage, and on the lock screen. A preset without
+# wallpaper= leaves the wallpaper alone.
+#
+# current/restore work per desktop (screen): each one's wallpaper plugin
+# (image, slideshow, colour…) and image, read from Plasma's desktop config,
+# and written back through Plasma's scripting over D-Bus — so different
+# wallpapers per screen, or a slideshow, come back exactly.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: wallpaper"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+
+appletsrc=${XDG_CONFIG_HOME:-$HOME/.config}/plasma-org.kde.plasma.desktop-appletsrc
+
+# image_path — the preset's wallpaper, with a leading ~ expanded.
+image_path() {
+	case ${KOME_WALLPAPER-} in
+	\~/*) printf '%s\n' "$HOME/${KOME_WALLPAPER#\~/}" ;;
+	*) printf '%s\n' "${KOME_WALLPAPER-}" ;;
+	esac
+}
+
+do_check() {
+	[ -n "${KOME_WALLPAPER-}" ] || exit 0
+	if ! command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+		err "plasma-apply-wallpaperimage not found: this needs KDE Plasma 6"
+		hint "run 'kome doctor' on a Plasma 6 session"
+		exit 3
+	fi
+	_img=$(image_path)
+	case $_img in
+	/*) ;;
+	*)
+		err "wallpaper=$KOME_WALLPAPER must be an absolute path or start with ~/"
+		hint "set e.g. wallpaper=~/Pictures/wallpaper.jpg in the preset"
+		exit 3
+		;;
+	esac
+	if [ ! -r "$_img" ]; then
+		err "the preset's wallpaper does not exist: $_img"
+		hint "fix wallpaper= in the preset, or remove it to keep your wallpaper"
+		exit 3
+	fi
+	exit 0
+}
+
+do_apply() {
+	[ -n "${KOME_WALLPAPER-}" ] || return 0
+	_img=$(image_path)
+	plasma-apply-wallpaperimage "$_img" >/dev/null ||
+		die 3 "plasma-apply-wallpaperimage failed for $_img" "run 'plasma-apply-wallpaperimage $_img' to see the error"
+	kwriteconfig6 --notify --file kscreenlockerrc --group Greeter --group Wallpaper \
+		--group org.kde.image --group General --key Image "file://$_img"
+}
+
+# Prints, for each desktop containment N, "desktop.N.plugin=…" and, for image
+# wallpapers, "desktop.N.image=…"; then "lock=…" (empty: never set).
+do_current() {
+	[ ! -f "$appletsrc" ] || awk '
+		/^\[/ {
+			sec = $0
+			id = ""
+			if (match(sec, /^\[Containments\]\[[0-9]+\]/)) {
+				id = substr(sec, 16, RLENGTH - 16)
+				rest = substr(sec, RLENGTH + 1)
+			}
+			next
+		}
+		id != "" && rest == "" && /^wallpaperplugin=/ { plugin[id] = substr($0, 17) }
+		id != "" && rest == "" && /^activityId=/ { desktop[id] = 1 }
+		id != "" && rest == "[Wallpaper][org.kde.image][General]" && /^Image=/ { image[id] = substr($0, 7) }
+		END {
+			for (i in desktop)
+				ids[++n] = i + 0
+			# Sort numerically, so the output is stable.
+			for (a = 1; a <= n; a++)
+				for (b = a + 1; b <= n; b++)
+					if (ids[b] < ids[a]) { t = ids[a]; ids[a] = ids[b]; ids[b] = t }
+			for (a = 1; a <= n; a++) {
+				i = ids[a]
+				printf "desktop.%d.plugin=%s\n", i, plugin[i]
+				if (i in image)
+					printf "desktop.%d.image=%s\n", i, image[i]
+			}
+		}
+	' "$appletsrc"
+	printf 'lock=%s\n' "$(kreadconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper \
+		--group org.kde.image --group General --key Image)"
+}
+
+# js_string <text> — quote text for a JavaScript string literal.
+js_string() {
+	printf "'%s'" "$(printf '%s' "$1" | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g")"
+}
+
+do_restore() {
+	_saved=$(cat)
+	printf '%s\n' "$_saved" | grep -q '^lock=' ||
+		die 65 "no 'lock=' line on stdin" "pipe in the output of 'unit current'"
+
+	# One Plasma script that puts every desktop's wallpaper back.
+	_js=
+	for _id in $(printf '%s\n' "$_saved" | sed -n 's/^desktop\.\([0-9]*\)\.plugin=.*/\1/p'); do
+		_plugin=$(printf '%s\n' "$_saved" | sed -n "s/^desktop\\.$_id\\.plugin=//p")
+		[ -n "$_plugin" ] || _plugin=org.kde.image
+		_js="${_js}d = desktopById($_id); if (d) { d.wallpaperPlugin = $(js_string "$_plugin");"
+		_image=$(printf '%s\n' "$_saved" | sed -n "s/^desktop\\.$_id\\.image=//p")
+		if [ -n "$_image" ]; then
+			_js="$_js d.currentConfigGroup = ['Wallpaper', 'org.kde.image', 'General']; d.writeConfig('Image', $(js_string "$_image"));"
+		fi
+		_js="$_js d.reloadConfig(); } "
+	done
+	if [ -n "$_js" ]; then
+		dbus-send --session --dest=org.kde.plasmashell --type=method_call --print-reply=literal \
+			/PlasmaShell org.kde.PlasmaShell.evaluateScript "string:$_js" >/dev/null ||
+			die 3 "Plasma did not take the wallpaper back" "is plasmashell running? run 'kome doctor'"
+	fi
+
+	_lock=$(printf '%s\n' "$_saved" | sed -n 's/^lock=//p')
+	if [ -z "$_lock" ]; then
+		kwriteconfig6 --notify --file kscreenlockerrc --group Greeter --group Wallpaper \
+			--group org.kde.image --group General --key Image --delete
+	else
+		kwriteconfig6 --notify --file kscreenlockerrc --group Greeter --group Wallpaper \
+			--group org.kde.image --group General --key Image "$_lock"
+	fi
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the preset's wallpaper can be set (3: the file is missing)
+  apply    set the preset's wallpaper on every desktop and the lock screen
+  current  print each desktop's wallpaper plugin and image, and the lock screen's
+  restore  put back the wallpapers printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

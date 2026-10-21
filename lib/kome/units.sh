@@ -114,11 +114,16 @@ unit_touched() {
 }
 
 # snapshot_restore <name>
-# Feed each saved state back to its unit's restore, in run order.
+# Feed each saved state back to its unit's restore, in run order — but only
+# for units kome has applied (any other unit's state is still the user's
+# own: nothing to give back) and only when the state actually differs.
 snapshot_restore() {
 	for _u in $(units_all); do
-		_f=$KOME_SNAP_DIR/$1/$(unit_name "$_u")
+		_n=$(unit_name "$_u")
+		_f=$KOME_SNAP_DIR/$1/$_n
 		[ -f "$_f" ] || continue
+		grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
+		[ "$("$_u/unit" current 2>/dev/null)" != "$(cat "$_f")" ] || continue
 		"$_u/unit" restore <"$_f" || {
 			err "could not restore '$(unit_name "$_u")'"
 			return 70

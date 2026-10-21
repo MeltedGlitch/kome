@@ -14,6 +14,9 @@
 
 fake_plasma() {
 	KOME_ROOT="$BATS_TEST_DIRNAME/.."
+	# Variables kome reads from the session must not leak in from the machine
+	# running the tests (e.g. its own stem darkening).
+	unset FREETYPE_PROPERTIES KITTY_CONFIG_DIRECTORY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
 	export XDG_CONFIG_HOME="$BATS_TEST_TMPDIR/config"
 	export XDG_DATA_HOME="$BATS_TEST_TMPDIR/data"
 	export XDG_STATE_HOME="$BATS_TEST_TMPDIR/state"
@@ -112,6 +115,10 @@ EOF
 	cat >"$stubs/dbus-send" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$*" >>"$DBUSLOG"
+EOF
+	cat >"$stubs/plasma-apply-wallpaperimage" <<'EOF'
+#!/bin/sh
+printf 'wallpaper %s\n' "$1" >>"$LOG"
 EOF
 	chmod +x "$stubs"/*
 
