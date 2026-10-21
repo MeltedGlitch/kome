@@ -66,7 +66,32 @@ cd kome
 make install              # into ~/.local — no root needed
 ```
 
-Make sure `~/.local/bin` is in your `PATH`, then:
+Check that your shell can find it:
+
+```sh
+command -v kome || echo "~/.local/bin is not in your PATH"
+```
+
+<details>
+<summary>Not found? Add <code>~/.local/bin</code> to your <code>PATH</code></summary>
+
+Many distributions (Fedora, Ubuntu…) already do this for you. If yours does
+not, run the line for your shell, then open a new terminal:
+
+```sh
+# bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+
+# zsh
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+
+# fish
+fish_add_path ~/.local/bin
+```
+
+</details>
+
+Then:
 
 ```sh
 kome doctor               # what can be themed here, and what is missing
