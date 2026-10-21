@@ -93,7 +93,18 @@ EOF
 printf '%s\n' "$*" >>"$DBUSLOG"
 EOF
 	chmod +x "$stubs"/*
-	export PATH="$stubs:$PATH"
+
+	# A hermetic PATH: the stubs plus links to basic tools only, so nothing
+	# installed on the machine running the tests (a real kitty, dnf…) leaks in.
+	sysbin="$BATS_TEST_TMPDIR/sysbin"
+	mkdir -p "$sysbin"
+	for _t in sh bash awk sed grep cat tr sort head tail cut wc mkdir rm rmdir mv cp ln \
+		readlink dirname basename env find mktemp ls touch chmod md5sum tee sleep; do
+		if _p=$(command -v "$_t"); then
+			ln -sf "$_p" "$sysbin/$_t"
+		fi
+	done
+	export PATH="$stubs:$sysbin"
 }
 
 # kcfg <file> <group> <key> — read the fake KConfig ("" if unset).
@@ -158,4 +169,10 @@ fake_icon_themes() {
 fake_kitty() {
 	printf '#!/bin/sh\n' >"$stubs/kitty"
 	chmod +x "$stubs/kitty"
+}
+
+# fake_ghostty — make Ghostty "installed" (a stub on PATH).
+fake_ghostty() {
+	printf '#!/bin/sh\n' >"$stubs/ghostty"
+	chmod +x "$stubs/ghostty"
 }

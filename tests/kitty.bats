@@ -115,8 +115,10 @@ setup() {
 }
 
 @test "doctor recommends installing kitty, with the command" {
+	printf '#!/bin/sh\n' >"$stubs/dnf"
+	chmod +x "$stubs/dnf"
 	run "$KOME" doctor mocha
-	[[ "$output" == *"absent    kitty      Kitty terminal colours (not installed: "*"kitty)"* ]]
+	[[ "$output" == *"absent    kitty      Kitty terminal colours (not installed: sudo dnf install kitty)"* ]]
 	run "$UNIT" check
 	[ "$output" = "app:kitty" ]
 }

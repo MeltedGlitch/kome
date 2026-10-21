@@ -25,7 +25,7 @@
 
 **kome** (米, *arroz crudo* en japonés — un guiño a *ricing*) cambia **todo el
 aspecto de KDE Plasma 6 con un solo comando**: colores, fuentes, iconos,
-cursor, decoración de ventanas, apps GTK y tu terminal — todo desde una misma
+cursor, decoración de ventanas, apps GTK y tu terminal (kitty, Ghostty) — todo desde una misma
 paleta, todo en armonía, y siempre a un comando de volver a como estaba.
 
 ```sh
@@ -180,7 +180,7 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [x] Lector de INI
 - [x] Motor de color (mezclar, aclarar, oscurecer, contraste WCAG)
 - [x] Motor de plantillas
-- [x] Units `colors`, `icons`, `fonts`, `cursor`, `kitty`
+- [x] Units `colors`, `icons`, `fonts`, `cursor`, `kitty`, `ghostty`
 - [ ] Units: `rendering`, `wallpaper`
 - [x] Comandos: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha

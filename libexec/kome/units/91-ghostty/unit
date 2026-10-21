@@ -1,0 +1,125 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# ghostty — the Ghostty terminal's colours (an integration).
+#
+# apply: writes kome-theme next to Ghostty's config and tells running
+# Ghostty to reload (SIGUSR2). Ghostty only reads it through one line in the
+# user's config, `config-file = ?kome-theme` (the ? makes a missing file
+# harmless), which kome never adds on its own: check announces it as a fix,
+# and `kome doctor --fix` runs `unit fix`, which adds it and records it in
+# the manifest so `kome purge` removes it.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: ghostty"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+
+dir=${XDG_CONFIG_HOME:-$HOME/.config}/ghostty
+# Ghostty reads config.ghostty (1.2.3+) and config; use whichever exists.
+if [ -f "$dir/config.ghostty" ]; then
+	conf=$dir/config.ghostty
+else
+	conf=$dir/config
+fi
+theme=$dir/kome-theme
+include='config-file = ?kome-theme'
+
+included() {
+	grep -qxF "$include" "$conf" 2>/dev/null
+}
+
+reload() {
+	pkill -USR2 -x ghostty 2>/dev/null || :
+}
+
+do_check() {
+	if ! command -v ghostty >/dev/null 2>&1; then
+		printf 'app:ghostty\n'
+		exit 1
+	fi
+	if ! included; then
+		printf 'fix:add "%s" to %s\n' "$include" "$conf"
+	fi
+	exit 0
+}
+
+do_apply() {
+	_template=$(template_find ghostty ghostty-theme.in)
+	template_render "$_template" "$theme" ||
+		die 65 "could not generate the Ghostty theme from $_template"
+	manifest_add "$theme"
+	reload
+	if ! included; then
+		printf 'kome: Ghostty will use the new colours once its config includes them\n' >&2
+		hint "run 'kome doctor --fix' to add that one line"
+	fi
+}
+
+# The state is the theme file itself: "theme=none", or "theme=kome" followed
+# by its lines as "line=…", so restore can write it back exactly.
+do_current() {
+	if [ -f "$theme" ]; then
+		printf 'theme=kome\n'
+		sed 's/^/line=/' "$theme"
+	else
+		printf 'theme=none\n'
+	fi
+}
+
+do_restore() {
+	_saved=$(cat)
+	case $_saved in
+	theme=none*) rm -f "$theme" ;;
+	theme=kome*)
+		mkdir -p "$dir"
+		printf '%s\n' "$_saved" | sed -n 's/^line=//p' >"$theme.kome-tmp"
+		mv -f "$theme.kome-tmp" "$theme"
+		;;
+	*) die 65 "no 'theme=' line on stdin" "pipe in the output of 'unit current'" ;;
+	esac
+	reload
+}
+
+do_fix() {
+	included && return 0
+	mkdir -p "$dir"
+	# Keep the user's file intact: only append, on a line of its own.
+	if [ -s "$conf" ] && [ -n "$(tail -c 1 "$conf")" ]; then
+		printf '\n' >>"$conf"
+	fi
+	printf '%s\n' "$include" >>"$conf"
+	manifest_add_line "$conf" "$include"
+	printf 'fixed: %s now includes kome-theme\n' "$conf"
+	reload
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore | fix
+
+  check    exit 0 if Ghostty is installed (1 and app:ghostty: it is not); announces fixes
+  apply    write kome-theme from the KOME_* colours, reload Ghostty
+  current  print the theme file as theme=none|kome and line=… lines
+  restore  write back the theme printed by 'current', read from stdin
+  fix      add "$include" to Ghostty's config (recorded for kome purge)
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+fix) do_fix ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

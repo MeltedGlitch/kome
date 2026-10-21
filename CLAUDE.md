@@ -10,13 +10,13 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 183 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 190 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
 `mocha`, `latte`; styles `soft`, `breeze`; units `colors`, `icons`,
 `fonts`, `cursor` (each with `unit.ini`, all tested live by the owner) and
-the `kitty` integration (not yet tried live);
+the `kitty` and `ghostty` integrations (not yet tried live);
 commands `list`, `apply`, `restore`, `deps`, `status`, `doctor`
 (`--info`, `--fix`), `purge` (manifest). Tests share a fake Plasma, fake
 KConfig, fake icon themes and fake units (`tests/helpers.bash`).
@@ -680,6 +680,9 @@ templates only.
 | 2026-10-22 | `kitty` integration: colours only (fonts stay the user's) in `kome-theme.conf`; the `include` line is offered by `check` as `fix:` and added by `kome doctor --fix` via the new optional `fix` verb; manifest gains `line<TAB>file<TAB>text` entries, which `purge` removes (deleting the file only if nothing else is left). Template function `by_mode(dark,light)` swaps terminal black/white for light looks. |
 | 2026-10-22 | Owner's request: `kome doctor` recommends uninstalled apps kome can theme (`check` exit 1 prints `app:<name>`), with the install command from the deps table (`[app:kitty]`); `kome apply` stays silent about them. Package-manager logic moved to `lib/kome/deps.sh`. |
 | 2026-10-22 | Completions for bash, zsh and fish, installed under `$PREFIX/share/{bash-completion/completions,zsh/site-functions,fish/vendor_completions.d}`. They hold no lists: commands come from the new `kome --commands`, presets from `kome list`. |
+| 2026-10-22 | Owner moves from Konsole to **Ghostty** (closest to Konsole's comfort, popular for ricing). `ghostty` integration (`91-ghostty`): colours in `kome-theme`, included with `config-file = ?kome-theme` (added by `doctor --fix`), live reload with SIGUSR2; uses `config.ghostty` if present, else `config`. Facts checked in Ghostty's docs. Kitty stays supported. |
+| 2026-10-22 | Deps table: `install_<manager>=` for managers that need a full command (Ghostty on Fedora: the community COPR `scottames/ghostty`, as documented by ghostty.org). |
+| 2026-10-22 | Fix (tests): the fake Plasma inherited the host PATH, so a real kitty/dnf on the developer's machine changed test results. Tests now run with a hermetic PATH (stubs + basic tools only). |
 
 ---
 

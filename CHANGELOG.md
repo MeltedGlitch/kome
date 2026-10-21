@@ -61,9 +61,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
   (e.g. kitty), with the install command.
 - Tab completion for bash, zsh and fish (commands, options, presets —
   your own included), and `kome --commands`.
+- `ghostty` integration: terminal colours from the palette, live reload,
+  one `config-file` line added by `kome doctor --fix`, removed by purge.
 
 ### Fixed
 
+- Tests no longer depend on programs installed on the machine running them.
 - GTK apps kept the old icons and fonts: kome now writes KDE settings with
   `kwriteconfig6 --notify`, so Plasma syncs them to GTK.
 - After an icon change, the panel showed the old icons until hovered:

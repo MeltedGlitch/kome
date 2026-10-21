@@ -26,7 +26,8 @@ esac
 
 # deps_commands <ingredients, one per line>
 # Print the commands that install them: one package-manager command for
-# everything packaged, then a per-user command for each `install=` entry.
+# everything packaged, then a command for each `install_<pm>=` (e.g. a COPR
+# for dnf) or per-user `install=` entry.
 # What has neither is explained on stderr.
 deps_commands() {
 	printf '%s\n' "$1" | {
@@ -37,6 +38,8 @@ deps_commands() {
 			[ -z "$KOME_PM" ] || _pkg=$(ini_get "$KOME_DEPS_TABLE" "$_ing" "$KOME_PM" 2>/dev/null) || _pkg=
 			if [ -n "$_pkg" ]; then
 				_pkgs="$_pkgs $_pkg"
+			elif [ -n "$KOME_PM" ] && _cmd=$(ini_get "$KOME_DEPS_TABLE" "$_ing" "install_$KOME_PM" 2>/dev/null); then
+				printf '%s\n' "$_cmd"
 			elif _cmd=$(ini_get "$KOME_DEPS_TABLE" "$_ing" install 2>/dev/null); then
 				printf '%s\n' "$_cmd"
 			elif _url=$(ini_get "$KOME_DEPS_TABLE" "$_ing" url 2>/dev/null); then
