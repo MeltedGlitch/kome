@@ -18,6 +18,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   their real palettes, badges, roadmap, FAQ, contributing guide.
 - Template placeholder syntax fixed in the design (`{{role:format}}`,
   `{{mix(a,b,t)}}`, …).
+- Template engine (`lib/kome/template.awk`, `template_fill`,
+  `template_render`): `{{name}}`, `:hex`/`:rgb`, `mix`/`lighten`/`darken`,
+  `FILE:LINE` errors, atomic writes.
 
 ### Fixed
 

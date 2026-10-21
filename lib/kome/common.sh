@@ -43,3 +43,22 @@ ini_get() {
 ini_dump() {
 	kome_awk -f "$KOME_ROOT/lib/kome/ini.awk" "$@"
 }
+
+# template_fill <template>
+# Print the template filled from the KOME_* environment (see template.awk).
+template_fill() {
+	kome_awk -f "$KOME_ROOT/lib/kome/color.awk" -f "$KOME_ROOT/lib/kome/template.awk" "$1"
+}
+
+# template_render <template> <dest>
+# Fill the template into dest atomically: on any error dest is untouched.
+template_render() {
+	mkdir -p "$(dirname -- "$2")" || return
+	if template_fill "$1" >"$2.kome-tmp"; then
+		mv -f "$2.kome-tmp" "$2"
+	else
+		_rc=$?
+		rm -f "$2.kome-tmp"
+		return "$_rc"
+	fi
+}

@@ -13,9 +13,13 @@
   Everything that goes into the repo — code, comments, CLI messages, `--help`,
   man pages, commit messages, this file — is in **English**. The README exists in
   two versions: `README.md` (English) and `README.es.md` (Spanish).
-- **Step by step.** Give only the next step (or the next few), then wait for his
-  result. Do not lay out 5–10 steps ahead: a plan is not known to be feasible
-  until it is tried. A full guide only when he asks for one explicitly.
+- **Work autonomously, in small verified steps.** Chain several implementation
+  steps without asking (write → test → commit → push), as long as each one is
+  small, tested and committed on its own. Stop and ask only for: anything
+  that changes the owner's live desktop or config (running a unit's `apply`,
+  `plasma-apply-*`, `kwriteconfig6` on real files), design decisions not
+  covered here, or anything outward-facing beyond pushing to the private repo.
+  When the owner must run something himself, give only that next step.
 - **Short and direct.** No filler. Briefly explain *why* before giving commands to
   copy and paste.
 - **Keep this file alive.** When a decision is made, update the relevant section

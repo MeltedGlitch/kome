@@ -20,6 +20,7 @@ install:
 	install -Dm644 lib/kome/common.sh $(LIBDIR)/common.sh
 	install -Dm644 lib/kome/ini.awk $(LIBDIR)/ini.awk
 	install -Dm644 lib/kome/color.awk $(LIBDIR)/color.awk
+	install -Dm644 lib/kome/template.awk $(LIBDIR)/template.awk
 
 uninstall:
 	rm -f $(BINDIR)/kome
