@@ -17,7 +17,8 @@ fake_plasma() {
 	export XDG_DATA_HOME="$BATS_TEST_TMPDIR/data"
 	export XDG_STATE_HOME="$BATS_TEST_TMPDIR/state"
 	export XDG_DATA_DIRS="$BATS_TEST_TMPDIR/system"
-	mkdir -p "$XDG_DATA_DIRS/color-schemes"
+	export HOME="$BATS_TEST_TMPDIR/home"
+	mkdir -p "$HOME" "$XDG_DATA_DIRS/color-schemes" "$XDG_DATA_DIRS/icons/breeze_cursors/cursors"
 	touch "$XDG_DATA_DIRS/color-schemes/BreezeDark.colors" \
 		"$XDG_DATA_DIRS/color-schemes/BreezeLight.colors"
 
@@ -66,6 +67,12 @@ EOF
 [ -z "${FAIL_APPLY-}" ] || exit 1
 printf '%s\n' "$1" >>"$LOG"
 printf '%s\n' "$1" >"$STATE"
+EOF
+	cat >"$stubs/plasma-apply-cursortheme" <<'EOF'
+#!/bin/sh
+mkdir -p "$FAKECFG/kcminputrc/Mouse"
+printf '%s\n' "$1" >"$FAKECFG/kcminputrc/Mouse/cursorTheme"
+printf 'cursor %s\n' "$1" >>"$LOG"
 EOF
 	cat >"$stubs/fc-list" <<'EOF'
 #!/bin/sh

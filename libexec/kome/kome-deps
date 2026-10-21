@@ -66,7 +66,8 @@ required=
 optional=
 for u in $(units_all); do
 	unit_enabled "$u" || continue
-	unit_check "$u"
+	# Only ingredients matter here; a unit that cannot run is doctor's job.
+	unit_check "$u" 2>/dev/null
 	case $check_status in
 	2) required="$required$check_out
 " ;;
@@ -91,6 +92,8 @@ packages() {
 			[ -z "$pm" ] || _pkg=$(ini_get "$TABLE" "$_ing" "$pm" 2>/dev/null) || _pkg=
 			if [ -n "$_pkg" ]; then
 				_pkgs="$_pkgs $_pkg"
+			elif _cmd=$(ini_get "$TABLE" "$_ing" install 2>/dev/null); then
+				printf '%s\n' "$_cmd"
 			elif _url=$(ini_get "$TABLE" "$_ing" url 2>/dev/null); then
 				printf 'kome: %s is not packaged for %s; get it from %s\n' "${_ing#*:}" "${pm:-your system}" "$_url" >&2
 			else

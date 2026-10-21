@@ -76,7 +76,7 @@ for u in $(units_all); do
 	1) say "$name: not installed here, skipped" ;;
 	2) missing="$missing$(printf '%s\n' "$check_out" | sed "s/^/  /; s/\$/  ($name)/")
 " ;;
-	4) notices="${notices}install $(printf '%s' "$check_out" | tr '\n' ' ' | sed 's/ $//') to also theme $(unit_label "$u")
+	4) notices="${notices}install $(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ $//') to also theme $(unit_label "$u")
 " ;;
 	*) die 69 "'$name' cannot run here" "run 'kome doctor' to see why" ;;
 	esac

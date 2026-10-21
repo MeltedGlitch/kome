@@ -41,6 +41,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   families are reported as ingredients.
 - `kome deps`: the install command for what a preset is missing, for the
   package manager found (dnf, zypper, pacman, apt); never runs it.
+- `cursor` unit: Catppuccin cursors for Mocha/Latte as an optional
+  ingredient (missing → cursor untouched, notice, and a per-user install
+  command from `kome deps`); Breeze presets use `breeze_cursors`.
 
 ### Fixed
 

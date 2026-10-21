@@ -1,0 +1,100 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# cursor — the mouse cursor theme.
+#
+# apply: sets KOME_CURSOR_THEME with plasma-apply-cursortheme. A preset
+# without cursor_theme leaves the cursor alone. A missing theme is an
+# optional ingredient (check exits 4): the cursor stays as it is.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: cursor"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+
+# Plasma's default when kcminputrc has no cursorTheme key.
+current_theme() {
+	kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme --default breeze_cursors
+}
+
+# installed <theme> — a <theme>/cursors dir in any icon theme location.
+installed() {
+	_dirs=$HOME/.icons:${XDG_DATA_HOME:-$HOME/.local/share}/icons
+	_IFS=$IFS
+	IFS=:
+	for _d in $_dirs ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+		case $_d in
+		*/icons | "$HOME/.icons") ;;
+		*) _d=$_d/icons ;;
+		esac
+		if [ -d "$_d/$1/cursors" ]; then
+			IFS=$_IFS
+			return 0
+		fi
+	done
+	IFS=$_IFS
+	return 1
+}
+
+set_theme() {
+	[ "$(current_theme)" != "$1" ] || return 0
+	plasma-apply-cursortheme "$1" >/dev/null ||
+		die 3 "plasma-apply-cursortheme failed for '$1'" "run 'plasma-apply-cursortheme $1' to see the error"
+}
+
+do_check() {
+	for _tool in plasma-apply-cursortheme kreadconfig6; do
+		if ! command -v "$_tool" >/dev/null 2>&1; then
+			err "$_tool not found: this needs KDE Plasma 6"
+			hint "run 'kome doctor' on a Plasma 6 session"
+			exit 3
+		fi
+	done
+	if [ -n "${KOME_CURSOR_THEME-}" ] && ! installed "$KOME_CURSOR_THEME"; then
+		printf 'cursor:%s\n' "$KOME_CURSOR_THEME"
+		exit 4
+	fi
+	exit 0
+}
+
+do_apply() {
+	[ -z "${KOME_CURSOR_THEME-}" ] || set_theme "$KOME_CURSOR_THEME"
+}
+
+do_restore() {
+	_theme=
+	while IFS= read -r _line; do
+		case $_line in
+		theme=*) _theme=${_line#theme=} ;;
+		esac
+	done
+	[ -n "$_theme" ] ||
+		die 65 "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
+	set_theme "$_theme"
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the cursor can be set (4: the theme is not installed)
+  apply    set the cursor theme from KOME_CURSOR_THEME
+  current  print the cursor theme as theme=<name>
+  restore  set the theme printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) printf 'theme=%s\n' "$(current_theme)" ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

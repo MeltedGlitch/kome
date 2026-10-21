@@ -15,7 +15,7 @@ setup() {
 	for t in sh awk cat dirname sed grep tr sort env basename mkdir; do
 		ln -s "$(command -v "$t")" "$bin/$t"
 	done
-	for t in kreadconfig6 kwriteconfig6 plasma-apply-colorscheme fc-list dbus-send; do
+	for t in kreadconfig6 kwriteconfig6 plasma-apply-colorscheme plasma-apply-cursortheme fc-list dbus-send; do
 		ln -s "$stubs/$t" "$bin/$t"
 	done
 }
@@ -29,24 +29,24 @@ with_pm() {
 	with_pm dnf
 	PATH="$bin" run "$KOME" deps mocha
 	[ "$status" -eq 0 ]
-	[ "$output" = "sudo dnf install rsms-inter-fonts jetbrains-mono-fonts" ]
+	[ "${lines[0]}" = "sudo dnf install rsms-inter-fonts jetbrains-mono-fonts" ]
 }
 
 @test "uses the names of the package manager it finds" {
 	with_pm apt
 	PATH="$bin" run "$KOME" deps mocha
-	[ "$output" = "sudo apt install fonts-inter fonts-jetbrains-mono" ]
+	[ "${lines[0]}" = "sudo apt install fonts-inter fonts-jetbrains-mono" ]
 	rm "$bin/apt"
 	with_pm pacman
 	PATH="$bin" run "$KOME" deps mocha
-	[ "$output" = "sudo pacman -S --needed inter-font ttf-jetbrains-mono" ]
+	[ "${lines[0]}" = "sudo pacman -S --needed inter-font ttf-jetbrains-mono" ]
 }
 
 @test "only what is missing is listed" {
 	with_pm dnf
 	printf 'Inter\n' >"$FONTS"
 	PATH="$bin" run "$KOME" deps mocha
-	[ "$output" = "sudo dnf install jetbrains-mono-fonts" ]
+	[ "${lines[0]}" = "sudo dnf install jetbrains-mono-fonts" ]
 }
 
 @test "nothing missing says so, with a hint to apply" {

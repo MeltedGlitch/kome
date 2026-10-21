@@ -56,7 +56,7 @@ colors=off'
 
 @test "a missing optional ingredient skips its unit, applies the rest, and says so" {
 	fake_unit 10-colors 0 "" default=on
-	fake_unit 80-decoration 4 "Klassy" default=on "gives=window borders and buttons"
+	fake_unit 80-decoration 4 "decoration:Klassy" default=on "gives=window borders and buttons"
 	run "$KOME" apply mocha
 	[ "$status" -eq 0 ]
 	[ "$(cat "$UNITLOG")" = "colors apply" ]

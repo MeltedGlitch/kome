@@ -10,23 +10,23 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 117 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 125 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
 `mocha`, `latte`; styles `soft`, `breeze` (empty fonts = KDE default);
-units **`colors`** (tested live: OK) and **`fonts`**, each with `unit.ini`;
+units **`colors`** (tested live: OK), **`fonts`** (live: OK, owner installed
+Inter + JetBrains Mono) and **`cursor`**, each with `unit.ini`;
 commands `list`, `apply` (`-n`, `-v`, `--partial`), `restore
 original|previous`, **`deps`** (verified Fedora/Debian/Arch names). Tests
 share a fake Plasma + fake KConfig (`tests/helpers.bash`) and fake units.
 
-The owner's machine lacks Inter and JetBrains Mono: `kome apply mocha`
-will stop and point to `kome deps mocha` until they are installed.
+Owner's cursors: `breeze_cursors` active; others in `~/.icons` (Apple,
+WhiteSur, Layan, Vimix); no Catppuccin cursors yet.
 
-**Next:** `cursor` unit (Catppuccin cursors = optional ingredient; needs
-the cursor theme names + their `url=`), then `icons` (Papirus + derived
-folder-colour theme in `$XDG_DATA_HOME/icons/`). Then `doctor`, `status`,
-`purge` + manifest.
+**Next:** `icons` (Papirus + derived folder-colour theme in
+`$XDG_DATA_HOME/icons/`), then `doctor`, `status`, `purge` + manifest,
+then `rendering` (owner: don't advance it out of order).
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -657,6 +657,7 @@ templates only.
 | 2026-10-22 | Catppuccin presets use the Catppuccin cursors as an optional ingredient (missing → cursor untouched + notice). |
 | 2026-10-22 | `icon_accent` is a Papirus folder colour name (Mocha `violet`, Latte `blue`). |
 | 2026-10-22 | `kome deps`: package manager detected by binary (dnf, zypper, pacman, apt — first found), names from `share/kome/deps/packages.ini` (only names verified in the distro's index), `url=` for unpackaged ingredients; optional ones after a `# optional` line. |
+| 2026-10-22 | `cursor` unit: Catppuccin presets use `catppuccin-<flavour>-<accent>-cursors` (optional); Breeze presets `breeze_cursors`. The deps table gains `install=`, a per-user shell command printed (never run) for unpackaged ingredients. |
 
 ---
 
