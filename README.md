@@ -182,7 +182,7 @@ something new means adding one directory; the core does not change.
 - [x] Commands: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [x] Shell completions (bash, zsh, fish)
-- [ ] Man pages
+- [x] Man pages (`man kome`, `man kome.conf`)
 
 **v0.2** — more presets; window decorations (Klassy), widget style and panel
 layouts; a small graphical picker.

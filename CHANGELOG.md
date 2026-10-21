@@ -71,6 +71,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
   darkening through a Plasma login script, and the same for KDE apps.
 - `wallpaper` unit (opt-in, `wallpaper=` in the preset): desktop and lock
   screen; restoring brings back each screen's own wallpaper or slideshow.
+- Man pages: `kome(1)` and `kome.conf(5)`.
 
 ### Fixed
 

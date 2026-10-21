@@ -11,6 +11,8 @@ PREFIX ?= $(HOME)/.local
 
 DEST = $(DESTDIR)$(PREFIX)
 
+MAN = doc/man/kome.1 doc/man/kome.conf.5
+
 SCRIPTS = bin/kome lib/kome/*.sh libexec/kome/kome-* libexec/kome/units/*/unit
 
 all:
@@ -24,12 +26,15 @@ install:
 		if [ -x "$$f" ]; then m=755; else m=644; fi; \
 		install -Dm$$m "$$f" "$(DEST)/$$f" || exit; done
 
+	install -Dm644 doc/man/kome.1 $(DEST)/share/man/man1/kome.1
+	install -Dm644 doc/man/kome.conf.5 $(DEST)/share/man/man5/kome.conf.5
 	install -Dm644 completions/bash/kome $(DEST)/share/bash-completion/completions/kome
 	install -Dm644 completions/zsh/_kome $(DEST)/share/zsh/site-functions/_kome
 	install -Dm644 completions/fish/kome.fish $(DEST)/share/fish/vendor_completions.d/kome.fish
 
 uninstall:
 	rm -f $(DEST)/bin/kome
+	rm -f $(DEST)/share/man/man1/kome.1 $(DEST)/share/man/man5/kome.conf.5
 	rm -f $(DEST)/share/bash-completion/completions/kome
 	rm -f $(DEST)/share/zsh/site-functions/_kome
 	rm -f $(DEST)/share/fish/vendor_completions.d/kome.fish
@@ -44,4 +49,14 @@ test:
 
 check: lint test
 
-.PHONY: all install uninstall lint test check
+# Man pages are shipped pre-generated; regenerate them after editing the
+# .scd sources (needs scdoc).
+man: $(MAN)
+
+doc/man/kome.1: doc/man/kome.1.scd
+	scdoc <doc/man/kome.1.scd >doc/man/kome.1
+
+doc/man/kome.conf.5: doc/man/kome.conf.5.scd
+	scdoc <doc/man/kome.conf.5.scd >doc/man/kome.conf.5
+
+.PHONY: all install uninstall lint test check man

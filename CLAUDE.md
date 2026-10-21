@@ -37,7 +37,7 @@ Open threads:
 - `kome doctor`: detect Plasma's automatic light/dark switching (key to
   verify).
 
-**Next:** man pages; owner tries `wallpaper` live. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**Next:** owner tries `wallpaper` live and reads `man kome`. v0.1 is feature-complete: review, then tag. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -709,6 +709,7 @@ templates only.
 | 2026-10-22 | `wallpaper` unit (opt-in): see the catalogue; preset key `wallpaper=`. |
 | 2026-10-22 | Fix (design review): `restore`/`purge` called every unit's `restore`, even units kome never applied — e.g. it would have rewritten the user's wallpapers through Plasma with `wallpaper` off. `snapshot_restore` now restores only units kome has applied (`touched`) and only when their state differs from the snapshot. |
 | 2026-10-22 | Fix (tests): session variables (`FREETYPE_PROPERTIES`…) leaked from the developer's session into tests; the fake Plasma unsets them. |
+| 2026-10-22 | Man pages `kome(1)` and `kome.conf(5)` in scdoc, shipped pre-generated in `doc/man/` (`make man` regenerates); installed to `$PREFIX/share/man`; CI fails if the generated pages are out of date (ignoring scdoc's version line). |
 
 ---
 
