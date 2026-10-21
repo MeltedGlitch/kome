@@ -66,9 +66,19 @@ template_render() {
 
 # manifest_add <path>
 # Record a file or directory kome created, so `kome purge` can remove it.
-# Manifest lines are "path <absolute path>".
+# Manifest lines are "path <absolute path>", or for a line kome added to a
+# user's file, "line<TAB><absolute path><TAB><the line>".
 manifest_add() {
 	mkdir -p "$KOME_STATE_DIR"
 	grep -qxF "path $1" "$KOME_STATE_DIR/manifest" 2>/dev/null ||
 		printf 'path %s\n' "$1" >>"$KOME_STATE_DIR/manifest"
+}
+
+# manifest_add_line <file> <line>
+# Record a line kome added to a user's file, so `kome purge` removes it.
+manifest_add_line() {
+	mkdir -p "$KOME_STATE_DIR"
+	_entry=$(printf 'line\t%s\t%s' "$1" "$2")
+	grep -qxF "$_entry" "$KOME_STATE_DIR/manifest" 2>/dev/null ||
+		printf '%s\n' "$_entry" >>"$KOME_STATE_DIR/manifest"
 }

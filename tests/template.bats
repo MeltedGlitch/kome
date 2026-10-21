@@ -118,3 +118,13 @@ fill() {
 	[ "$(cat "$dest")" = 'old' ]
 	[ ! -e "$dest.kome-tmp" ]
 }
+
+@test "by_mode picks the dark or light colour from KOME_MODE" {
+	KOME_MODE=dark run fill '{{by_mode(base,text)}}'
+	[ "$output" = '#1e1e2e' ]
+	KOME_MODE=light run fill '{{by_mode(base,text):rgb}}'
+	[ "$output" = '205,214,244' ]
+	KOME_MODE= run fill '{{by_mode(base,text)}}'
+	[ "$status" -eq 65 ]
+	[[ "$output" == *"needs mode=dark or mode=light"* ]]
+}

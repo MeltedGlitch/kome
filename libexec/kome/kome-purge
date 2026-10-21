@@ -19,8 +19,9 @@ usage() {
 usage: kome purge [-y]
 
 Restore your desktop from before kome ('kome restore original'), then
-delete everything kome created: generated colour schemes and icon themes,
-snapshots and state. Your own files in $KOME_USER_DIR/ are kept.
+delete everything kome created: generated colour schemes, icon themes and
+terminal themes, lines it added to your files, snapshots and state.
+Your own files in $KOME_USER_DIR/ are kept.
 
   -y, --yes  do not ask for confirmation (needed when not on a terminal)
 EOF
@@ -73,15 +74,38 @@ inside_user_dirs() {
 	return 1
 }
 
+tab=$(printf '\t')
+
+# remove_line <file> <line> — take one line kome added out of a user's file;
+# delete the file only if nothing else is left in it.
+remove_line() {
+	[ -f "$1" ] || return 0
+	grep -vxF -e "$2" "$1" >"$1.kome-tmp" || :
+	if grep -q '[^[:space:]]' "$1.kome-tmp"; then
+		cat "$1.kome-tmp" >"$1"
+	else
+		rm -f "$1"
+	fi
+	rm -f "$1.kome-tmp"
+}
+
 if [ -f "$KOME_STATE_DIR/manifest" ]; then
-	while IFS= read -r line; do
-		case $line in
-		'path '*) path=${line#path } ;;
-		*) continue ;;
+	while IFS= read -r entry; do
+		case $entry in
+		'path '*)
+			path=${entry#path }
+			if inside_user_dirs "$path"; then
+				rm -rf "$path"
+			fi
+			;;
+		"line$tab"*)
+			rest=${entry#line"$tab"}
+			path=${rest%%"$tab"*}
+			if inside_user_dirs "$path"; then
+				remove_line "$path" "${rest#*"$tab"}"
+			fi
+			;;
 		esac
-		if inside_user_dirs "$path"; then
-			rm -rf "$path"
-		fi
 	done <"$KOME_STATE_DIR/manifest"
 fi
 

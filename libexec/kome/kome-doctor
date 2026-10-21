@@ -65,6 +65,7 @@ fi
 errfile=$(mktemp)
 trap 'rm -f "$errfile"' EXIT
 problems=
+unit_fixes=
 for u in $(units_all); do
 	name=$(unit_name "$u")
 	what=$(unit_meta "$u" description) || what=$name
@@ -76,8 +77,17 @@ for u in $(units_all); do
 	check_out=$("$u/unit" check 2>"$errfile") || check_status=$?
 	reason=$(cat "$errfile")
 	needs=$(printf '%s\n' "$check_out" | sed 's/^[a-z-]*://' | tr '\n' ' ' | sed 's/ *$//')
+	fixes_here=$(printf '%s\n' "$check_out" | sed -n 's/^fix://p')
 	case $check_status in
-	0) printf '%-9s %-10s %s\n' ok "$name" "$what" ;;
+	0)
+		printf '%-9s %-10s %s\n' ok "$name" "$what"
+		if [ -n "$fixes_here" ]; then
+			printf '%s\n' "$fixes_here" | while IFS= read -r f; do
+				printf '%-9s %-10s %s\n' fix "$name" "$f"
+			done
+			unit_fixes="$unit_fixes $u"
+		fi
+		;;
 	1) printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what" ;;
 	2)
 		printf '%-9s %-10s needs %s\n' missing "$name" "$needs"
@@ -100,8 +110,8 @@ if command -v kreadconfig6 >/dev/null 2>&1 &&
 	traps="$traps accent"
 fi
 
-if [ -n "$traps" ] && [ -z "$fix" ]; then
-	hint "run 'kome doctor --fix' to turn it off"
+if [ -n "$traps$unit_fixes" ] && [ -z "$fix" ]; then
+	hint "run 'kome doctor --fix' to fix it"
 	problems=1
 fi
 
@@ -118,6 +128,10 @@ ask() {
 }
 
 if [ -n "$fix" ]; then
+	# Unit fixes are reversible (recorded in the manifest): no question asked.
+	for u in $unit_fixes; do
+		"$u/unit" fix || problems=1
+	done
 	case " $traps " in
 	*" accent "*)
 		if ask "Stop Plasma from taking the accent colour from the wallpaper?"; then
@@ -128,7 +142,7 @@ if [ -n "$fix" ]; then
 		fi
 		;;
 	esac
-	[ -n "$traps" ] || printf 'kome: nothing to fix\n' >&2
+	[ -n "$traps$unit_fixes" ] || printf 'kome: nothing to fix\n' >&2
 fi
 
 # 4. --info: facts, for bug reports and advice.

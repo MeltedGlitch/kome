@@ -12,6 +12,7 @@
 #   {{mix(a,b,t)}}      a blended towards b by t
 #   {{lighten(a,t)}}    a blended towards white by t
 #   {{darken(a,t)}}     a blended towards black by t
+#   {{by_mode(a,b)}}    a for dark looks, b for light ones (KOME_MODE)
 #
 # Function arguments are names or #rrggbb literals; t is a number from 0 to
 # 1. Functions default to :hex. Spaces inside {{ }} are ignored. Text outside
@@ -59,6 +60,15 @@ function call(fn, args,    a, n) {
 		if (fn == "lighten")
 			return color_lighten(colour(a[1]), amount(a[2]))
 		return color_darken(colour(a[1]), amount(a[2]))
+	}
+	if (fn == "by_mode") {
+		if (n != 2)
+			fail("by_mode() takes 2 arguments: by_mode(dark,light)")
+		if (ENVIRON["KOME_MODE"] == "light")
+			return colour(a[2])
+		if (ENVIRON["KOME_MODE"] == "dark")
+			return colour(a[1])
+		fail("by_mode() needs mode=dark or mode=light in the preset")
 	}
 	fail("unknown function '" fn "()'")
 }

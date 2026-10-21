@@ -53,6 +53,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
   applied, changed by hand (exit 1) or skipped.
 - `kome doctor` (`--info`, `--fix`): what each unit can do here and why
   not; detects Plasma's accent-from-wallpaper; system facts.
+- `kitty` integration: terminal colours from the palette in
+  `kome-theme.conf`, live reload; `kome doctor --fix` adds the one
+  `include` line to `kitty.conf`, and `kome purge` takes it out again.
+- Template function `by_mode(dark,light)`.
 
 ### Fixed
 

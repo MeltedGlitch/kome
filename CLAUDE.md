@@ -10,12 +10,13 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 166 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 177 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
 `mocha`, `latte`; styles `soft`, `breeze`; units `colors`, `icons`,
-`fonts`, `cursor` (each with `unit.ini`, all tested live by the owner);
+`fonts`, `cursor` (each with `unit.ini`, all tested live by the owner) and
+the `kitty` integration (not yet tried live);
 commands `list`, `apply`, `restore`, `deps`, `status`, `doctor`
 (`--info`, `--fix`), `purge` (manifest). Tests share a fake Plasma, fake
 KConfig, fake icon themes and fake units (`tests/helpers.bash`).
@@ -27,9 +28,8 @@ removes manifest paths and leaves pre-manifest leftovers (owner deletes
 them by hand once; see Deferred).
 
 **Next:** owner tries `status`, `doctor`, `purge` and tries to break them.
-Then: `kitty`
-integration (+ `doctor --fix` include line), `rendering` (opt-in),
-`wallpaper` (opt-in), man pages, completions.
+Then: `rendering` (opt-in), `wallpaper` (opt-in), man pages,
+completions.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -223,7 +223,12 @@ unit restore   # re-apply a state printed by `current`, read as key=value lines 
 ```
 
 `current` and `restore` are inverses: `unit current | unit restore` changes
-nothing. Snapshots store `current`'s output per unit; `kome restore` feeds it
+nothing.
+
+Optional 5th verb, **`fix`**: a unit whose `check` prints `fix:<what>` lines
+(with exit 0) offers reversible fixes; `kome doctor --fix` runs `unit fix`,
+which must record what it changes in the manifest. Used by `kitty` for its
+one `include` line. Snapshots store `current`'s output per unit; `kome restore` feeds it
 back to `restore`.
 
 `check` exit codes (documented, the same for every unit):
@@ -672,6 +677,7 @@ templates only.
 | 2026-10-22 | After each apply/restore kome records the expected state per unit in `$XDG_STATE_HOME/kome/applied/`; `kome status` compares `current` against it. |
 | 2026-10-22 | `kome doctor`: per-unit ok/missing/optional/off/absent/error lines (exit 1 on missing or error), detects `accentColorFromWallpaper=true` (fixed via `--fix` with `[y/N]`), `--info` facts incl. one line per screen. Automatic light/dark switching detection deferred until its config key is verified. |
 | 2026-10-22 | Verified live: GTK followed kome's colours and cursor but not its icons or fonts, because kome wrote kdeglobals without `--notify`. All KDE config writes now use `kwriteconfig6 --notify`. Consequently the `gtk` unit is dropped from v0.1: Plasma's kde-gtk-config does the job. |
+| 2026-10-22 | `kitty` integration: colours only (fonts stay the user's) in `kome-theme.conf`; the `include` line is offered by `check` as `fix:` and added by `kome doctor --fix` via the new optional `fix` verb; manifest gains `line<TAB>file<TAB>text` entries, which `purge` removes (deleting the file only if nothing else is left). Template function `by_mode(dark,light)` swaps terminal black/white for light looks. |
 
 ---
 

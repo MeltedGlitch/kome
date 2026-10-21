@@ -84,6 +84,10 @@ EOF
 fam=$(printf '%s' "$1" | sed 's/\\//g')
 grep -ix -- "$fam" "$FONTS" || :
 EOF
+	cat >"$stubs/pkill" <<'EOF'
+#!/bin/sh
+printf 'pkill %s\n' "$*" >>"$LOG"
+EOF
 	cat >"$stubs/dbus-send" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$*" >>"$DBUSLOG"
@@ -148,4 +152,10 @@ fake_icon_themes() {
 		printf '[Icon Theme]\nName=%s\nInherits=Papirus,breeze,hicolor\n' "$_t" >"$_icons/$_t/index.theme"
 		ln -s ../../Papirus/22x22/places/folder-violet.svg "$_icons/$_t/22x22/places/folder-violet.svg"
 	done
+}
+
+# fake_kitty — make kitty "installed" (a stub on PATH).
+fake_kitty() {
+	printf '#!/bin/sh\n' >"$stubs/kitty"
+	chmod +x "$stubs/kitty"
 }

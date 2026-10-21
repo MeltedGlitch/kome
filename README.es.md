@@ -176,8 +176,8 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 - [x] Lector de INI
 - [x] Motor de color (mezclar, aclarar, oscurecer, contraste WCAG)
 - [x] Motor de plantillas
-- [x] Units `colors`, `icons`, `fonts`, `cursor`
-- [ ] Units: `kitty`, `rendering`, `wallpaper`
+- [x] Units `colors`, `icons`, `fonts`, `cursor`, `kitty`
+- [ ] Units: `rendering`, `wallpaper`
 - [x] Comandos: `apply`, `list`, `restore`, `deps`, `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages y autocompletado
