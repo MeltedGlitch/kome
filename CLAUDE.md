@@ -1,7 +1,7 @@
 # CLAUDE.md — `kome`
 
-> **Status: v0.1 IN DEVELOPMENT.** The v0.1 design is frozen (2026-10-21).
-> Build v0.1 as described here, one small step at a time. Design changes are
+> **Status: v0.1.0 released (2026-10-22); v0.2 IN DEVELOPMENT.**
+> Build v0.2 one small step at a time. Design changes are
 > still welcome, but go through this document first: update it, log the
 > decision, then change the code.
 
@@ -43,7 +43,7 @@ Open threads:
   verified (with a backup of `plasma-org.kde.plasma.desktop-appletsrc`)
   before a public release.
 
-**Next:** v0.1 is feature-complete: end-to-end review, then tag `v0.1.0` (repo stays private). (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**v0.1.0 tagged and released** (private repo). **Next: v0.2** — starting with the `decoration` unit (Klassy). (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -722,6 +722,7 @@ templates only.
 | 2026-10-22 | Review: one mechanism for after-change effects — each unit's state is compared before/after (apply) or recorded when restored (restore, purge); `effect_note`/`effects_report` drive the restart/re-login notices and the panel refresh. Notices no longer appear when nothing changed, and restore now gives them too. `shell_state` removed. |
 | 2026-10-22 | Review: one default-preset rule for apply, deps and doctor (`preset_pick`): the preset given, else `Preset=` in kome.conf, else the active one. |
 | 2026-10-22 | Review: `kind=` dropped from `unit.ini` (unread); `min_plasma=` is now checked by `kome doctor`. Core vs integration stays a documentation concept. |
+| 2026-10-22 | **v0.1.0 tagged and released** on GitHub (private). Development moves to v0.2 (`0.2.0-dev`). |
 
 ---
 
