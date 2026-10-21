@@ -180,7 +180,8 @@ if [ -n "$info" ]; then
 	fact stem_darkening "$(case ${FREETYPE_PROPERTIES-} in *no-stem-darkening=0*) echo on ;; *) echo off ;; esac)"
 	# One line per enabled screen: name, current mode (the one marked *), scale.
 	if command -v kscreen-doctor >/dev/null 2>&1; then
-		kscreen-doctor -o 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '
+		esc=$(printf '\033')
+		kscreen-doctor -o 2>/dev/null | sed "s/$esc\[[0-9;]*m//g" | awk '
 			function flush() { if (name != "" && on) printf "%-15s %s %s, scale %s\n", "screen:", name, mode, scale }
 			$1 == "Output:" { flush(); name = $3; on = 0; mode = "?"; scale = "?"; next }
 			$1 == "enabled" { on = 1 }

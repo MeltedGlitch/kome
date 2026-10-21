@@ -151,7 +151,12 @@ derive_into() {
 		_rel=${_f#"$_src"/}
 		_sub=${_rel%/*}
 		_base=${_rel##*/}
-		_plain=$(printf '%s' "$_base" | sed "s/-$3\(-\|\.svg\)/\1/")
+		# Exactly "-<accent>.svg" or "-<accent>-…": blue must not take bluegrey.
+		case $_base in
+		*-"$3".svg) _plain=${_base%-"$3".svg}.svg ;;
+		*-"$3"-*) _plain=${_base%%-"$3"-*}-${_base#*-"$3"-} ;;
+		*) continue ;;
+		esac
 		mkdir -p "$_tmp/$_sub"
 		ln -sf "$_f" "$_tmp/$_sub/$_plain"
 		case ",$_dirs," in *",$_sub,"*) ;; *) _dirs=${_dirs:+$_dirs,}$_sub ;; esac

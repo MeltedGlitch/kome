@@ -147,3 +147,15 @@ setup() {
 	[ "$(grep -c '^Directories=' "$t")" -eq 1 ]
 	! grep -q 'Papirus variant' "$t"
 }
+
+@test "an accent never picks up a longer colour name (blue vs bluegrey)" {
+	p="$XDG_DATA_DIRS/icons/Papirus/22x22/places"
+	printf '<svg/>' >"$p/folder-bluegrey.svg"
+	printf '<svg/>' >"$p/folder-bluegrey-documents.svg"
+	preset_export latte
+	"$UNIT" apply
+	t="$user_icons/kome-latte-A/22x22/places"
+	[ "$(readlink "$t/folder.svg")" = "$p/folder-blue.svg" ]
+	[ "$(readlink "$t/folder-documents.svg")" = "$p/folder-blue-documents.svg" ]
+	[ -z "$(ls "$t" | grep grey)" ]
+}
