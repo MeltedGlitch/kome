@@ -188,8 +188,13 @@ something new means adding one directory; the core does not change.
 **v0.2**
 
 - [x] Window decorations (corners, title bar buttons) with Klassy
+- [ ] Plasma style, blur and animations, KDE accent colour
 - [ ] Widget style, panel layouts
-- [ ] More presets, a small graphical picker
+- [ ] More integrations (VS Code, Discord, btop, Starship…)
+- [ ] More presets
+
+**Later** — a terminal UI and a graphical app to pick looks, on top of the
+same commands.
 
 <a id="faq"></a>
 

@@ -43,7 +43,7 @@ Open threads:
   verified (with a backup of `plasma-org.kde.plasma.desktop-appletsrc`)
   before a public release.
 
-**v0.1.0 tagged and released** (private repo). **v0.2 in progress:** `decoration` unit done (soft style: Klassy, 8 px corners, accent circles on the right; owner's choices). Owner has not installed Klassy yet. **Next:** `style` (widget style), `panel`. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**v0.1.0 tagged and released** (private repo). **v0.2 in progress:** `decoration` unit done (soft style: Klassy, 8 px corners, accent circles on the right; owner's choices). Owner has not installed Klassy yet. **Next (v0.2 order, §14):** Plasma style, KWin effects, KDE accent colour, softer Disabled effect for light looks, `style`, `panel`. TUI/GUI later. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -589,16 +589,49 @@ templates only.
 
 ## 14. Roadmap
 
-- **v0.1** — palette/template engine; units `colors`, `icons`, `cursor`,
-  `fonts`, `rendering`, `wallpaper`, `kitty` (GTK follows via Plasma); commands `apply`, `list`,
-  `doctor` (+ `--info`, `--fix`), `deps`, `status`, `restore`, `purge`;
-  presets `breeze`, `breeze-dark`, `mocha`, `latte`; man pages; completions; CI.
-- **v0.2** — remaining presets (§11); units `decoration` (Klassy), `style`,
-  `panel` (and Style grows accordingly); GUI picker (`.desktop` + KRunner).
-- **Later / maybe** — palette×style mixing from the CLI
-  (`--palette nord --style bar`); `kome preview` (automatic screenshots per
-  preset for README and picker thumbnails); `kome validate` (format + WCAG
-  contrast); light/dark pairs + timer (in `dotfiles`).
+- **v0.1** (released 2026-10-22) — palette/template engine; units `colors`,
+  `icons`, `cursor`, `fonts`, `rendering`, `wallpaper`, `kitty`, `ghostty`
+  (GTK follows via Plasma); commands `apply`, `list`, `doctor` (+ `--info`,
+  `--fix`), `deps`, `status`, `restore`, `purge`; presets `breeze`,
+  `breeze-dark`, `mocha`, `latte`; man pages; completions; CI.
+
+- **v0.2** — the deeper look. In this order (owner agreed 2026-10-22):
+  1. ~~`decoration`~~ (done): Klassy window corners and title bar buttons.
+  2. **Plasma style** unit: the look of the panel, widgets, notifications
+     and launcher (`plasma-apply-desktoptheme`; Klassy ships one that
+     matches its windows).
+  3. **KWin effects** from the style: blur and translucency of bars and
+     menus, animation speed (e.g. `blur=on`, `animation_speed=`).
+  4. **KDE accent colour** (`AccentColor` in kdeglobals) set to the
+     palette's accent, so apps and Plasma that read it agree.
+  5. **Softer Disabled effect for light looks** in `kde.colors.in` (the
+     faint KDE Connect tray icon on Latte).
+  6. **`style`** unit: widget style inside apps (Klassy's application style,
+     Darkly, Breeze); applies to newly started apps.
+  7. **`panel`** unit (opt-in, replaces panel widgets): layouts such as a
+     full bar, a floating centred dock, top bar + dock; multi-monitor aware.
+  8. Remaining presets (§11).
+
+- **Integrations** (each is a small unit; `lib/kome/themefile.sh` covers the
+  "one theme file + one include line" kind): VS Code; Discord/Vesktop;
+  btop; fastfetch; bat and delta; Starship; Firefox (delicate: theme via an
+  extension or the profile — must respect principle 10, decide first).
+
+- **Tooling and polish**:
+  - `kome doctor`: detect Plasma's automatic light/dark switching; advise on
+    blurry XWayland/Electron apps at fractional scaling.
+  - Palette × style mixing from the CLI (`kome apply --palette … --style …`).
+  - `kome preview`: automatic screenshots per preset (README, picker).
+  - `kome validate`: format + WCAG contrast check of a palette.
+  - Light/dark pairs + timer (in `dotfiles`).
+
+- **Front ends: a TUI and a GUI** (owner wants both, eventually). Rule: they
+  are **thin layers over the CLI** — they run `kome list`, `kome apply`,
+  `kome status`, `kome doctor` and show their output; no logic of their own,
+  so they can never behave differently from the command line (principles 1
+  and 2). First step: a picker (`.desktop` + KRunner entry). Toolkits to
+  choose when the time comes (e.g. `dialog`/`whiptail` or `fzf` for the
+  TUI; `kdialog` or a small Kirigami/QML app for the GUI).
 
 ---
 
@@ -728,6 +761,7 @@ templates only.
 | 2026-10-22 | Fix (found live: circles became bare icons after `kome apply mocha`): Klassy shows a button's background only on hover by default (`ShowBackgroundNormally*=false`). `window_buttons` now sets every visibility key explicitly for active and inactive windows (`[ButtonBehaviour] Show{,Close}{Background,Icon}Normally{Active,Inactive}`, `[ButtonColors] ButtonBackgroundOpacity*`): circles = backgrounds always, icons on hover, inactive at 50 %. Key set checked against Klassy's bundled `Chroma.klpw` preset. |
 | 2026-10-22 | Fix (design): a unit that learns new keys in an upgrade could never restore them — `original` had no value for them. Each apply now runs `snapshot_extend original`: for units kome has applied, plain `key=value` lines missing from the snapshot are added with their current value (still the user's, kome never wrote them). |
 | 2026-10-22 | Fix (found live, confirmed by the owner): with `decoration` after `colors`, the colour scheme's KWin reload could read Klassy's old settings, so the first apply showed bare icons. `decoration` now runs first (`05-decoration`); the colour scheme's reload then sees the new settings, and decoration's own reconfigure covers applies where the scheme does not change. |
+| 2026-10-22 | Roadmap extended (owner: "apunta todos"): Plasma style, KWin effects, KDE accent colour, softer Disabled effect, more integrations, tooling, and a TUI + GUI as thin front ends over the CLI (no logic of their own). |
 
 ---
 

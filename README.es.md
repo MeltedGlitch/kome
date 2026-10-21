@@ -190,8 +190,13 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 **v0.2**
 
 - [x] Decoración de ventanas (esquinas, botones de la barra) con Klassy
+- [ ] Estilo de Plasma, desenfoque y animaciones, color de acento de KDE
 - [ ] Estilo de widgets, layouts del panel
-- [ ] Más presets, un pequeño selector gráfico
+- [ ] Más integraciones (VS Code, Discord, btop, Starship…)
+- [ ] Más presets
+
+**Más adelante** — una interfaz de terminal y una app gráfica para elegir
+looks, por encima de los mismos comandos.
 
 <a id="preguntas-frecuentes"></a>
 
