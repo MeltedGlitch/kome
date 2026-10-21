@@ -15,7 +15,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Window buttons set to circles showed only bare icons: the circles are now
-  always visible (icons appear on hover).
+  always visible (icons appear on hover), from the first apply on.
 - `kome restore original` can now put back settings a unit started owning
   in a newer kome version.
 

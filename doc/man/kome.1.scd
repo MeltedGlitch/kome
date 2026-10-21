@@ -82,6 +82,9 @@ Each part of the look is a *unit*, run in this order:
 [[ *Unit*
 :[ *What it changes*
 :[ *Default*
+|  decoration
+:[ window corners and title bar buttons (with Klassy, optional)
+:[ on
 |  colors
 :[ Plasma colour scheme (generated from the palette, or a KDE scheme)
 :[ on
@@ -93,9 +96,6 @@ Each part of the look is a *unit*, run in this order:
 :[ on
 |  fonts
 :[ every KDE font role, from the style
-:[ on
-|  decoration
-:[ window corners and title bar buttons (with Klassy, optional)
 :[ on
 |  rendering
 :[ greyscale antialiasing, slight hinting, stem darkening (needs re-login)

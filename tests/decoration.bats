@@ -8,7 +8,7 @@ load helpers
 setup() {
 	fake_plasma
 	KOME="$KOME_ROOT/bin/kome"
-	UNIT="$KOME_ROOT/libexec/kome/units/60-decoration/unit"
+	UNIT="$KOME_ROOT/libexec/kome/units/05-decoration/unit"
 	. "$KOME_ROOT/lib/kome/common.sh"
 	. "$KOME_ROOT/lib/kome/preset.sh"
 }

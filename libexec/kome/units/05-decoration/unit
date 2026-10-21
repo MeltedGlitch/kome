@@ -11,6 +11,11 @@
 # ingredient: without it the windows keep their frame, with a notice. Its
 # colours come from the colour scheme (the colors unit), so nothing here is
 # about colour. Empty values mean KDE's default (the key is deleted).
+#
+# It runs first (05): applying the colour scheme makes KWin reload every
+# decoration, and that reload must already find Klassy's new settings —
+# when decoration ran after colors, KWin could reload with the old ones
+# (found live: circles showed as bare icons until the next apply).
 
 set -eu
 

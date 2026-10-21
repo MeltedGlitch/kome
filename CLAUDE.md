@@ -551,9 +551,10 @@ kome/
 ├── libexec/kome/
 │   ├── kome-list kome-apply …   # one executable per subcommand
 │   └── units/
+│       ├── 05-decoration/       # runs before colors (see the unit)
 │       ├── 10-colors/           # unit, unit metadata, kde.colors.in
 │       ├── 20-icons/  30-cursor/  40-fonts/  50-rendering/
-│       └── 60-decoration/  70-wallpaper/  90-kitty/  91-ghostty/
+│       └── 70-wallpaper/  90-kitty/  91-ghostty/
 ├── lib/kome/
 │   ├── common.sh                # exit codes, messages, INI/template/XDG helpers, manifest
 │   ├── preset.sh                # find/list/resolve presets, palettes, styles
@@ -726,6 +727,7 @@ templates only.
 | 2026-10-22 | `decoration` unit (v0.2). The style describes windows in generic words; only the unit knows Klassy's keys (read from Klassy's kcfg: `klassy/klassyrc`, `[Windeco] WindowCornerRadius/ButtonShape`, `[ButtonColors] ButtonBackgroundColors*`). Owner's choices for `soft`: small accent circles on the right (`ShapeSmallCircle`, `Accent`, close red on hover), 8 px corners, normal title bar, buttons `M` / `IAX`. Breeze presets reset to `org.kde.breeze` and KDE's button layout. Klassy via COPR `errornointernet/klassy` (package `klassy`, verified, Fedora 44 built). |
 | 2026-10-22 | Fix (found live: circles became bare icons after `kome apply mocha`): Klassy shows a button's background only on hover by default (`ShowBackgroundNormally*=false`). `window_buttons` now sets every visibility key explicitly for active and inactive windows (`[ButtonBehaviour] Show{,Close}{Background,Icon}Normally{Active,Inactive}`, `[ButtonColors] ButtonBackgroundOpacity*`): circles = backgrounds always, icons on hover, inactive at 50 %. Key set checked against Klassy's bundled `Chroma.klpw` preset. |
 | 2026-10-22 | Fix (design): a unit that learns new keys in an upgrade could never restore them — `original` had no value for them. Each apply now runs `snapshot_extend original`: for units kome has applied, plain `key=value` lines missing from the snapshot are added with their current value (still the user's, kome never wrote them). |
+| 2026-10-22 | Fix (found live, confirmed by the owner): with `decoration` after `colors`, the colour scheme's KWin reload could read Klassy's old settings, so the first apply showed bare icons. `decoration` now runs first (`05-decoration`); the colour scheme's reload then sees the new settings, and decoration's own reconfigure covers applies where the scheme does not change. |
 
 ---
 

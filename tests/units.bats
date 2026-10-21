@@ -136,10 +136,10 @@ colors=off'
 }
 
 @test "a key a unit learns in an upgrade joins original with the user's value" {
-	fake_unit 60-decoration 0 "" default=on
+	fake_unit 05-decoration 0 "" default=on
 	"$KOME" apply mocha
 	# The upgraded unit now also owns "show_bg", still at the user's value.
-	u="$KOME_UNITS_DIR/60-decoration/unit"
+	u="$KOME_UNITS_DIR/05-decoration/unit"
 	sed -i 's/^current) echo "state=decoration";/current) echo "state=decoration"; echo "show_bg=${SHOW_BG:-user}";/' "$u"
 	grep -q 'show_bg=' "$u"
 	SHOW_BG=user "$KOME" apply mocha
