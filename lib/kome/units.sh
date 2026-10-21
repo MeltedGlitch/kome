@@ -4,7 +4,7 @@
 #
 # Units and snapshots. Source common.sh and preset.sh first.
 
-KOME_UNITS_DIR=$KOME_ROOT/libexec/kome/units
+KOME_UNITS_DIR=${KOME_UNITS_DIR:-$KOME_ROOT/libexec/kome/units}
 KOME_STATE_DIR=${XDG_STATE_HOME:-$HOME/.local/state}/kome
 KOME_SNAP_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kome/snapshots
 KOME_CONF=$KOME_USER_DIR/kome.conf
@@ -25,16 +25,31 @@ unit_name() {
 	printf '%s\n' "${_n#*-}"
 }
 
-# unit_enabled <name>
-# A unit is on unless kome.conf says "<name>=off" in [Units].
+# unit_meta <dir> <key>
+# Print one field of the unit's unit.ini ([Unit] section); return 1 if absent.
+unit_meta() {
+	ini_get "$1/unit.ini" Unit "$2" 2>/dev/null
+}
+
+# unit_label <dir> — what the unit gives, for messages ("window borders…").
+unit_label() {
+	unit_meta "$1" gives || unit_meta "$1" description || unit_name "$1"
+}
+
+# unit_enabled <dir>
+# kome.conf's [Units] <name>=on|off wins; otherwise the unit's default=.
 unit_enabled() {
-	[ -f "$KOME_CONF" ] || return 0
-	_v=$(ini_get "$KOME_CONF" Units "$1") || return 0
+	_name=$(unit_name "$1")
+	_v=
+	if [ -f "$KOME_CONF" ]; then
+		_v=$(ini_get "$KOME_CONF" Units "$_name") || _v=
+	fi
+	[ -n "$_v" ] || _v=$(unit_meta "$1" default) || _v=on
 	case $_v in
 	on) return 0 ;;
 	off) return 1 ;;
 	*)
-		warn "$KOME_CONF: [Units] $1=$_v should be 'on' or 'off'; treating it as on"
+		warn "[Units] $_name=$_v should be 'on' or 'off'; treating it as on"
 		return 0
 		;;
 	esac

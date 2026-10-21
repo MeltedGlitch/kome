@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 93 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 100 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`
@@ -22,13 +22,11 @@ commands `list`, **`apply`** (`-n`, `-v`, `--partial`, `kome.conf`
 (snapshots in `$XDG_DATA_HOME/kome/snapshots/`, failed-apply mark, lock).
 Tests share a fake Plasma (`tests/helpers.bash`).
 
-Interim rule until unit metadata exists: every unit is on by default;
-`kome.conf` `[Units] <name>=off` turns one off.
+Unit metadata lives in `unit.ini` (default on/off, takes_effect, gives…);
+`kome apply` uses it for opt-in units and for restart/re-login and
+optional-ingredient notices. The owner tried `kome apply`/`restore` live: OK.
 
-**Next:** owner tries `kome apply mocha` / `kome restore original` for
-real. Then decide the unit metadata format (needed for opt-in units and
-for notice texts like "install Klassy to theme window borders"), then the
-`fonts`, `cursor` and `icons` units.
+**Next:** the `fonts`, `cursor` and `icons` units.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -238,10 +236,24 @@ back to `restore`.
 Values are passed as environment variables with a `KOME_` prefix
 (`KOME_ACCENT=#b4befe`, `KOME_FONT_UI=Inter`, `KOME_MODE=dark`, …).
 
-Each unit declares metadata (format: open question): name, one-line
-description, kind (`core` or `integration`), enabled by default or opt-in,
-ingredients it needs, minimum Plasma version, and whether changes are live,
-need an app restart, or need a re-login.
+Each unit declares its metadata in a sidecar **`unit.ini`** next to the
+executable (read with the same INI reader, never executed). The name comes
+from the directory (`10-colors` → `colors`); ingredients come from `check`.
+
+```ini
+[Unit]
+Format=1
+description=Plasma colour scheme          # for kome doctor and --help
+kind=core                                 # core | integration
+default=on                                # on | off (opt-in units)
+takes_effect=live                         # live | restart | relogin
+min_plasma=6.0
+gives=the colours of Plasma and KDE apps  # "install X to also theme <gives>"
+```
+
+`kome.conf` `[Units] <name>=on|off` overrides `default`. After an apply,
+units with `takes_effect=restart|relogin` produce a notice saying what
+needs a restart or a re-login.
 
 `kome doctor` is nothing more than running `check` on every unit.
 
@@ -572,7 +584,6 @@ templates only.
 
 ## 16. Open questions
 
-- Unit metadata format: header comments in `unit` vs a sidecar `unit.ini`.
 - **`gtk`: verify during v0.1** whether Plasma's own colour sync to GTK
   (`kde-gtk-config`, `colors.css`) is enough, so kome needs no CSS of its own.
 - Ingredients not packaged in some distros (e.g. Klassy): what does
@@ -642,6 +653,7 @@ templates only.
 | 2026-10-22 | Units get a 4th verb, `restore`, reading `current`'s output on stdin (`current \| restore` is a no-op). |
 | 2026-10-22 | Breeze presets use KDE's shipped schemes via `color_scheme=`; no generated imitation. |
 | 2026-10-22 | `decoration` stays in v0.2. Klassy is an *optional ingredient*: `check` exits 4, the unit is skipped, the rest is applied, and a notice always says what to install. |
+| 2026-10-22 | Unit metadata in a sidecar `unit.ini` (`description`, `kind`, `default`, `takes_effect`, `min_plasma`, `gives`); `kome.conf` `[Units]` overrides `default`. |
 
 ---
 

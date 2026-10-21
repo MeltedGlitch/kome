@@ -35,3 +35,25 @@ EOF
 	chmod +x "$stubs"/*
 	export PATH="$stubs:$PATH"
 }
+
+# fake_unit <NN-name> <check-exit> [check-stdout] [unit.ini lines…]
+# A unit in $KOME_UNITS_DIR that logs "name verb" to $UNITLOG.
+fake_unit() {
+	export KOME_UNITS_DIR="$BATS_TEST_TMPDIR/units" UNITLOG="$BATS_TEST_TMPDIR/units.log"
+	_dir="$KOME_UNITS_DIR/$1"
+	mkdir -p "$_dir"
+	cat >"$_dir/unit" <<UNIT
+#!/bin/sh
+case \$1 in
+check) printf '%s' '${3-}'; exit $2 ;;
+current) echo "state=${1#*-}" ;;
+*) echo "${1#*-} \$1" >>"\$UNITLOG" ;;
+esac
+UNIT
+	chmod +x "$_dir/unit"
+	shift 3 2>/dev/null || shift $#
+	{
+		echo '[Unit]'
+		for _l in "$@"; do echo "$_l"; done
+	} >"$_dir/unit.ini"
+}

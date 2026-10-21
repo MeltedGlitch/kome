@@ -66,8 +66,8 @@ missing=
 notices=
 for u in $(units_all); do
 	name=$(unit_name "$u")
-	if ! unit_enabled "$name"; then
-		say "$name: off in kome.conf"
+	if ! unit_enabled "$u"; then
+		say "$name: off (turn it on with '$name=on' under [Units] in kome.conf)"
 		continue
 	fi
 	unit_check "$u"
@@ -76,7 +76,7 @@ for u in $(units_all); do
 	1) say "$name: not installed here, skipped" ;;
 	2) missing="$missing$(printf '%s\n' "$check_out" | sed "s/^/  /; s/\$/  ($name)/")
 " ;;
-	4) notices="$notices$name: skipped, it needs $(printf '%s' "$check_out" | tr '\n' ' ')
+	4) notices="${notices}install $(printf '%s' "$check_out" | tr '\n' ' ' | sed 's/ $//') to also theme $(unit_label "$u")
 " ;;
 	*) die 69 "'$name' cannot run here" "run 'kome doctor' to see why" ;;
 	esac
@@ -106,8 +106,14 @@ else
 	snapshot_take previous
 fi
 
+restart=
+relogin=
 for u in $apply_units; do
 	name=$(unit_name "$u")
+	case $(unit_meta "$u" takes_effect || :) in
+	restart) restart="$restart, $(unit_label "$u")" ;;
+	relogin) relogin="$relogin, $(unit_label "$u")" ;;
+	esac
 	if ! "$u/unit" apply; then
 		: >"$KOME_STATE_DIR/failed"
 		err "'$name' failed; the desktop may be half-applied"
@@ -120,7 +126,9 @@ done
 printf '%s\n' "$preset" >"$KOME_STATE_DIR/active"
 rm -f "$KOME_STATE_DIR/failed"
 
+[ -z "$restart" ] || printf 'kome: restart your apps to see %s\n' "${restart#, }" >&2
+[ -z "$relogin" ] || printf 'kome: log out and back in to see %s\n' "${relogin#, }" >&2
 if [ -n "$notices" ]; then
-	printf 'kome: %s' "$notices" >&2
-	hint "run 'kome deps $preset' to see what to install"
+	printf '%s' "$notices" | sed 's/^/kome: /' >&2
+	hint "run 'kome deps $preset' to see how to install them"
 fi

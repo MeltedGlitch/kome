@@ -34,6 +34,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `kome apply` (`-n`, `-v`, `--partial`, preset from `kome.conf`) and
   `kome restore original|previous`: snapshots of every unit before each
   apply, a failed apply never overwrites `previous`, one kome at a time.
+- Unit metadata (`unit.ini`): opt-in units, and notices for apps that need
+  a restart, a re-login, or an optional ingredient (e.g. Klassy).
 
 ### Fixed
 
