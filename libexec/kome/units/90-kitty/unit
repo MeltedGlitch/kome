@@ -1,13 +1,9 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-# kitty — the kitty terminal's colours (an integration).
-#
-# apply: writes kome-theme.conf next to kitty.conf and tells running kitty
-# windows to reload (SIGUSR1). kitty only reads it through one line in the
-# user's kitty.conf, `include kome-theme.conf`, which kome never adds on its
-# own: check announces it as a fix, and `kome doctor --fix` runs `unit fix`,
-# which adds it and records it in the manifest so `kome purge` removes it.
+# kitty — the kitty terminal's colours (an integration). kitty reads
+# kome-theme.conf through `include kome-theme.conf` in kitty.conf, and
+# reloads on SIGUSR1. The mechanics are in lib/kome/themefile.sh.
 
 set -eu
 
@@ -18,102 +14,19 @@ KOME_PROG="kome: kitty"
 . "$KOME_ROOT/lib/kome/common.sh"
 # shellcheck source=lib/kome/preset.sh
 . "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/themefile.sh
+. "$KOME_ROOT/lib/kome/themefile.sh"
 
-dir=${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/kitty}
-conf=$dir/kitty.conf
-theme=$dir/kome-theme.conf
-include='include kome-theme.conf'
-
-included() {
-	grep -qxF "$include" "$conf" 2>/dev/null
+# shellcheck disable=SC2034 # read by themefile.sh
+{
+	dir=${KITTY_CONFIG_DIRECTORY:-${XDG_CONFIG_HOME:-$HOME/.config}/kitty}
+	tf_app=kitty
+	tf_title=kitty
+	tf_conf=$dir/kitty.conf
+	tf_theme=$dir/kome-theme.conf
+	tf_include='include kome-theme.conf'
+	tf_template=kitty-theme.conf.in
+	tf_signal=USR1
 }
 
-reload() {
-	pkill -USR1 -x kitty 2>/dev/null || :
-}
-
-do_check() {
-	if ! command -v kitty >/dev/null 2>&1; then
-		printf 'app:kitty\n'
-		exit "$CHECK_ABSENT"
-	fi
-	if ! included; then
-		printf 'fix:add "%s" to %s\n' "$include" "$conf"
-	fi
-	exit "$CHECK_READY"
-}
-
-do_apply() {
-	_template=$(template_find kitty kitty-theme.conf.in)
-	template_render "$_template" "$theme" ||
-		die "$EX_DATAERR" "could not generate the kitty theme from $_template"
-	manifest_add "$theme"
-	reload
-	if ! included; then
-		printf 'kome: kitty will use the new colours once kitty.conf includes them\n' >&2
-		hint "run 'kome doctor --fix' to add that one line"
-	fi
-}
-
-# The state is the theme file itself: "theme=none", or "theme=kome" followed
-# by its lines as "line=…", so restore can write it back exactly.
-do_current() {
-	if [ -f "$theme" ]; then
-		printf 'theme=kome\n'
-		sed 's/^/line=/' "$theme"
-	else
-		printf 'theme=none\n'
-	fi
-}
-
-do_restore() {
-	_saved=$(cat)
-	case $_saved in
-	theme=none*) rm -f "$theme" ;;
-	theme=kome*)
-		mkdir -p "$dir"
-		printf '%s\n' "$_saved" | sed -n 's/^line=//p' >"$theme.kome-tmp"
-		mv -f "$theme.kome-tmp" "$theme"
-		;;
-	*) die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'" ;;
-	esac
-	reload
-}
-
-do_fix() {
-	included && return 0
-	mkdir -p "$dir"
-	# Keep the user's file intact: only append, on a line of its own.
-	if [ -s "$conf" ] && [ -n "$(tail -c 1 "$conf")" ]; then
-		printf '\n' >>"$conf"
-	fi
-	printf '%s\n' "$include" >>"$conf"
-	manifest_add_line "$conf" "$include"
-	printf 'fixed: %s now includes kome-theme.conf\n' "$conf"
-	reload
-}
-
-usage() {
-	cat <<EOF
-usage: unit check | apply | current | restore | fix
-
-  check    exit 0 if kitty is installed (1 and app:kitty: it is not); announces fixes
-  apply    write kome-theme.conf from the KOME_* colours, reload kitty
-  current  print the theme file as theme=none|kome and line=… lines
-  restore  write back the theme printed by 'current', read from stdin
-  fix      add "$include" to kitty.conf (recorded for kome purge)
-EOF
-}
-
-case ${1-} in
-check) do_check ;;
-apply) do_apply ;;
-current) do_current ;;
-restore) do_restore ;;
-fix) do_fix ;;
--h | --help) usage ;;
-*)
-	usage >&2
-	exit "$EX_USAGE"
-	;;
-esac
+themefile_main "$@"
