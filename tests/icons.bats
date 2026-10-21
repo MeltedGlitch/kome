@@ -41,7 +41,7 @@ setup() {
 	[ "$status" -eq 0 ]
 	t="$user_icons/kome-mocha-A"
 	[ "$(kcfg kdeglobals Icons Theme)" = "kome-mocha-A" ]
-	grep -qx 'Inherits=Papirus-Dark' "$t/index.theme"
+	grep -qx 'Inherits=Papirus-Dark,breeze-dark,hicolor' "$t/index.theme"
 	grep -qx 'Name=kome: Catppuccin Mocha' "$t/index.theme"
 	grep -q '^Directories=.*22x22/places' "$t/index.theme"
 	grep -qx '\[48x48/places\]' "$t/index.theme"
@@ -114,4 +114,13 @@ setup() {
 	rm -rf "$XDG_DATA_DIRS/icons/Papirus-Dark"
 	run "$KOME_ROOT/bin/kome" deps mocha
 	[[ "$output" == *"papirus-icon-theme"* ]] || [[ "$output" == *"Papirus-Dark"* ]]
+}
+
+@test "missing icons fall back to Breeze in the look's mode" {
+	preset_export latte
+	"$UNIT" apply
+	grep -qx 'Inherits=Papirus-Light,breeze,hicolor' "$user_icons/kome-latte-A/index.theme"
+	preset_export mocha
+	"$UNIT" apply
+	grep -qx 'Inherits=Papirus-Dark,breeze-dark,hicolor' "$user_icons/kome-mocha-A/index.theme"
 }

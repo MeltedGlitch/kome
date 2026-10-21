@@ -66,6 +66,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Light looks showed some icons white on white: icons the icon pack lacks
+  now fall back to Breeze in the look's own mode.
 - Tests no longer depend on programs installed on the machine running them.
 - GTK apps kept the old icons and fonts: kome now writes KDE settings with
   `kwriteconfig6 --notify`, so Plasma syncs them to GTK.

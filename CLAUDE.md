@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 190 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 191 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -683,6 +683,7 @@ templates only.
 | 2026-10-22 | Owner moves from Konsole to **Ghostty** (closest to Konsole's comfort, popular for ricing). `ghostty` integration (`91-ghostty`): colours in `kome-theme`, included with `config-file = ?kome-theme` (added by `doctor --fix`), live reload with SIGUSR2; uses `config.ghostty` if present, else `config`. Facts checked in Ghostty's docs. Kitty stays supported. |
 | 2026-10-22 | Deps table: `install_<manager>=` for managers that need a full command (Ghostty on Fedora: the community COPR `scottames/ghostty`, as documented by ghostty.org). |
 | 2026-10-22 | Fix (tests): the fake Plasma inherited the host PATH, so a real kitty/dnf on the developer's machine changed test results. Tests now run with a hermetic PATH (stubs + basic tools only). |
+| 2026-10-22 | Found live (Latte): icons missing from Papirus (e.g. KDE Connect's phone) fell back to a dark variant and showed white on white. The derived icon theme now inherits `<base>,breeze,hicolor` for light looks and `<base>,breeze-dark,hicolor` for dark ones (owner's idea: a mode-matched fallback under the chosen pack). |
 
 ---
 
