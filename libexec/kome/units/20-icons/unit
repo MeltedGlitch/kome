@@ -109,7 +109,9 @@ derive() {
 	mkdir -p "$_tmp"
 	_dirs=
 	for _f in "$_src"/*/places/folder-"$3"*.svg "$_src"/*/places/user-"$3"*.svg; do
-		[ -f "$_f" ] && [ ! -L "$_f" ] || continue
+		if [ ! -f "$_f" ] || [ -L "$_f" ]; then
+			continue
+		fi
 		_rel=${_f#"$_src"/}
 		_sub=${_rel%/*}
 		_base=${_rel##*/}
