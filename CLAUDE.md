@@ -592,8 +592,7 @@ templates only.
   (`kde-gtk-config`, `colors.css`) is enough, so kome needs no CSS of its own.
 - Flatpak-only / immutable systems (Silverblue, Kinoite): what should
   `kome deps` suggest there?
-- Manifest format (one line per file/line created?), and whether
-  `make uninstall` should suggest running `kome purge` first.
+- Should `make uninstall` suggest running `kome purge` first?
 - Klassy vs Darkly as the widget style for non-default presets (v0.2).
 - Where exactly the optional-ingredient notice is shown (proposal: a summary
   at the end of `kome apply`, plus `kome doctor`).
@@ -665,6 +664,8 @@ templates only.
 | 2026-10-22 | `icons` unit: preset keys `icon_theme` (Mocha `Papirus-Dark`, Latte `Papirus-Light`, Breeze `breeze`/`breeze-dark`) + `icon_accent`. The accent theme `kome-<preset>-A/B` in `$XDG_DATA_HOME/icons/` inherits from the base and only symlinks folder icons (papirus-folders' rule), found by following `Inherits=`; the base theme is never modified. |
 | 2026-10-22 | Fix (found live by the owner): after an icon change the panel kept old icons until hovered. `icons` now signals every KIconLoader group (0–5) plus KGlobalSettings IconChanged (4), as System Settings does. |
 | 2026-10-22 | Verified on the owner's machine: switching to a newly used icon theme leaves some panel/desktop icons stale until hovered **even with KDE's own `plasma-changeicons` and plain Papirus-Dark** — a Plasma limitation, not kome's. Documented in the README FAQ; not to be "fixed" again. |
+| 2026-10-22 | Manifest: `$XDG_STATE_HOME/kome/manifest`, one `path <absolute path>` line per generated file/dir (units call `manifest_add`); future line kinds (e.g. include lines) get their own keyword. `purge` asks `[y/N]` on a TTY, needs `--yes` otherwise, and deletes only manifest paths inside `$HOME` or the XDG data/config/state dirs. |
+| 2026-10-22 | After each apply/restore kome records the expected state per unit in `$XDG_STATE_HOME/kome/applied/`; `kome status` compares `current` against it. |
 
 ---
 

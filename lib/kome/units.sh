@@ -5,7 +5,6 @@
 # Units and snapshots. Source common.sh and preset.sh first.
 
 KOME_UNITS_DIR=${KOME_UNITS_DIR:-$KOME_ROOT/libexec/kome/units}
-KOME_STATE_DIR=${XDG_STATE_HOME:-$HOME/.local/state}/kome
 KOME_SNAP_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kome/snapshots
 KOME_CONF=$KOME_USER_DIR/kome.conf
 

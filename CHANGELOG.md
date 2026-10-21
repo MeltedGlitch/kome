@@ -47,6 +47,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `icons` unit: Papirus for the Catppuccin presets with folders in the
   preset's accent, through a small derived theme in your home (Papirus
   itself is never modified, no root); Breeze presets use KDE's icons.
+- `kome purge`: restores `original`, then deletes everything in the
+  manifest plus kome's snapshots and state; keeps your own config.
 
 ### Fixed
 

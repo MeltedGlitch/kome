@@ -6,6 +6,7 @@
 # The sourcing script must set KOME_ROOT (the install root) first.
 
 KOME_PROG=${KOME_PROG:-kome}
+KOME_STATE_DIR=${XDG_STATE_HOME:-$HOME/.local/state}/kome
 
 # Exit codes, sysexits(3) style.
 EX_OK=0
@@ -61,4 +62,13 @@ template_render() {
 		rm -f "$2.kome-tmp"
 		return "$_rc"
 	fi
+}
+
+# manifest_add <path>
+# Record a file or directory kome created, so `kome purge` can remove it.
+# Manifest lines are "path <absolute path>".
+manifest_add() {
+	mkdir -p "$KOME_STATE_DIR"
+	grep -qxF "path $1" "$KOME_STATE_DIR/manifest" 2>/dev/null ||
+		printf 'path %s\n' "$1" >>"$KOME_STATE_DIR/manifest"
 }

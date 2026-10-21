@@ -110,6 +110,12 @@ else
 	snapshot_take previous
 fi
 
+# What each unit looks like right after applying: `kome status` compares
+# against it to find what was changed by hand since.
+applied=$KOME_STATE_DIR/applied
+rm -rf "${applied:?}.tmp"
+mkdir -p "$applied.tmp"
+
 restart=
 relogin=
 for u in $apply_units; do
@@ -125,8 +131,11 @@ for u in $apply_units; do
 		hint "run 'kome restore previous' to go back"
 		exit 70
 	fi
+	"$u/unit" current >"$applied.tmp/$name" 2>/dev/null || rm -f "$applied.tmp/$name"
 	say "$name: applied"
 done
+rm -rf "${applied:?}"
+mv "$applied.tmp" "$applied"
 
 printf '%s\n' "$preset" >"$KOME_STATE_DIR/active"
 rm -f "$KOME_STATE_DIR/failed"

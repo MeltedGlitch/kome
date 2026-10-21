@@ -82,6 +82,7 @@ do_apply() {
 	export KOME_SCHEME
 	template_render "$_template" "$scheme_dir/$_scheme.colors" ||
 		die 65 "could not generate the colour scheme from $_template"
+	manifest_add "$scheme_dir/$_scheme.colors"
 	set_scheme "$_scheme"
 }
 

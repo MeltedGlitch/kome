@@ -49,3 +49,9 @@ else
 	rm -f "$KOME_STATE_DIR/active"
 fi
 rm -f "$KOME_STATE_DIR/failed"
+# The restored desktop is now the expected one for `kome status`.
+rm -rf "${KOME_STATE_DIR:?}/applied"
+mkdir -p "$KOME_STATE_DIR/applied"
+for f in "$KOME_SNAP_DIR/$which"/*; do
+	[ ! -f "$f" ] || cp "$f" "$KOME_STATE_DIR/applied/"
+done

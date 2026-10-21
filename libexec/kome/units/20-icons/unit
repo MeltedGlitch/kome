@@ -157,6 +157,7 @@ do_apply() {
 		_name=kome-$KOME_PRESET-B
 	fi
 	derive "$_name" "$KOME_ICON_THEME" "$KOME_ICON_ACCENT"
+	manifest_add "$user_icons/$_name"
 	set_theme "$_name"
 }
 

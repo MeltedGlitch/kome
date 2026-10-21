@@ -1,0 +1,97 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome purge — leave the system as if kome had never been used.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome purge [-y]
+
+Restore your desktop from before kome ('kome restore original'), then
+delete everything kome created: generated colour schemes and icon themes,
+snapshots and state. Your own files in $KOME_USER_DIR/ are kept.
+
+  -y, --yes  do not ask for confirmation (needed when not on a terminal)
+EOF
+}
+
+yes=
+case ${1-} in
+'') ;;
+-y | --yes) yes=1 ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+*) die "$EX_USAGE" "unexpected argument: $1" "run 'kome purge --help'" ;;
+esac
+
+if [ -z "$yes" ]; then
+	[ -t 0 ] || die "$EX_USAGE" "purge deletes kome's snapshots and files" "run 'kome purge --yes' to confirm"
+	printf 'Restore your original desktop and delete everything kome created? [y/N] ' >&2
+	read -r answer || answer=
+	case $answer in
+	y | Y | yes) ;;
+	*)
+		printf 'kome: nothing changed\n' >&2
+		exit "$EX_OK"
+		;;
+	esac
+fi
+
+lock_take
+if [ -d "$KOME_SNAP_DIR/original" ]; then
+	if ! snapshot_restore original; then
+		hint "nothing was deleted; run 'kome purge' again, or 'kome doctor' to see what is wrong"
+		exit 70
+	fi
+fi
+
+# Only remove what the manifest lists, and only inside the user's own dirs
+# (home and the XDG dirs, which may live outside home).
+inside_user_dirs() {
+	case $1 in
+	*/../* | */..) return 1 ;;
+	esac
+	for _root in "$HOME" "${XDG_DATA_HOME:-$HOME/.local/share}" \
+		"${XDG_CONFIG_HOME:-$HOME/.config}" "${XDG_STATE_HOME:-$HOME/.local/state}"; do
+		case $1 in
+		"$_root"/?*) return 0 ;;
+		esac
+	done
+	return 1
+}
+
+if [ -f "$KOME_STATE_DIR/manifest" ]; then
+	while IFS= read -r line; do
+		case $line in
+		'path '*) path=${line#path } ;;
+		*) continue ;;
+		esac
+		if inside_user_dirs "$path"; then
+			rm -rf "$path"
+		fi
+	done <"$KOME_STATE_DIR/manifest"
+fi
+
+rm -rf "${KOME_SNAP_DIR%/snapshots}"
+# The lock lives in the state dir: release it before removing the dir.
+rmdir "$KOME_STATE_DIR/lock" 2>/dev/null || :
+trap - EXIT
+rm -rf "${KOME_STATE_DIR:?}"
+
+if [ -d "$KOME_USER_DIR" ]; then
+	printf 'kome: kept your own files in %s\n' "$KOME_USER_DIR" >&2
+	hint "delete them too with 'rm -r $KOME_USER_DIR' if you want"
+fi
