@@ -141,7 +141,8 @@ kcfg() {
 }
 
 # fake_unit <NN-name> <check-exit> [check-stdout] [unit.ini lines…]
-# A unit in $KOME_UNITS_DIR that logs "name verb" to $UNITLOG.
+# A unit in $KOME_UNITS_DIR that logs "name verb" to $UNITLOG. Its state
+# (for current) is "state=<name>" plus "applied" once apply ran.
 fake_unit() {
 	export KOME_UNITS_DIR="$BATS_TEST_TMPDIR/units" UNITLOG="$BATS_TEST_TMPDIR/units.log"
 	_dir="$KOME_UNITS_DIR/$1"
@@ -150,7 +151,9 @@ fake_unit() {
 #!/bin/sh
 case \$1 in
 check) printf '%s' '${3-}'; exit $2 ;;
-current) echo "state=${1#*-}" ;;
+current) echo "state=${1#*-}"; cat "\$0.state" 2>/dev/null || : ;;
+apply) echo "${1#*-} apply" >>"\$UNITLOG"; echo applied >"\$0.state" ;;
+restore) echo "${1#*-} restore" >>"\$UNITLOG"; rm -f "\$0.state" ;;
 *) echo "${1#*-} \$1" >>"\$UNITLOG" ;;
 esac
 UNIT

@@ -143,6 +143,7 @@ snapshot_restore() {
 			err "could not restore '$(unit_name "$_u")'"
 			return "$EX_SOFTWARE"
 		}
+		effect_note "$_u"
 	done
 }
 
@@ -157,16 +158,25 @@ lock_take() {
 	trap 'exit 130' INT TERM
 }
 
-# shell_state
-# The current state of every unit Plasma's shell does not repaint on its own
-# (takes_effect=shell, e.g. icons). Compared before and after a change to
-# know whether the panel needs refreshing.
-shell_state() {
-	for _u in $(units_all); do
-		if [ "$(unit_meta "$_u" takes_effect || :)" = shell ]; then
-			"$_u/unit" current 2>/dev/null || :
-		fi
-	done
+# effect_note <dir>
+# Remember that this unit's state really changed, for effects_report: what
+# needs a restart or a re-login, and whether Plasma's panel must be
+# refreshed (takes_effect=shell, e.g. icons).
+effect_note() {
+	case $(unit_meta "$1" takes_effect || :) in
+	restart) fx_restart="${fx_restart-}, $(unit_label "$1")" ;;
+	relogin) fx_relogin="${fx_relogin-}, $(unit_label "$1")" ;;
+	shell) fx_shell=1 ;;
+	esac
+}
+
+# effects_report — refresh the panel and say what needs a restart or a
+# re-login, for the units effect_note saw change.
+effects_report() {
+	[ -z "${fx_shell-}" ] || panel_refresh
+	[ -z "${fx_restart-}" ] || printf 'kome: restart your apps to see %s\n' "${fx_restart#, }" >&2
+	[ -z "${fx_relogin-}" ] || printf 'kome: log out and back in to see %s\n' "${fx_relogin#, }" >&2
+	return 0
 }
 
 # panel_refresh

@@ -115,7 +115,23 @@ colors=off'
 @test "restore skips a unit whose state is already the saved one" {
 	fake_unit 10-colors 0 "" default=on
 	"$KOME" apply mocha
+	"$KOME" restore original
+	grep -q '^colors restore' "$UNITLOG"
 	: >"$UNITLOG"
 	"$KOME" restore original
 	! grep -q '^colors restore' "$UNITLOG"
+}
+
+@test "re-applying the same look gives no restart or re-login notice" {
+	fake_unit 50-rendering 0 "" default=on takes_effect=relogin "gives=crisper text"
+	"$KOME" apply mocha
+	run "$KOME" apply mocha
+	[[ "$output" != *"log out and back in"* ]]
+}
+
+@test "restore says what needs a re-login when it changes such a unit" {
+	fake_unit 50-rendering 0 "" default=on takes_effect=relogin "gives=crisper text"
+	"$KOME" apply mocha
+	run "$KOME" restore original
+	[[ "$output" == *"log out and back in to see crisper text"* ]]
 }

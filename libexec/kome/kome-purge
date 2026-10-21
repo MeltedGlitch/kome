@@ -52,7 +52,6 @@ if [ -z "$yes" ]; then
 fi
 
 lock_take
-shell_before=$(shell_state)
 if [ -d "$KOME_SNAP_DIR/original" ]; then
 	if ! snapshot_restore original; then
 		hint "nothing was deleted; run 'kome purge' again, or 'kome doctor' to see what is wrong"
@@ -60,7 +59,7 @@ if [ -d "$KOME_SNAP_DIR/original" ]; then
 	fi
 fi
 
-[ "$shell_before" = "$(shell_state)" ] || panel_refresh
+effects_report
 
 # Only remove what the manifest lists, and only inside the user's own dirs
 # (home and the XDG dirs, which may live outside home).

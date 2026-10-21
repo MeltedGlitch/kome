@@ -38,7 +38,6 @@ esac
 	die "$EX_NOINPUT" "there is no '$which' snapshot yet: kome has not changed this desktop" "run 'kome apply <preset>' first"
 
 lock_take
-shell_before=$(shell_state)
 if ! snapshot_restore "$which"; then
 	hint "run 'kome restore $which' again, or 'kome doctor' to see what is wrong"
 	exit "$EX_SOFTWARE"
@@ -56,4 +55,4 @@ mkdir -p "$KOME_STATE_DIR/applied"
 for f in "$KOME_SNAP_DIR/$which"/*; do
 	[ ! -f "$f" ] || cp "$f" "$KOME_STATE_DIR/applied/"
 done
-[ "$shell_before" = "$(shell_state)" ] || panel_refresh
+effects_report

@@ -116,15 +116,9 @@ applied=$KOME_STATE_DIR/applied
 rm -rf "${applied:?}.tmp"
 mkdir -p "$applied.tmp"
 
-shell_before=$(shell_state)
-restart=
-relogin=
 for u in $apply_units; do
 	name=$(unit_name "$u")
-	case $(unit_meta "$u" takes_effect || :) in
-	restart) restart="$restart, $(unit_label "$u")" ;;
-	relogin) relogin="$relogin, $(unit_label "$u")" ;;
-	esac
+	before=$("$u/unit" current 2>/dev/null || :)
 	unit_touched "$u"
 	if ! "$u/unit" apply; then
 		: >"$KOME_STATE_DIR/failed"
@@ -133,17 +127,19 @@ for u in $apply_units; do
 		exit "$EX_SOFTWARE"
 	fi
 	"$u/unit" current >"$applied.tmp/$name" 2>/dev/null || rm -f "$applied.tmp/$name"
-	say "$name: applied"
+	if [ "$before" != "$(cat "$applied.tmp/$name" 2>/dev/null)" ]; then
+		effect_note "$u"
+		say "$name: applied"
+	else
+		say "$name: already as wanted"
+	fi
 done
 rm -rf "${applied:?}"
 mv "$applied.tmp" "$applied"
 
 printf '%s\n' "$preset" >"$KOME_STATE_DIR/active"
 rm -f "$KOME_STATE_DIR/failed"
-[ "$shell_before" = "$(shell_state)" ] || panel_refresh
-
-[ -z "$restart" ] || printf 'kome: restart your apps to see %s\n' "${restart#, }" >&2
-[ -z "$relogin" ] || printf 'kome: log out and back in to see %s\n' "${relogin#, }" >&2
+effects_report
 if [ -n "$notices" ]; then
 	printf '%s' "$notices" | sed 's/^/kome: /' >&2
 	hint "run 'kome deps $preset' to see how to install them"
