@@ -57,6 +57,20 @@ else
 	printf 'preset: none (checking only what this system can do)\n'
 fi
 
+# version_below <version> <minimum> — is version < minimum? (x.y.z, numeric)
+version_below() {
+	kome_awk -v a="$1" -v b="$2" 'BEGIN {
+		split(a, x, "."); split(b, y, ".")
+		for (i = 1; i <= 3; i++) {
+			if (x[i] + 0 < y[i] + 0) exit 0
+			if (x[i] + 0 > y[i] + 0) exit 1
+		}
+		exit 1
+	}'
+}
+
+plasma=$(plasmashell --version 2>/dev/null | awk '{ print $2; exit }') || plasma=
+
 # 1. Units.
 errfile=$(mktemp)
 trap 'rm -f "$errfile"' EXIT
@@ -67,6 +81,12 @@ for u in $(units_all); do
 	what=$(unit_meta "$u" description) || what=$name
 	if ! unit_enabled "$u"; then
 		printf '%-9s %-10s %s (opt-in: add %s=on under [Units] in kome.conf)\n' off "$name" "$what" "$name"
+		continue
+	fi
+	min=$(unit_meta "$u" min_plasma) || min=
+	if [ -n "$plasma" ] && [ -n "$min" ] && version_below "$plasma" "$min"; then
+		printf '%-9s %-10s needs Plasma %s or newer (this is %s)\n' error "$name" "$min" "$plasma"
+		problems=1
 		continue
 	fi
 	check_status=0

@@ -91,3 +91,13 @@ setup() {
 	run "$KOME" doctor --nope
 	[ "$status" -eq 64 ]
 }
+
+@test "a unit needing a newer Plasma than this one is reported" {
+	fake_unit 10-colors 0 "" default=on "description=Colours" min_plasma=6.8
+	PLASMA_VERSION=6.7.5 run "$KOME" doctor mocha
+	[ "$status" -eq 1 ]
+	[[ "$output" == *"error     colors     needs Plasma 6.8 or newer (this is 6.7.5)"* ]]
+	PLASMA_VERSION=6.10.0 run "$KOME" doctor mocha
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"ok        colors"* ]]
+}

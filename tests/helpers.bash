@@ -106,6 +106,10 @@ EOF
 EOF
 	cat >"$stubs/plasmashell" <<'EOF'
 #!/bin/sh
+if [ "${1-}" = --version ]; then
+	printf 'plasmashell %s\n' "${PLASMA_VERSION:-6.7.5}"
+	exit 0
+fi
 printf 'plasmashell %s\n' "$*" >>"$LOG"
 EOF
 	cat >"$stubs/nohup" <<'EOF'

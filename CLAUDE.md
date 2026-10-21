@@ -266,10 +266,9 @@ from the directory (`10-colors` → `colors`); ingredients come from `check`.
 [Unit]
 Format=1
 description=Plasma colour scheme          # for kome doctor and --help
-kind=core                                 # core | integration
 default=on                                # on | off (opt-in units)
 takes_effect=live                         # live | restart | relogin | shell
-min_plasma=6.0
+min_plasma=6.0                            # kome doctor flags an older Plasma
 gives=the colours of Plasma and KDE apps  # "install X to also theme <gives>"
 ```
 
