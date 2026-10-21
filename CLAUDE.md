@@ -7,6 +7,42 @@
 
 ---
 
+## Current state (update at the end of every session)
+
+**Last session: 2026-10-21.** Repo: `github.com/MeltedGlitch/kome` (private),
+branch `main`, CI green, 62 bats tests passing (also under `gawk --posix`).
+
+Done: dispatcher (`bin/kome`), `lib/kome/{common.sh, preset.sh, ini.awk,
+color.awk, template.awk, resolve.awk}`, palettes Catppuccin Mocha/Latte,
+style `soft`, presets `mocha`/`latte`, `kome list`, Makefile (per-user
+install, repo layout = install layout), README (EN/ES) with banner and
+preset cards.
+
+**Next step: the `colors` unit** (`libexec/kome/units/10-colors/`): `unit`
+with `check`/`apply`/`current`, template `kde.colors.in` (roles → KDE
+`[Colors:*]` groups), rendered to `$XDG_DATA_HOME/color-schemes/`, applied
+with `plasma-apply-colorscheme`. Tests must stub `plasma-apply-colorscheme`
+and `kreadconfig6` on `PATH` and use temp `XDG_*` dirs — never touch the
+real desktop from tests. Add `libexec/kome/units/*/unit` back to `SCRIPTS`
+in the Makefile once a unit exists.
+
+Open points to raise with the owner before/while doing it:
+
+1. **Restore needs a 4th unit verb.** `apply` takes preset values, but
+   `restore` must re-apply what `current` printed (e.g. `scheme=BreezeDark`).
+   Proposal: `unit restore`, reading `current`'s key=value lines on stdin.
+2. **Same-name re-apply.** `plasma-apply-colorscheme` likely ignores a
+   scheme that is already active (to verify), so re-applying an edited
+   palette may need alternating file names (`Kome` / `KomeAlt`).
+3. **Breeze presets** should apply KDE's own shipped schemes (`BreezeLight`,
+   `BreezeDark`) rather than generate an approximation from a palette —
+   needs a preset key for that (e.g. `color_scheme=BreezeDark`).
+
+Ask before reading or changing anything outside the repo on the owner's
+machine.
+
+---
+
 ## 0. Working agreement (read first)
 
 - **Language.** The owner (Antonio) writes in Spanish. Talk to him in Spanish.
