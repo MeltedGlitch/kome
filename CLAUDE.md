@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 138 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 139 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -663,6 +663,7 @@ templates only.
 | 2026-10-22 | `cursor` unit: Catppuccin presets use `catppuccin-<flavour>-<accent>-cursors` (optional); Breeze presets `breeze_cursors`. The deps table gains `install=`, a per-user shell command printed (never run) for unpackaged ingredients. |
 | 2026-10-22 | Fix: `original` was frozen at the first apply, so units added later (fonts, cursor) were never saved and `restore original` skipped them. Now each apply first adds to `original` every unit it lacks that kome has never applied (tracked in `$XDG_STATE_HOME/kome/touched`). |
 | 2026-10-22 | `icons` unit: preset keys `icon_theme` (Mocha `Papirus-Dark`, Latte `Papirus-Light`, Breeze `breeze`/`breeze-dark`) + `icon_accent`. The accent theme `kome-<preset>-A/B` in `$XDG_DATA_HOME/icons/` inherits from the base and only symlinks folder icons (papirus-folders' rule), found by following `Inherits=`; the base theme is never modified. |
+| 2026-10-22 | Fix (found live by the owner): after an icon change the panel kept old icons until hovered. `icons` now signals every KIconLoader group (0–5) plus KGlobalSettings IconChanged (4), as System Settings does. |
 
 ---
 

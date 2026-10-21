@@ -74,9 +74,16 @@ set_theme() {
 	else
 		kwriteconfig6 --file kdeglobals --group Icons --key Theme "$1"
 	fi
-	# Tell running KDE apps (KIconLoader) that the icon theme changed.
-	dbus-send --session --type=signal /KIconLoader \
-		org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || :
+	# Tell running KDE apps the icons changed, as System Settings does: one
+	# KIconLoader signal per icon group (Desktop, Toolbar, MainToolbar, Small,
+	# Panel, Dialog) — with only group 0, the panel kept its old icons until
+	# hovered — plus KGlobalSettings' IconChanged (4).
+	for _group in 0 1 2 3 4 5; do
+		dbus-send --session --type=signal /KIconLoader \
+			org.kde.KIconLoader.iconChanged "int32:$_group" 2>/dev/null || :
+	done
+	dbus-send --session --type=signal /KGlobalSettings \
+		org.kde.KGlobalSettings.notifyChange int32:4 int32:0 2>/dev/null || :
 }
 
 do_check() {

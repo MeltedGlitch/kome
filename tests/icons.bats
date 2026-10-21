@@ -49,6 +49,18 @@ setup() {
 	grep -q 'KIconLoader.iconChanged' "$DBUSLOG"
 }
 
+@test "every icon group is told to reload, so the panel repaints too" {
+	preset_export mocha
+	"$UNIT" apply
+	for g in 0 1 2 3 4 5; do
+		grep -q "KIconLoader.iconChanged int32:$g\$" "$DBUSLOG" || { echo "group $g"; false; }
+	done
+	grep -q 'KGlobalSettings.notifyChange int32:4 int32:0' "$DBUSLOG"
+	: >"$DBUSLOG"
+	printf 'theme=\n' | "$UNIT" restore
+	grep -q 'KIconLoader.iconChanged int32:4$' "$DBUSLOG"
+}
+
 @test "folders point at the accent's real files, found through Inherits" {
 	preset_export mocha
 	"$UNIT" apply

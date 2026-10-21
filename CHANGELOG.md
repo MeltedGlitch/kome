@@ -50,6 +50,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- After an icon change, the panel showed the old icons until hovered:
+  every icon group is now told to reload.
 - `kome restore original` now also restores units added after the first
   apply (e.g. fonts, cursor): each apply completes `original` with units
   kome has never touched.
