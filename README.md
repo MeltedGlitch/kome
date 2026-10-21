@@ -8,7 +8,7 @@
 [![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-cba6f7?labelColor=1e1e2e)](LICENSE)
 [![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6-89b4fa?labelColor=1e1e2e&logo=kde&logoColor=89b4fa)](https://kde.org/plasma-desktop/)
 [![POSIX sh](https://img.shields.io/badge/POSIX-sh-a6e3a1?labelColor=1e1e2e&logo=gnubash&logoColor=a6e3a1)](#how-it-works)
-[![Status: early development](https://img.shields.io/badge/status-early_development-fab387?labelColor=1e1e2e)](#roadmap)
+[![Status: 0.1](https://img.shields.io/badge/status-0.1-a6e3a1?labelColor=1e1e2e)](#roadmap)
 
 **[Quick start](#quick-start)** ·
 **[Presets](#presets)** ·
@@ -33,10 +33,11 @@ kome apply mocha          # Catppuccin Mocha, everywhere
 kome restore original     # exactly your desktop from before kome
 ```
 
-> [!WARNING]
-> **kome is under construction.** The engine is being built piece by piece
-> (see the [roadmap](#roadmap)); the commands on this page are the v0.1 plan
-> and are not usable yet. Star or watch the repo to follow along.
+> [!NOTE]
+> **kome 0.1 is out** — colours, icons, cursor, fonts, font rendering,
+> wallpaper and terminals (kitty, Ghostty). Window decorations, widget style
+> and panel layouts come in 0.2 (see the [roadmap](#roadmap)). The
+> `wallpaper` unit is opt-in and not yet tested on real desktops.
 
 ## ✨ Why kome
 
