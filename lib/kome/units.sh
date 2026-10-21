@@ -87,6 +87,31 @@ snapshot_take() {
 	mv "$_tmp" "$KOME_SNAP_DIR/$1"
 }
 
+# snapshot_complete <name>
+# Add to an existing snapshot every unit it lacks that kome has never applied
+# (e.g. a unit added by a kome upgrade): its current state is still the
+# user's own. Units kome has applied are listed in $KOME_STATE_DIR/touched.
+snapshot_complete() {
+	for _u in $(units_all); do
+		_n=$(unit_name "$_u")
+		[ ! -f "$KOME_SNAP_DIR/$1/$_n" ] || continue
+		! grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null || continue
+		unit_check "$_u"
+		case $check_status in
+		1 | 3) continue ;;
+		esac
+		"$_u/unit" current >"$KOME_SNAP_DIR/$1/.$_n.tmp" &&
+			mv "$KOME_SNAP_DIR/$1/.$_n.tmp" "$KOME_SNAP_DIR/$1/$_n"
+	done
+}
+
+# unit_touched <dir> — remember that kome has applied this unit.
+unit_touched() {
+	_n=$(unit_name "$1")
+	grep -qx "$_n" "$KOME_STATE_DIR/touched" 2>/dev/null ||
+		printf '%s\n' "$_n" >>"$KOME_STATE_DIR/touched"
+}
+
 # snapshot_restore <name>
 # Feed each saved state back to its unit's restore, in run order.
 snapshot_restore() {

@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 125 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 127 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -658,6 +658,7 @@ templates only.
 | 2026-10-22 | `icon_accent` is a Papirus folder colour name (Mocha `violet`, Latte `blue`). |
 | 2026-10-22 | `kome deps`: package manager detected by binary (dnf, zypper, pacman, apt — first found), names from `share/kome/deps/packages.ini` (only names verified in the distro's index), `url=` for unpackaged ingredients; optional ones after a `# optional` line. |
 | 2026-10-22 | `cursor` unit: Catppuccin presets use `catppuccin-<flavour>-<accent>-cursors` (optional); Breeze presets `breeze_cursors`. The deps table gains `install=`, a per-user shell command printed (never run) for unpackaged ingredients. |
+| 2026-10-22 | Fix: `original` was frozen at the first apply, so units added later (fonts, cursor) were never saved and `restore original` skipped them. Now each apply first adds to `original` every unit it lacks that kome has never applied (tracked in `$XDG_STATE_HOME/kome/touched`). |
 
 ---
 

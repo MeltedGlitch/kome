@@ -99,7 +99,11 @@ fi
 
 # 2. Save the desktop, then apply.
 lock_take
-[ -d "$KOME_SNAP_DIR/original" ] || snapshot_take original
+if [ -d "$KOME_SNAP_DIR/original" ]; then
+	snapshot_complete original
+else
+	snapshot_take original
+fi
 if [ -f "$KOME_STATE_DIR/failed" ]; then
 	warn "the last apply failed, so 'previous' still holds the last good look"
 else
@@ -114,6 +118,7 @@ for u in $apply_units; do
 	restart) restart="$restart, $(unit_label "$u")" ;;
 	relogin) relogin="$relogin, $(unit_label "$u")" ;;
 	esac
+	unit_touched "$u"
 	if ! "$u/unit" apply; then
 		: >"$KOME_STATE_DIR/failed"
 		err "'$name' failed; the desktop may be half-applied"

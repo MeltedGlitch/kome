@@ -47,5 +47,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `kome restore original` now also restores units added after the first
+  apply (e.g. fonts, cursor): each apply completes `original` with units
+  kome has never touched.
 - awk always runs with `LC_ALL=C`, so decimals never come out as `0,5`
   on systems with a non-English locale.

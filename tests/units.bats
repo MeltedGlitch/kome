@@ -77,3 +77,21 @@ colors=off'
 	"$KOME" apply mocha
 	[ "$(cat "$XDG_DATA_HOME/kome/snapshots/original/rendering")" = "state=rendering" ]
 }
+
+@test "a unit added after the first apply joins original with the user's state" {
+	fake_unit 10-colors 0 "" default=on
+	"$KOME" apply mocha
+	[ ! -e "$XDG_DATA_HOME/kome/snapshots/original/fonts" ]
+	fake_unit 40-fonts 0 "" default=on
+	"$KOME" apply mocha
+	[ "$(cat "$XDG_DATA_HOME/kome/snapshots/original/fonts")" = "state=fonts" ]
+	[ "$(cat "$XDG_STATE_HOME/kome/touched")" = "$(printf 'colors\nfonts')" ]
+}
+
+@test "a unit kome already applied is never added to original later" {
+	fake_unit 10-colors 0 "" default=on
+	"$KOME" apply mocha
+	rm "$XDG_DATA_HOME/kome/snapshots/original/colors"
+	"$KOME" apply mocha
+	[ ! -e "$XDG_DATA_HOME/kome/snapshots/original/colors" ]
+}
