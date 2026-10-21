@@ -124,3 +124,15 @@ setup() {
 	"$UNIT" apply
 	grep -qx 'Inherits=Papirus-Dark,breeze-dark,hicolor' "$user_icons/kome-mocha-A/index.theme"
 }
+
+@test "the derived theme keeps the base theme's KDE settings (FollowsColorScheme…)" {
+	preset_export latte
+	"$UNIT" apply
+	t="$user_icons/kome-latte-A/index.theme"
+	grep -qx 'FollowsColorScheme=true' "$t"
+	grep -qx 'PanelDefault=22' "$t"
+	[ "$(grep -c '^Name=' "$t")" -eq 1 ]
+	[ "$(grep -c '^Inherits=' "$t")" -eq 1 ]
+	[ "$(grep -c '^Directories=' "$t")" -eq 1 ]
+	! grep -q 'Papirus variant' "$t"
+}

@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 191 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 192 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -684,6 +684,7 @@ templates only.
 | 2026-10-22 | Deps table: `install_<manager>=` for managers that need a full command (Ghostty on Fedora: the community COPR `scottames/ghostty`, as documented by ghostty.org). |
 | 2026-10-22 | Fix (tests): the fake Plasma inherited the host PATH, so a real kitty/dnf on the developer's machine changed test results. Tests now run with a hermetic PATH (stubs + basic tools only). |
 | 2026-10-22 | Found live (Latte): icons missing from Papirus (e.g. KDE Connect's phone) fell back to a dark variant and showed white on white. The derived icon theme now inherits `<base>,breeze,hicolor` for light looks and `<base>,breeze-dark,hicolor` for dark ones (owner's idea: a mode-matched fallback under the chosen pack). |
+| 2026-10-22 | Root cause of the grey/white tray icons (found from the owner's screenshot and index.theme files): the derived theme lacked `FollowsColorScheme=true`, so Plasma stopped recolouring monochrome icons. The derived `[Icon Theme]` now copies every key of the base theme's except Name, Comment, Inherits, Directories, ScaledDirectories and Hidden. KDE Connect probably picks its tray icon at startup (to verify). |
 
 ---
 

@@ -160,7 +160,7 @@ fake_icon_themes() {
 	done
 	for _t in Papirus-Dark Papirus-Light; do
 		mkdir -p "$_icons/$_t/22x22/places"
-		printf '[Icon Theme]\nName=%s\nInherits=Papirus,breeze,hicolor\n' "$_t" >"$_icons/$_t/index.theme"
+		printf '[Icon Theme]\nName=%s\nComment=Papirus variant\nInherits=Papirus,breeze,hicolor\nFollowsColorScheme=true\nPanelDefault=22\nDirectories=22x22/places\n\n[22x22/places]\nSize=22\n' "$_t" >"$_icons/$_t/index.theme"
 		ln -s ../../Papirus/22x22/places/folder-violet.svg "$_icons/$_t/22x22/places/folder-violet.svg"
 	done
 }

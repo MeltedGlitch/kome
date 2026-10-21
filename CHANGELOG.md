@@ -66,6 +66,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Tray icons looked grey or white in kome's icon themes: the generated
+  theme now keeps the base theme's KDE settings, above all
+  `FollowsColorScheme`, so Plasma recolours them again.
 - Light looks showed some icons white on white: icons the icon pack lacks
   now fall back to Breeze in the look's own mode.
 - Tests no longer depend on programs installed on the machine running them.
