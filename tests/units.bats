@@ -134,3 +134,15 @@ colors=off'
 	run "$KOME" restore original
 	[[ "$output" == *"log out and back in to see crisper text"* ]]
 }
+
+@test "a key a unit learns in an upgrade joins original with the user's value" {
+	fake_unit 60-decoration 0 "" default=on
+	"$KOME" apply mocha
+	# The upgraded unit now also owns "show_bg", still at the user's value.
+	u="$KOME_UNITS_DIR/60-decoration/unit"
+	sed -i 's/^current) echo "state=decoration";/current) echo "state=decoration"; echo "show_bg=${SHOW_BG:-user}";/' "$u"
+	grep -q 'show_bg=' "$u"
+	SHOW_BG=user "$KOME" apply mocha
+	grep -qx 'show_bg=user' "$XDG_DATA_HOME/kome/snapshots/original/decoration"
+	[ "$(grep -c '^show_bg=' "$XDG_DATA_HOME/kome/snapshots/original/decoration")" -eq 1 ]
+}

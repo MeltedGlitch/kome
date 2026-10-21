@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 230 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 232 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
 and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
@@ -724,6 +724,8 @@ templates only.
 | 2026-10-22 | Review: `kind=` dropped from `unit.ini` (unread); `min_plasma=` is now checked by `kome doctor`. Core vs integration stays a documentation concept. |
 | 2026-10-22 | **v0.1.0 tagged and released** on GitHub (private). Development moves to v0.2 (`0.2.0-dev`). |
 | 2026-10-22 | `decoration` unit (v0.2). The style describes windows in generic words; only the unit knows Klassy's keys (read from Klassy's kcfg: `klassy/klassyrc`, `[Windeco] WindowCornerRadius/ButtonShape`, `[ButtonColors] ButtonBackgroundColors*`). Owner's choices for `soft`: small accent circles on the right (`ShapeSmallCircle`, `Accent`, close red on hover), 8 px corners, normal title bar, buttons `M` / `IAX`. Breeze presets reset to `org.kde.breeze` and KDE's button layout. Klassy via COPR `errornointernet/klassy` (package `klassy`, verified, Fedora 44 built). |
+| 2026-10-22 | Fix (found live: circles became bare icons after `kome apply mocha`): Klassy shows a button's background only on hover by default (`ShowBackgroundNormally*=false`). `window_buttons` now sets every visibility key explicitly for active and inactive windows (`[ButtonBehaviour] Show{,Close}{Background,Icon}Normally{Active,Inactive}`, `[ButtonColors] ButtonBackgroundOpacity*`): circles = backgrounds always, icons on hover, inactive at 50 %. Key set checked against Klassy's bundled `Chroma.klpw` preset. |
+| 2026-10-22 | Fix (design): a unit that learns new keys in an upgrade could never restore them — `original` had no value for them. Each apply now runs `snapshot_extend original`: for units kome has applied, plain `key=value` lines missing from the snapshot are added with their current value (still the user's, kome never wrote them). |
 
 ---
 

@@ -12,6 +12,13 @@ and the project uses [Semantic Versioning](https://semver.org/).
   through Klassy (optional: without it windows keep their frame); the
   Breeze presets go back to KDE's own decoration.
 
+### Fixed
+
+- Window buttons set to circles showed only bare icons: the circles are now
+  always visible (icons appear on hover).
+- `kome restore original` can now put back settings a unit started owning
+  in a newer kome version.
+
 ## [0.1.0] - 2026-10-22
 
 ### Added

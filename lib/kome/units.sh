@@ -129,6 +129,34 @@ snapshot_complete() {
 	done
 }
 
+# snapshot_extend <name>
+# For units kome has applied, add to the snapshot every simple key=value
+# their current state has and the snapshot lacks: a key a newer kome now
+# owns, which kome has never written, so its current value is still the
+# user's own. Without this, a unit that learns a key in an upgrade could
+# never put it back (found live: Klassy's ShowBackgroundNormally…). Only
+# plain keys ([a-z_]+=) are merged; units that save whole files (fc|…,
+# line=…) are left alone.
+snapshot_extend() {
+	for _u in $(units_all); do
+		_f=$KOME_SNAP_DIR/$1/$(unit_name "$_u")
+		if [ ! -f "$_f" ] || ! unit_applied "$_u"; then
+			continue
+		fi
+		"$_u/unit" current 2>/dev/null | while IFS= read -r _line; do
+			case $_line in
+			*=*) ;;
+			*) continue ;;
+			esac
+			_key=${_line%%=*}
+			case $_key in
+			'' | *[!a-z_]*) continue ;;
+			esac
+			grep -q "^$_key=" "$_f" || printf '%s\n' "$_line" >>"$_f"
+		done
+	done
+}
+
 # unit_touched <dir> — remember that kome has applied this unit.
 unit_touched() {
 	unit_applied "$1" || unit_name "$1" >>"$KOME_STATE_DIR/touched"

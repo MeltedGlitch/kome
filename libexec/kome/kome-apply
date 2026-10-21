@@ -99,6 +99,7 @@ fi
 lock_take
 if [ -d "$KOME_SNAP_DIR/original" ]; then
 	snapshot_complete original
+	snapshot_extend original
 else
 	snapshot_take original
 fi

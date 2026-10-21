@@ -29,7 +29,18 @@ radius:klassy/klassyrc:Windeco:WindowCornerRadius
 shape:klassy/klassyrc:Windeco:ButtonShape
 background:klassy/klassyrc:ButtonColors:ButtonBackgroundColorsActive
 background_inactive:klassy/klassyrc:ButtonColors:ButtonBackgroundColorsInactive
-close_hover:klassy/klassyrc:ButtonColors:NegativeCloseBackgroundHoverPressActive"
+opacity:klassy/klassyrc:ButtonColors:ButtonBackgroundOpacityActive
+opacity_inactive:klassy/klassyrc:ButtonColors:ButtonBackgroundOpacityInactive
+close_hover:klassy/klassyrc:ButtonColors:NegativeCloseBackgroundHoverPressActive
+close_hover_inactive:klassy/klassyrc:ButtonColors:NegativeCloseBackgroundHoverPressInactive
+show_bg:klassy/klassyrc:ButtonBehaviour:ShowBackgroundNormallyActive
+show_bg_inactive:klassy/klassyrc:ButtonBehaviour:ShowBackgroundNormallyInactive
+show_close_bg:klassy/klassyrc:ButtonBehaviour:ShowCloseBackgroundNormallyActive
+show_close_bg_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseBackgroundNormallyInactive
+show_icon:klassy/klassyrc:ButtonBehaviour:ShowIconNormallyActive
+show_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowIconNormallyInactive
+show_close_icon:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyActive
+show_close_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyInactive"
 
 # set_key <state name> <value> — write it, or delete it when empty.
 set_key() {
@@ -44,6 +55,25 @@ set_key() {
 	else
 		kwriteconfig6 --notify --file "$_file" --group "$_group" --key "$_key" "$2"
 	fi
+}
+
+# buttons_as <shape> <colours> <background always shown> <icon always shown>
+# Klassy shows a button's background only on hover by default, so every
+# visibility key is set explicitly, for active and inactive windows: that
+# way switching between button styles works from any previous klassyrc.
+# Inactive windows get dimmer backgrounds; close turns red on hover.
+buttons_as() {
+	set_key shape "$1"
+	for _s in '' _inactive; do
+		set_key "background$_s" "$2"
+		set_key "show_bg$_s" "$3"
+		set_key "show_close_bg$_s" "$3"
+		set_key "show_icon$_s" "$4"
+		set_key "show_close_icon$_s" "$4"
+		set_key "close_hover$_s" true
+	done
+	set_key opacity 100
+	set_key opacity_inactive 50
 }
 
 # Tell KWin to reload its decoration settings.
@@ -90,18 +120,8 @@ do_apply() {
 		set_key theme Klassy
 		set_key radius "${KOME_WINDOW_RADIUS-}"
 		case ${KOME_WINDOW_BUTTONS-} in
-		circles)
-			set_key shape ShapeSmallCircle
-			set_key background Accent
-			set_key background_inactive Accent
-			set_key close_hover true
-			;;
-		icons)
-			set_key shape ShapeIntegratedRoundedRectangle
-			set_key background TitleBarTextNegativeClose
-			set_key background_inactive TitleBarTextNegativeClose
-			set_key close_hover true
-			;;
+		circles) buttons_as ShapeSmallCircle Accent true false ;;
+		icons) buttons_as ShapeIntegratedRoundedRectangle TitleBarTextNegativeClose false true ;;
 		esac
 		;;
 	esac

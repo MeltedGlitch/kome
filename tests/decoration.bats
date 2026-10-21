@@ -39,6 +39,13 @@ klassy() { kcfg klassy/klassyrc "$1" "$2"; }
 	[ "$(klassy Windeco ButtonShape)" = "ShapeSmallCircle" ]
 	[ "$(klassy ButtonColors ButtonBackgroundColorsActive)" = "Accent" ]
 	[ "$(klassy ButtonColors NegativeCloseBackgroundHoverPressActive)" = "true" ]
+	# Circles always visible, icons only on hover — Klassy's default would
+	# show the circles on hover only (found live).
+	[ "$(klassy ButtonBehaviour ShowBackgroundNormallyActive)" = "true" ]
+	[ "$(klassy ButtonBehaviour ShowCloseBackgroundNormallyInactive)" = "true" ]
+	[ "$(klassy ButtonBehaviour ShowIconNormallyActive)" = "false" ]
+	[ "$(klassy ButtonBehaviour ShowCloseIconNormallyActive)" = "false" ]
+	[ "$(klassy ButtonColors ButtonBackgroundOpacityActive)" = "100" ]
 	grep -q 'org.kde.KWin.reconfigure' "$DBUSLOG"
 }
 
@@ -88,4 +95,14 @@ klassy() { kcfg klassy/klassyrc "$1" "$2"; }
 	. "$KOME_ROOT/lib/kome/deps.sh"
 	KOME_PM=dnf KOME_INSTALL="sudo dnf install" run deps_commands "decoration:Klassy"
 	[ "$output" = "sudo dnf copr enable errornointernet/klassy && sudo dnf install klassy" ]
+}
+
+@test "switching from circles to icons flips every visibility key" {
+	fake_klassy
+	preset_export mocha
+	"$UNIT" apply
+	KOME_WINDOW_BUTTONS=icons "$UNIT" apply
+	[ "$(klassy ButtonBehaviour ShowBackgroundNormallyActive)" = "false" ]
+	[ "$(klassy ButtonBehaviour ShowIconNormallyActive)" = "true" ]
+	[ "$(klassy Windeco ButtonShape)" = "ShapeIntegratedRoundedRectangle" ]
 }
