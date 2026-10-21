@@ -232,6 +232,7 @@ back to `restore`.
 | 1 | Target absent (integration's app not installed) | Skip silently (shown with `-v`) |
 | 2 | Ingredient missing (names printed on stdout) | List it, hint `kome deps`; skip only with `--partial` |
 | 3 | Other problem (reason on stderr) | Report it with a hint; stop |
+| 4 | Optional ingredient missing (names printed on stdout) | Skip this unit, apply the rest, and **always** tell the user what to install to get it (not only with `-v`), with a hint to `kome deps` |
 
 Values are passed as environment variables with a `KOME_` prefix
 (`KOME_ACCENT=#b4befe`, `KOME_FONT_UI=Inter`, `KOME_MODE=dark`, …).
@@ -259,7 +260,8 @@ Power users can run any unit directly by path; there is no special subcommand.
 | What is missing | Example | Behaviour |
 |---|---|---|
 | The **target** of an integration | Kitty not installed | Unit is skipped silently (mentioned only with `-v`). Not an error: nothing to theme. |
-| An **ingredient** of the look | Inter, Papirus, Klassy | Clearly listed before anything is applied, with a hint to `kome deps <preset>`. Nothing is applied unless the user passes `--partial`, which applies as much as possible. |
+| A required **ingredient** of the look | Inter, Papirus | Clearly listed before anything is applied, with a hint to `kome deps <preset>`. Nothing is applied unless the user passes `--partial`, which applies as much as possible. |
+| An **optional ingredient** | Klassy (window decoration) | The unit is skipped and everything else is applied; the windows keep their current frame. A visible notice always says what to install to get it (e.g. "install Klassy to theme window borders and buttons") and hints `kome deps <preset>`. |
 
 ### Catalogue (initial)
 
@@ -273,7 +275,7 @@ Power users can run any unit directly by path; there is no special subcommand.
 | `gtk` | core | rely on Plasma's own colour sync to GTK where possible (to verify, §16); Flatpak theming only via `doctor --fix` with `[y/N]` | on | partly (libadwaita apps only take light/dark + accent) |
 | `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen config, only from a path the user gives in a preset. Never on by default: the user's wallpapers are kept | **opt-in** | yes |
 | `kitty` | integration | generated theme file included from `kitty.conf`; reload all instances (SIGUSR1 / remote control) | on | yes |
-| `decoration` (v0.2) | core | Klassy via its config + KWin reconfigure over D-Bus (`dbus-send`/`busctl`) | on | yes |
+| `decoration` (v0.2) | core | Klassy (**optional ingredient**: without it windows are left untouched, with a notice) via its config + KWin reconfigure over D-Bus (`dbus-send`/`busctl`) | on | yes |
 | `style` (v0.2) | core | widget style (Klassy / Darkly / Breeze) via `kwriteconfig6` | on | new apps only |
 | `panel` (v0.2) | core | Plasma desktop scripting (JS) via D-Bus `evaluateScript`; multi-monitor aware; destroys custom widgets | **opt-in** | yes |
 
@@ -579,6 +581,8 @@ templates only.
 - Manifest format (one line per file/line created?), and whether
   `make uninstall` should suggest running `kome purge` first.
 - Klassy vs Darkly as the widget style for non-default presets (v0.2).
+- Where exactly the optional-ingredient notice is shown (proposal: a summary
+  at the end of `kome apply`, plus `kome doctor`).
 - Panel layouts to offer (full bar, floating centred dock, top bar + dock…) and
   their multi-monitor behaviour (v0.2).
 
@@ -636,6 +640,7 @@ templates only.
 | 2026-10-21 | Value keys are lowercase snake_case (`font_ui` → `KOME_FONT_UI`); resolution order palette → style → preset (preset overrides). |
 | 2026-10-22 | Units get a 4th verb, `restore`, reading `current`'s output on stdin (`current \| restore` is a no-op). |
 | 2026-10-22 | Breeze presets use KDE's shipped schemes via `color_scheme=`; no generated imitation. |
+| 2026-10-22 | `decoration` stays in v0.2. Klassy is an *optional ingredient*: `check` exits 4, the unit is skipped, the rest is applied, and a notice always says what to install. |
 
 ---
 
