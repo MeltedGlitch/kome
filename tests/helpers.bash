@@ -30,6 +30,8 @@ fake_plasma() {
 	printf 'BreezeDark\n' >"$STATE"
 	printf '%s\n' Inter 'JetBrains Mono' 'Noto Sans' Hack >"$FONTS"
 
+	fake_icon_themes
+
 	stubs="$BATS_TEST_TMPDIR/stubs"
 	mkdir -p "$stubs"
 	cat >"$stubs/kreadconfig6" <<'EOF'
@@ -112,4 +114,35 @@ UNIT
 		echo '[Unit]'
 		for _l in "$@"; do echo "$_l"; done
 	} >"$_dir/unit.ini"
+}
+
+# fake_icon_themes — breeze, breeze-dark and a tiny Papirus family in the
+# system icon dir. As in the real Papirus, the coloured folders are real
+# files in Papirus and symlinks in Papirus-Dark, and folder.svg is a
+# symlink to the default (blue) colour.
+fake_icon_themes() {
+	_icons="$XDG_DATA_DIRS/icons"
+	for _t in breeze breeze-dark; do
+		mkdir -p "$_icons/$_t"
+		printf '[Icon Theme]\nName=%s\n' "$_t" >"$_icons/$_t/index.theme"
+	done
+	mkdir -p "$_icons/Papirus"
+	printf '[Icon Theme]\nName=Papirus\nInherits=breeze,hicolor\n' >"$_icons/Papirus/index.theme"
+	for _s in 22x22 48x48; do
+		_p="$_icons/Papirus/$_s/places"
+		mkdir -p "$_p"
+		for _c in blue violet; do
+			for _n in "folder-$_c" "folder-$_c-documents" "user-$_c-home"; do
+				printf '<svg/>' >"$_p/$_n.svg"
+			done
+		done
+		ln -s folder-blue.svg "$_p/folder.svg"
+		ln -s folder-blue-documents.svg "$_p/folder-documents.svg"
+		ln -s user-blue-home.svg "$_p/user-home.svg"
+	done
+	for _t in Papirus-Dark Papirus-Light; do
+		mkdir -p "$_icons/$_t/22x22/places"
+		printf '[Icon Theme]\nName=%s\nInherits=Papirus,breeze,hicolor\n' "$_t" >"$_icons/$_t/index.theme"
+		ln -s ../../Papirus/22x22/places/folder-violet.svg "$_icons/$_t/22x22/places/folder-violet.svg"
+	done
 }

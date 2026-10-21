@@ -10,13 +10,13 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 127 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 138 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
 `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
 `mocha`, `latte`; styles `soft`, `breeze` (empty fonts = KDE default);
 units **`colors`** (tested live: OK), **`fonts`** (live: OK, owner installed
-Inter + JetBrains Mono) and **`cursor`**, each with `unit.ini`;
+Inter + JetBrains Mono) and **`cursor`** and **`icons`**, each with `unit.ini`;
 commands `list`, `apply` (`-n`, `-v`, `--partial`), `restore
 original|previous`, **`deps`** (verified Fedora/Debian/Arch names). Tests
 share a fake Plasma + fake KConfig (`tests/helpers.bash`) and fake units.
@@ -24,9 +24,12 @@ share a fake Plasma + fake KConfig (`tests/helpers.bash`) and fake units.
 Owner's cursors: `breeze_cursors` active; others in `~/.icons` (Apple,
 WhiteSur, Layan, Vimix); no Catppuccin cursors yet.
 
-**Next:** `icons` (Papirus + derived folder-colour theme in
-`$XDG_DATA_HOME/icons/`), then `doctor`, `status`, `purge` + manifest,
-then `rendering` (owner: don't advance it out of order).
+Owner's machine has no Papirus yet (`kome apply mocha` stops and points to
+`kome deps mocha`).
+
+**Next:** owner tests `icons` live and tries to break things. Then `doctor`,
+`status`, `purge` + manifest (generated colour schemes and icon themes
+must be in it), then `rendering` (owner: don't advance it out of order).
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -659,6 +662,7 @@ templates only.
 | 2026-10-22 | `kome deps`: package manager detected by binary (dnf, zypper, pacman, apt — first found), names from `share/kome/deps/packages.ini` (only names verified in the distro's index), `url=` for unpackaged ingredients; optional ones after a `# optional` line. |
 | 2026-10-22 | `cursor` unit: Catppuccin presets use `catppuccin-<flavour>-<accent>-cursors` (optional); Breeze presets `breeze_cursors`. The deps table gains `install=`, a per-user shell command printed (never run) for unpackaged ingredients. |
 | 2026-10-22 | Fix: `original` was frozen at the first apply, so units added later (fonts, cursor) were never saved and `restore original` skipped them. Now each apply first adds to `original` every unit it lacks that kome has never applied (tracked in `$XDG_STATE_HOME/kome/touched`). |
+| 2026-10-22 | `icons` unit: preset keys `icon_theme` (Mocha `Papirus-Dark`, Latte `Papirus-Light`, Breeze `breeze`/`breeze-dark`) + `icon_accent`. The accent theme `kome-<preset>-A/B` in `$XDG_DATA_HOME/icons/` inherits from the base and only symlinks folder icons (papirus-folders' rule), found by following `Inherits=`; the base theme is never modified. |
 
 ---
 

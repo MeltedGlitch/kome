@@ -44,6 +44,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `cursor` unit: Catppuccin cursors for Mocha/Latte as an optional
   ingredient (missing → cursor untouched, notice, and a per-user install
   command from `kome deps`); Breeze presets use `breeze_cursors`.
+- `icons` unit: Papirus for the Catppuccin presets with folders in the
+  preset's accent, through a small derived theme in your home (Papirus
+  itself is never modified, no root); Breeze presets use KDE's icons.
 
 ### Fixed
 

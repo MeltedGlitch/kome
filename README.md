@@ -174,8 +174,8 @@ something new means adding one directory; the core does not change.
 - [x] INI reader
 - [x] Colour engine (mix, lighten, darken, WCAG contrast)
 - [x] Template engine
-- [x] Units `colors`, `fonts`, `cursor`
-- [ ] Units: `icons`, `rendering`, `gtk`, `wallpaper`, `kitty`
+- [x] Units `colors`, `icons`, `fonts`, `cursor`
+- [ ] Units: `rendering`, `gtk`, `wallpaper`, `kitty`
 - [x] Commands: `apply`, `list`, `restore`, `deps`
 - [ ] Commands: `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
