@@ -174,10 +174,10 @@ something new means adding one directory; the core does not change.
 - [x] INI reader
 - [x] Colour engine (mix, lighten, darken, WCAG contrast)
 - [x] Template engine
-- [x] Unit `colors`
-- [ ] Units: `icons`, `cursor`, `fonts`, `rendering`, `gtk`, `wallpaper`, `kitty`
-- [x] Commands: `apply`, `list`, `restore`
-- [ ] Commands: `status`, `doctor`, `deps`, `purge`
+- [x] Units `colors`, `fonts`
+- [ ] Units: `icons`, `cursor`, `rendering`, `gtk`, `wallpaper`, `kitty`
+- [x] Commands: `apply`, `list`, `restore`, `deps`
+- [ ] Commands: `status`, `doctor`, `purge`
 - [x] Presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha
 - [ ] Man pages and shell completions
 

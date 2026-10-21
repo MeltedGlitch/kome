@@ -1,0 +1,109 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome deps — what a preset needs that is not installed, as install commands.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+TABLE=$KOME_DATA_DIR/deps/packages.ini
+
+usage() {
+	cat <<EOF
+usage: kome deps [preset]
+
+Print the command that installs what the preset needs and is missing, for
+your package manager. kome never runs it: copy it, or run it yourself, e.g.
+
+  sh -c "\$(kome deps mocha)"
+
+Optional extras (e.g. for window borders) come after a '# optional' line.
+Without a preset, uses Preset= from $KOME_CONF.
+EOF
+}
+
+case ${1-} in
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+-*) die "$EX_USAGE" "unknown option: $1" "run 'kome deps --help'" ;;
+esac
+[ $# -le 1 ] || die "$EX_USAGE" "only one preset at a time" "run 'kome deps <preset>'"
+
+preset=${1-}
+if [ -z "$preset" ]; then
+	preset=$(ini_get "$KOME_CONF" General Preset 2>/dev/null) ||
+		die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome deps <preset>'"
+fi
+preset_export "$preset" || exit
+
+# The first package manager found wins; distro knowledge stays in the table.
+pm=
+for _pm in dnf zypper pacman apt; do
+	if command -v "$_pm" >/dev/null 2>&1; then
+		pm=$_pm
+		break
+	fi
+done
+case $pm in
+dnf) install="sudo dnf install" ;;
+zypper) install="sudo zypper install" ;;
+pacman) install="sudo pacman -S --needed" ;;
+apt) install="sudo apt install" ;;
+*) install= ;;
+esac
+
+required=
+optional=
+for u in $(units_all); do
+	unit_enabled "$u" || continue
+	unit_check "$u"
+	case $check_status in
+	2) required="$required$check_out
+" ;;
+	4) optional="$optional$check_out
+" ;;
+	esac
+done
+
+if [ -z "$required$optional" ]; then
+	printf 'kome: %s has everything it needs\n' "$preset" >&2
+	hint "run 'kome apply $preset'"
+	exit "$EX_OK"
+fi
+
+# packages <ingredients> — print the install command; explain the rest on stderr.
+packages() {
+	_pkgs=
+	printf '%s' "$1" | {
+		while IFS= read -r _ing; do
+			[ -n "$_ing" ] || continue
+			_pkg=
+			[ -z "$pm" ] || _pkg=$(ini_get "$TABLE" "$_ing" "$pm" 2>/dev/null) || _pkg=
+			if [ -n "$_pkg" ]; then
+				_pkgs="$_pkgs $_pkg"
+			elif _url=$(ini_get "$TABLE" "$_ing" url 2>/dev/null); then
+				printf 'kome: %s is not packaged for %s; get it from %s\n' "${_ing#*:}" "${pm:-your system}" "$_url" >&2
+			else
+				printf 'kome: install %s with your package manager\n' "${_ing#*:}" >&2
+			fi
+		done
+		[ -z "$_pkgs" ] || printf '%s%s\n' "$install" "$_pkgs"
+	}
+}
+
+[ -n "$install" ] || warn "no known package manager found (dnf, zypper, pacman, apt)"
+packages "$required"
+if [ -n "$optional" ]; then
+	printf '# optional\n'
+	packages "$optional"
+fi

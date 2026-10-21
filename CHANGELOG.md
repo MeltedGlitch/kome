@@ -39,6 +39,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `fonts` unit: every KDE font role from the style (`font_size`, small
   fonts 2pt less); empty font names restore KDE's defaults. Missing
   families are reported as ingredients.
+- `kome deps`: the install command for what a preset is missing, for the
+  package manager found (dnf, zypper, pacman, apt); never runs it.
 
 ### Fixed
 

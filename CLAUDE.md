@@ -10,23 +10,23 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 100 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 117 bats tests passing (also under `gawk --posix`).
 
 Done: dispatcher; `lib/kome/{common,preset,units}.sh` and
-`{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`
-(KDE's shipped schemes via `color_scheme=`), `mocha`, `latte`; styles
-`soft`, `breeze`; the **`colors` unit** (check/apply/current/restore,
-alternating `Kome-<preset>-A/B`, tested live by the owner: looks good);
-commands `list`, **`apply`** (`-n`, `-v`, `--partial`, `kome.conf`
-`Preset=`, `[Units] name=off`) and **`restore original|previous`**
-(snapshots in `$XDG_DATA_HOME/kome/snapshots/`, failed-apply mark, lock).
-Tests share a fake Plasma (`tests/helpers.bash`).
+`{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
+`mocha`, `latte`; styles `soft`, `breeze` (empty fonts = KDE default);
+units **`colors`** (tested live: OK) and **`fonts`**, each with `unit.ini`;
+commands `list`, `apply` (`-n`, `-v`, `--partial`), `restore
+original|previous`, **`deps`** (verified Fedora/Debian/Arch names). Tests
+share a fake Plasma + fake KConfig (`tests/helpers.bash`) and fake units.
 
-Unit metadata lives in `unit.ini` (default on/off, takes_effect, gives…);
-`kome apply` uses it for opt-in units and for restart/re-login and
-optional-ingredient notices. The owner tried `kome apply`/`restore` live: OK.
+The owner's machine lacks Inter and JetBrains Mono: `kome apply mocha`
+will stop and point to `kome deps mocha` until they are installed.
 
-**Next:** the `fonts`, `cursor` and `icons` units.
+**Next:** `cursor` unit (Catppuccin cursors = optional ingredient; needs
+the cursor theme names + their `url=`), then `icons` (Papirus + derived
+folder-colour theme in `$XDG_DATA_HOME/icons/`). Then `doctor`, `status`,
+`purge` + manifest.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -587,10 +587,8 @@ templates only.
 
 - **`gtk`: verify during v0.1** whether Plasma's own colour sync to GTK
   (`kde-gtk-config`, `colors.css`) is enough, so kome needs no CSS of its own.
-- Ingredients not packaged in some distros (e.g. Klassy): what does
-  `kome deps` print — an upstream URL, a COPR/AUR hint?
-- Package manager detection: from `/etc/os-release` or from which binary
-  exists? Flatpak-only systems?
+- Flatpak-only / immutable systems (Silverblue, Kinoite): what should
+  `kome deps` suggest there?
 - Manifest format (one line per file/line created?), and whether
   `make uninstall` should suggest running `kome purge` first.
 - Klassy vs Darkly as the widget style for non-default presets (v0.2).
@@ -658,6 +656,7 @@ templates only.
 | 2026-10-22 | Font size comes from the style (`font_size`, default 10). An empty font name means KDE's default (the key is deleted): Breeze presets stay factory on every distro. |
 | 2026-10-22 | Catppuccin presets use the Catppuccin cursors as an optional ingredient (missing → cursor untouched + notice). |
 | 2026-10-22 | `icon_accent` is a Papirus folder colour name (Mocha `violet`, Latte `blue`). |
+| 2026-10-22 | `kome deps`: package manager detected by binary (dnf, zypper, pacman, apt — first found), names from `share/kome/deps/packages.ini` (only names verified in the distro's index), `url=` for unpackaged ingredients; optional ones after a `# optional` line. |
 
 ---
 
