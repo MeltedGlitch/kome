@@ -20,7 +20,7 @@ user_file() {
 @test "apply: saves original and previous, applies, records the preset" {
 	run "$KOME" apply mocha
 	[ "$status" -eq 0 ]
-	[ "$output" = "" ]
+	[ "$output" = "kome: restart your apps to see the fonts of Plasma and KDE apps" ]
 	[ "$(cat "$STATE")" = "Kome-mocha-A" ]
 	[ "$(cat "$snaps/original/colors")" = "scheme=BreezeDark" ]
 	[ "$(cat "$snaps/previous/colors")" = "scheme=BreezeDark" ]

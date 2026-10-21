@@ -178,8 +178,8 @@ For the owner, "one click on any PC" = `dotfiles` bootstrap (e.g.
 | Concept | What it is | Contains |
 |---|---|---|
 | **Palette** | Colours only | Catppuccin's 26 roles + `accent`: `base mantle crust surface0 surface1 surface2 overlay0 overlay1 overlay2 text subtext0 subtext1 rosewater flamingo pink mauve red maroon peach yellow green teal sky sapphire blue lavender accent`. Every palette defines all 27, as `#rrggbb` only. Other upstream palettes (Nord, Tokyo Night…) are mapped onto these roles |
-| **Style** | Shape only | v0.1: UI font and monospace font. Later (with `decoration`/`style`/`panel`): corner radius, window button shape, titlebar height, panel layout, opacity |
-| **Preset** | A palette + a style + a few extras | Icon folder accent, light/dark flag, optional wallpaper path |
+| **Style** | Shape only | v0.1: UI font, monospace font and `font_size` (points, default 10; an empty font = KDE's default). Later (with `decoration`/`style`/`panel`): corner radius, window button shape, titlebar height, panel layout, opacity |
+| **Preset** | A palette + a style + a few extras | Icon folder accent (a Papirus folder colour name: `violet`, `blue`, `indigo`…), cursor theme, light/dark flag, optional KDE `color_scheme`, optional wallpaper path |
 | **Unit** | One appearance target | Implements the unit contract (§6) |
 | **Snapshot** | Saved state of everything `kome` can touch | Used by `kome restore`. Only two exist: `original` and `previous` |
 | **Ingredient** | Something a preset needs to exist on the system | A font, icon theme, cursor theme, decoration engine (e.g. Inter, Papirus, Klassy) |
@@ -282,8 +282,8 @@ Power users can run any unit directly by path; there is no special subcommand.
 |---|---|---|---|---|
 | `colors` | core | generate `.colors` from template → `plasma-apply-colorscheme`; if the preset sets `color_scheme=` (e.g. `BreezeDark`), apply that installed KDE scheme instead, ungenerated | on | yes |
 | `icons` | core | Papirus (only icon theme with complete coverage of KDE apps). Folder accent via a tiny **derived theme** generated in `$XDG_DATA_HOME/icons/` that inherits from Papirus and overrides only folder icons (no root, works with the distro package, Papirus untouched); `kwriteconfig6` | on | yes |
-| `cursor` | core | `plasma-apply-cursortheme` | on | yes |
-| `fonts` | core | `kwriteconfig6` for all font roles (general, fixed, small, toolbar, menu, window title) | on | mostly |
+| `cursor` | core | `plasma-apply-cursortheme`. Catppuccin presets use the official Catppuccin cursors as an **optional ingredient** (rarely packaged): if missing, the cursor is left as is, with a notice | on | yes |
+| `fonts` | core | `kwriteconfig6` for all font roles (general, fixed, small, toolbar, menu, window title), size from the style; an empty font name deletes the key so KDE's default applies (used by the Breeze presets) | on | mostly |
 | `rendering` | core | user fontconfig file + `environment.d` (stem darkening), recommended values (§10) | **opt-in** | re-login |
 | `gtk` | core | rely on Plasma's own colour sync to GTK where possible (to verify, §16); Flatpak theming only via `doctor --fix` with `[y/N]` | on | partly (libadwaita apps only take light/dark + accent) |
 | `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen config, only from a path the user gives in a preset. Never on by default: the user's wallpapers are kept | **opt-in** | yes |
@@ -368,7 +368,7 @@ name=Catppuccin Mocha
 palette=catppuccin-mocha
 style=soft
 mode=dark
-icon_accent=lavender
+icon_accent=violet
 # accent=#cba6f7                 (optional: preset keys override palette/style)
 # wallpaper=/path/to/image.png   (only used if the wallpaper unit is on)
 ```
@@ -389,6 +389,7 @@ accent=#b4befe
 Format=1
 font_ui=Inter
 font_mono=JetBrains Mono
+font_size=10
 ```
 
 ```ini
@@ -654,6 +655,9 @@ templates only.
 | 2026-10-22 | Breeze presets use KDE's shipped schemes via `color_scheme=`; no generated imitation. |
 | 2026-10-22 | `decoration` stays in v0.2. Klassy is an *optional ingredient*: `check` exits 4, the unit is skipped, the rest is applied, and a notice always says what to install. |
 | 2026-10-22 | Unit metadata in a sidecar `unit.ini` (`description`, `kind`, `default`, `takes_effect`, `min_plasma`, `gives`); `kome.conf` `[Units]` overrides `default`. |
+| 2026-10-22 | Font size comes from the style (`font_size`, default 10). An empty font name means KDE's default (the key is deleted): Breeze presets stay factory on every distro. |
+| 2026-10-22 | Catppuccin presets use the Catppuccin cursors as an optional ingredient (missing → cursor untouched + notice). |
+| 2026-10-22 | `icon_accent` is a Papirus folder colour name (Mocha `violet`, Latte `blue`). |
 
 ---
 

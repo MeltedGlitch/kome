@@ -144,5 +144,6 @@ style=soft'
 	[[ "$output" == *"KOME_COLOR_SCHEME=BreezeDark"* ]]
 	run preset_resolve breeze
 	[[ "$output" == *"KOME_COLOR_SCHEME=BreezeLight"* ]]
-	[[ "$output" == *"KOME_FONT_UI=Noto Sans"* ]]
+	# Empty font names: KDE's own defaults.
+	printf '%s\n' "$output" | grep -qx 'KOME_FONT_UI='
 }

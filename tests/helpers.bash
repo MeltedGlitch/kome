@@ -4,8 +4,11 @@
 # temp dir and Plasma's tools are stubs on PATH, so tests never touch the
 # real desktop.
 #
-#   $STATE  the "active colour scheme" (read by kreadconfig6)
-#   $LOG    every scheme plasma-apply-colorscheme was asked to apply
+#   $FAKECFG  fake KConfig: one file per key, $FAKECFG/<file>/<group…>/<key>
+#   $STATE    the active colour scheme (kdeglobals General ColorScheme)
+#   $LOG      every scheme plasma-apply-colorscheme was asked to apply
+#   $FONTS    installed font families, one per line (read by fc-list)
+#   $DBUSLOG  every dbus-send call
 #   FAIL_APPLY=1 makes plasma-apply-colorscheme fail
 
 fake_plasma() {
@@ -18,13 +21,45 @@ fake_plasma() {
 	touch "$XDG_DATA_DIRS/color-schemes/BreezeDark.colors" \
 		"$XDG_DATA_DIRS/color-schemes/BreezeLight.colors"
 
+	export FAKECFG="$BATS_TEST_TMPDIR/kconfig"
+	export STATE="$FAKECFG/kdeglobals/General/ColorScheme"
+	export LOG="$BATS_TEST_TMPDIR/applied" DBUSLOG="$BATS_TEST_TMPDIR/dbus"
+	export FONTS="$BATS_TEST_TMPDIR/fonts"
+	mkdir -p "$(dirname "$STATE")"
+	printf 'BreezeDark\n' >"$STATE"
+	printf '%s\n' Inter 'JetBrains Mono' 'Noto Sans' Hack >"$FONTS"
+
 	stubs="$BATS_TEST_TMPDIR/stubs"
 	mkdir -p "$stubs"
-	export STATE="$BATS_TEST_TMPDIR/active-scheme" LOG="$BATS_TEST_TMPDIR/applied"
-	printf 'BreezeDark\n' >"$STATE"
 	cat >"$stubs/kreadconfig6" <<'EOF'
 #!/bin/sh
-cat "$STATE"
+path= key= def=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--file) path=$2; shift ;;
+	--group) path=$path/$2; shift ;;
+	--key) key=$2; shift ;;
+	--default) def=$2; shift ;;
+	esac
+	shift
+done
+if [ -f "$FAKECFG/$path/$key" ]; then cat "$FAKECFG/$path/$key"; else printf '%s\n' "$def"; fi
+EOF
+	cat >"$stubs/kwriteconfig6" <<'EOF'
+#!/bin/sh
+path= key= del= val=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--file) path=$2; shift ;;
+	--group) path=$path/$2; shift ;;
+	--key) key=$2; shift ;;
+	--delete) del=1 ;;
+	*) val=$1 ;;
+	esac
+	shift
+done
+mkdir -p "$FAKECFG/$path"
+if [ -n "$del" ]; then rm -f "$FAKECFG/$path/$key"; else printf '%s\n' "$val" >"$FAKECFG/$path/$key"; fi
 EOF
 	cat >"$stubs/plasma-apply-colorscheme" <<'EOF'
 #!/bin/sh
@@ -32,8 +67,22 @@ EOF
 printf '%s\n' "$1" >>"$LOG"
 printf '%s\n' "$1" >"$STATE"
 EOF
+	cat >"$stubs/fc-list" <<'EOF'
+#!/bin/sh
+fam=$(printf '%s' "$1" | sed 's/\\//g')
+grep -ix -- "$fam" "$FONTS" || :
+EOF
+	cat >"$stubs/dbus-send" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" >>"$DBUSLOG"
+EOF
 	chmod +x "$stubs"/*
 	export PATH="$stubs:$PATH"
+}
+
+# kcfg <file> <group> <key> — read the fake KConfig ("" if unset).
+kcfg() {
+	cat "$FAKECFG/$1/$2/$3" 2>/dev/null || :
 }
 
 # fake_unit <NN-name> <check-exit> [check-stdout] [unit.ini lines…]

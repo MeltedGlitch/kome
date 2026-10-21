@@ -36,6 +36,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   apply, a failed apply never overwrites `previous`, one kome at a time.
 - Unit metadata (`unit.ini`): opt-in units, and notices for apps that need
   a restart, a re-login, or an optional ingredient (e.g. Klassy).
+- `fonts` unit: every KDE font role from the style (`font_size`, small
+  fonts 2pt less); empty font names restore KDE's defaults. Missing
+  families are reported as ingredients.
 
 ### Fixed
 

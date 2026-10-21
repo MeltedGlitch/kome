@@ -1,0 +1,123 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# fonts — the fonts of Plasma and KDE apps (kdeglobals).
+#
+# apply: sets every font role from KOME_FONT_UI / KOME_FONT_MONO at
+# KOME_FONT_SIZE points (small fonts 2 points less). An empty family means
+# "KDE's default": the keys are deleted, so the distribution's factory font
+# applies. Running apps mostly pick fonts up on restart.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: fonts"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+
+# role key in kdeglobals: "<state name>:<group>:<key>:<ui|mono>:<normal|small>"
+ROLES="font:General:font:ui:normal
+fixed:General:fixed:mono:normal
+small:General:smallestReadableFont:ui:small
+toolbar:General:toolBarFont:ui:normal
+menu:General:menuFont:ui:normal
+window_title:WM:activeFont:ui:normal"
+
+# Qt 6 font description, as KDE stores it.
+qfont() {
+	printf '%s,%s,-1,5,400,0,0,0,0,0,0,0,0,0,0,1\n' "$1" "$2"
+}
+
+# installed <family> — is the font family known to fontconfig?
+installed() {
+	# fontconfig patterns treat - : , \ specially.
+	_pat=$(printf '%s' "$1" | sed 's/[-:,\\]/\\&/g')
+	[ -n "$(fc-list "$_pat" family)" ]
+}
+
+do_check() {
+	for _tool in kreadconfig6 kwriteconfig6 fc-list; do
+		if ! command -v "$_tool" >/dev/null 2>&1; then
+			err "$_tool not found: this needs KDE Plasma 6"
+			hint "run 'kome doctor' on a Plasma 6 session"
+			exit 3
+		fi
+	done
+	_missing=
+	for _family in "${KOME_FONT_UI-}" "${KOME_FONT_MONO-}"; do
+		if [ -n "$_family" ] && ! installed "$_family"; then
+			printf 'font:%s\n' "$_family"
+			_missing=1
+		fi
+	done
+	[ -z "$_missing" ] || exit 2
+	exit 0
+}
+
+do_apply() {
+	_size=${KOME_FONT_SIZE:-10}
+	case $_size in
+	'' | *[!0-9]* | 0*) die 65 "font_size=$_size must be a whole number of points" "set e.g. font_size=10 in the style" ;;
+	esac
+	_small=$((_size > 8 ? _size - 2 : _size))
+	printf '%s\n' "$ROLES" | while IFS=: read -r _name _group _key _kind _variant; do
+		if [ "$_kind" = mono ]; then _family=${KOME_FONT_MONO-}; else _family=${KOME_FONT_UI-}; fi
+		if [ -z "$_family" ]; then
+			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" --delete
+			continue
+		fi
+		if [ "$_variant" = small ]; then _pt=$_small; else _pt=$_size; fi
+		kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" "$(qfont "$_family" "$_pt")"
+	done
+	notify
+}
+
+# Tell running KDE apps that fonts changed (KGlobalSettings FontChanged = 1).
+notify() {
+	dbus-send --session --type=signal /KGlobalSettings \
+		org.kde.KGlobalSettings.notifyChange int32:1 int32:0 2>/dev/null || :
+}
+
+do_current() {
+	printf '%s\n' "$ROLES" | while IFS=: read -r _name _group _key _kind _variant; do
+		printf '%s=%s\n' "$_name" "$(kreadconfig6 --file kdeglobals --group "$_group" --key "$_key")"
+	done
+}
+
+do_restore() {
+	_saved=$(cat)
+	printf '%s\n' "$ROLES" | while IFS=: read -r _name _group _key _kind _variant; do
+		_line=$(printf '%s\n' "$_saved" | grep "^$_name=" | tail -n 1) || continue
+		_value=${_line#*=}
+		if [ -z "$_value" ]; then
+			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" --delete
+		else
+			kwriteconfig6 --file kdeglobals --group "$_group" --key "$_key" "$_value"
+		fi
+	done
+	notify
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the fonts can be set (2: a font family is not installed)
+  apply    set the fonts from KOME_FONT_UI, KOME_FONT_MONO, KOME_FONT_SIZE
+  current  print the current font of every role, as role=<Qt font>
+  restore  set the fonts printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac
