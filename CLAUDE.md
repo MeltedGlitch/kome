@@ -672,6 +672,11 @@ Not used by `kome` logic — context for testing and for the `dotfiles` repo.
   drives the internal panel.
 - Always used lid-closed as a dock: **2 external 2560×1440 monitors, 125%
   fractional scaling on both, 144 Hz and 165 Hz.**
+- Monitors are **27"** → ~109 ppi (a Retina display is ~220): a physical
+  ceiling on crispness that rendering settings cannot remove.
+- Font rendering (2026-10-22): kdeglobals XftAntialias / XftHintStyle /
+  XftSubPixel unset (system defaults); `FREETYPE_PROPERTIES` unset (no stem
+  darkening). Inter + JetBrains Mono installed via `kome deps mocha`.
 
 **ThinkPad T480 (secondary)**
 - Fedora KDE. Other details to be gathered (screen, scaling).
