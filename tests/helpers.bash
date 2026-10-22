@@ -120,6 +120,12 @@ EOF
 #!/bin/sh
 printf '%s\n' "$*" >>"$DBUSLOG"
 EOF
+	cat >"$stubs/plasma-apply-desktoptheme" <<'EOF'
+#!/bin/sh
+mkdir -p "$FAKECFG/plasmarc/Theme"
+printf '%s\n' "$1" >"$FAKECFG/plasmarc/Theme/name"
+printf 'plasmastyle %s\n' "$1" >>"$LOG"
+EOF
 	cat >"$stubs/plasma-apply-wallpaperimage" <<'EOF'
 #!/bin/sh
 printf 'wallpaper %s\n' "$1" >>"$LOG"
@@ -212,8 +218,10 @@ fake_ghostty() {
 	chmod +x "$stubs/ghostty"
 }
 
-# fake_klassy — make Klassy "installed" (its klassy-settings tool on PATH).
+# fake_klassy — make Klassy "installed": its klassy-settings tool on PATH
+# and its two Plasma styles in the system data dir.
 fake_klassy() {
 	printf '#!/bin/sh\n' >"$stubs/klassy-settings"
 	chmod +x "$stubs/klassy-settings"
+	mkdir -p "$XDG_DATA_DIRS/plasma/desktoptheme/klassy-dark" "$XDG_DATA_DIRS/plasma/desktoptheme/klassy-light"
 }

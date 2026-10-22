@@ -1,0 +1,100 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# plasmastyle — the Plasma style (desktop theme): how the panel, widgets,
+# notifications and launcher are drawn. Their colours still come from the
+# colour scheme.
+#
+# The style's plasma_style= says it generically: breeze (KDE's own,
+# "default"), klassy (Klassy's, in the look's mode: klassy-dark or
+# klassy-light), or any installed Plasma style's id. Klassy's is an
+# optional ingredient: without it the panel keeps its style, with a notice.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: plasmastyle"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+
+# Plasma's default when plasmarc has no theme name is Breeze ("default").
+current_theme() {
+	kreadconfig6 --file plasmarc --group Theme --key name --default default
+}
+
+# wanted — the Plasma style id for this look (empty: leave it alone).
+wanted() {
+	case ${KOME_PLASMA_STYLE-} in
+	'') ;;
+	breeze) printf 'default\n' ;;
+	klassy)
+		if [ "${KOME_MODE-}" = light ]; then
+			printf 'klassy-light\n'
+		else
+			printf 'klassy-dark\n'
+		fi
+		;;
+	*) printf '%s\n' "$KOME_PLASMA_STYLE" ;;
+	esac
+}
+
+# installed <id> — a Plasma style with that id in the data dirs.
+installed() {
+	data_dirs | first_path -d "plasma/desktoptheme/$1" >/dev/null
+}
+
+set_theme() {
+	[ "$(current_theme)" != "$1" ] || return 0
+	plasma-apply-desktoptheme "$1" >/dev/null ||
+		die "$EX_UNAVAILABLE" "plasma-apply-desktoptheme failed for '$1'" "run 'plasma-apply-desktoptheme $1' to see the error"
+}
+
+do_check() {
+	need_tools plasma-apply-desktoptheme kreadconfig6
+	_id=$(wanted)
+	# KDE's own style ships with Plasma; anything else must be installed.
+	if [ -n "$_id" ] && [ "$_id" != default ] && ! installed "$_id"; then
+		case $KOME_PLASMA_STYLE in
+		klassy) printf 'decoration:Klassy\n' ;;
+		*) printf 'plasma-style:%s\n' "$_id" ;;
+		esac
+		exit "$CHECK_OPTIONAL"
+	fi
+	exit "$CHECK_READY"
+}
+
+do_apply() {
+	_id=$(wanted)
+	[ -z "$_id" ] || set_theme "$_id"
+}
+
+do_restore() {
+	_theme=$(sed -n 's/^theme=//p' | tail -n 1)
+	[ -n "$_theme" ] ||
+		die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'"
+	set_theme "$_theme"
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the Plasma style can be set (4: it is not installed)
+  apply    set the Plasma style from KOME_PLASMA_STYLE (and KOME_MODE)
+  current  print the Plasma style as theme=<id>
+  restore  set the style printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) printf 'theme=%s\n' "$(current_theme)" ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

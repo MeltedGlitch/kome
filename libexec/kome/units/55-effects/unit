@@ -1,0 +1,99 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# effects — desktop effects from the style: blur behind translucent panels
+# and menus (KWin's blur effect), and the speed of every animation (KDE's
+# AnimationDurationFactor).
+#
+#   blur=on|off               empty: KDE's default
+#   animation_speed=slow|normal|fast|instant
+#                             empty or normal: KDE's default
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: effects"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/keys.sh
+. "$KOME_ROOT/lib/kome/keys.sh"
+
+KEYS="blur:kwinrc:Plugins:blurEnabled
+animation:kdeglobals:KDE:AnimationDurationFactor"
+
+# Load or unload KWin's blur effect now, so the change shows at once.
+blur_now() {
+	dbus-send --session --dest=org.kde.KWin --type=method_call /Effects \
+		"org.kde.kwin.Effects.$1" string:blur 2>/dev/null || :
+}
+
+do_check() {
+	need_tools kreadconfig6 kwriteconfig6
+	case ${KOME_BLUR-} in
+	'' | on | off) ;;
+	*)
+		err "blur=$KOME_BLUR is not known (use on or off)"
+		hint "fix blur= in the style"
+		exit "$CHECK_ERROR"
+		;;
+	esac
+	case ${KOME_ANIMATION_SPEED-} in
+	'' | slow | normal | fast | instant) ;;
+	*)
+		err "animation_speed=$KOME_ANIMATION_SPEED is not known (use slow, normal, fast or instant)"
+		hint "fix animation_speed= in the style"
+		exit "$CHECK_ERROR"
+		;;
+	esac
+	exit "$CHECK_READY"
+}
+
+do_apply() {
+	case ${KOME_BLUR-} in
+	on)
+		key_set blur true
+		blur_now loadEffect
+		;;
+	off)
+		key_set blur false
+		blur_now unloadEffect
+		;;
+	'') key_set blur '' ;;
+	esac
+	case ${KOME_ANIMATION_SPEED-} in
+	slow) key_set animation 2 ;;
+	fast) key_set animation 0.5 ;;
+	instant) key_set animation 0 ;;
+	*) key_set animation '' ;;
+	esac
+	kwin_reconfigure
+}
+
+do_restore() {
+	keys_restore
+	kwin_reconfigure
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the effects can be set (3: a value is not known)
+  apply    set blur and animation speed from KOME_BLUR, KOME_ANIMATION_SPEED
+  current  print the effect keys as name=value (empty: KDE's default)
+  restore  set the values printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) keys_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

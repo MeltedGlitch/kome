@@ -1,0 +1,68 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# widgets — the widget style inside apps (Qt's application style): buttons,
+# tabs, scroll bars, menus. Apps pick it up when they start.
+#
+# The style's widget_style= says it generically: breeze (KDE's own),
+# klassy (Klassy's application style, an optional ingredient), or another
+# installed style's name, as Qt calls it (e.g. Darkly).
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: widgets"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/keys.sh
+. "$KOME_ROOT/lib/kome/keys.sh"
+
+KEYS="style:kdeglobals:KDE:widgetStyle"
+
+# wanted — the Qt style name for this look (empty: leave it alone).
+wanted() {
+	case ${KOME_WIDGET_STYLE-} in
+	'') ;;
+	breeze) printf 'Breeze\n' ;;
+	klassy) printf 'Klassy\n' ;;
+	*) printf '%s\n' "$KOME_WIDGET_STYLE" ;;
+	esac
+}
+
+do_check() {
+	need_tools kreadconfig6 kwriteconfig6
+	if [ "${KOME_WIDGET_STYLE-}" = klassy ] && ! command -v klassy-settings >/dev/null 2>&1; then
+		printf 'decoration:Klassy\n'
+		exit "$CHECK_OPTIONAL"
+	fi
+	exit "$CHECK_READY"
+}
+
+do_apply() {
+	_style=$(wanted)
+	[ -z "$_style" ] || key_set style "$_style"
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the widget style can be set (4: Klassy is not installed)
+  apply    set the widget style from KOME_WIDGET_STYLE
+  current  print the widget style as style=<name> (empty: KDE's default)
+  restore  set the style printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) keys_current ;;
+restore) keys_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac

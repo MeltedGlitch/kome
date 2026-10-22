@@ -63,6 +63,11 @@ if [ -z "$required$optional" ]; then
 	exit "$EX_OK"
 fi
 
+# One ingredient may serve several units (Klassy: decoration, Plasma style,
+# widgets): list each once.
+required=$(printf '%s' "$required" | sort -u)
+optional=$(printf '%s' "$optional" | sort -u)
+
 [ -n "$KOME_INSTALL" ] || warn "no known package manager found (dnf, zypper, pacman, apt)"
 [ -z "$required" ] || deps_commands "$required"
 if [ -n "$optional" ]; then
