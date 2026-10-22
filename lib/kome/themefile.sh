@@ -12,7 +12,18 @@
 #   tf_theme     kome's theme file (absolute path)
 #   tf_include   the include line (e.g. "include kome-theme.conf")
 #   tf_template  the template's file name in the unit's directory
-#   tf_signal    the signal that makes running instances reload (e.g. USR1)
+#   tf_signal    the signal that makes running instances reload (e.g. USR1);
+#                empty: the app reloads by itself or on restart
+#
+# Optional, for apps where the "include" is choosing a theme inside the app
+# rather than a config line (VS Code, btop…): leave tf_include empty and set
+#
+#   tf_selected  "<file>:<text>": the app uses kome's theme when <file>
+#                contains <text>
+#   tf_choose    how to choose it, for the notice (e.g. "press Ctrl+K Ctrl+T…")
+#
+# and, when the app needs more than the theme file, define functions
+# tf_on_write (after writing the theme) and tf_on_remove (after removing it).
 #
 # apply writes the theme file and reloads the app; it never edits the user's
 # config. check announces the missing include line as a fix, and
@@ -20,11 +31,25 @@
 # the manifest so `kome purge` takes it out again.
 
 tf_included() {
+	[ -n "${tf_include-}" ] || return 0
 	grep -qxF "$tf_include" "$tf_conf" 2>/dev/null
 }
 
 tf_reload() {
-	pkill "-$tf_signal" -x "$tf_app" 2>/dev/null || :
+	[ -z "${tf_signal-}" ] || pkill "-$tf_signal" -x "$tf_app" 2>/dev/null || :
+}
+
+# tf_hook <name> — run the unit's hook function if it defines one.
+tf_hook() {
+	if command -v "$1" >/dev/null 2>&1; then
+		"$1"
+	fi
+}
+
+# tf_chosen — does the app use kome's theme (when that is the user's choice)?
+tf_chosen() {
+	[ -n "${tf_selected-}" ] || return 0
+	grep -qF "${tf_selected#*:}" "${tf_selected%%:*}" 2>/dev/null
 }
 
 tf_check() {
@@ -43,10 +68,14 @@ tf_apply() {
 	template_render "$_template" "$tf_theme" ||
 		die "$EX_DATAERR" "could not generate the $tf_title theme from $_template"
 	manifest_add "$tf_theme"
+	tf_hook tf_on_write
 	tf_reload
 	if ! tf_included; then
 		printf 'kome: %s will use the new colours once %s includes them\n' "$tf_title" "${tf_conf##*/}" >&2
 		hint "run 'kome doctor --fix' to add that one line"
+	elif ! tf_chosen; then
+		printf "kome: %s will use the new colours once you choose its 'kome' theme\n" "$tf_title" >&2
+		hint "$tf_choose"
 	fi
 }
 
@@ -64,11 +93,15 @@ tf_current() {
 tf_restore() {
 	_saved=$(cat)
 	case $_saved in
-	theme=none*) rm -f "$tf_theme" ;;
+	theme=none*)
+		rm -f "$tf_theme"
+		tf_hook tf_on_remove
+		;;
 	theme=kome*)
 		mkdir -p "$(dirname -- "$tf_theme")"
 		printf '%s\n' "$_saved" | sed -n 's/^line=//p' >"$tf_theme.kome-tmp"
 		mv -f "$tf_theme.kome-tmp" "$tf_theme"
+		tf_hook tf_on_write
 		;;
 	*) die "$EX_DATAERR" "no 'theme=' line on stdin" "pipe in the output of 'unit current'" ;;
 	esac
@@ -96,8 +129,9 @@ usage: unit check | apply | current | restore | fix
   apply    write ${tf_theme##*/} from the KOME_* colours, reload $tf_title
   current  print the theme file as theme=none|kome and line=… lines
   restore  write back the theme printed by 'current', read from stdin
-  fix      add "$tf_include" to ${tf_conf##*/} (recorded for kome purge)
 EOF
+	[ -z "${tf_include-}" ] ||
+		printf '  fix      add "%s" to %s (recorded for kome purge)\n' "$tf_include" "${tf_conf##*/}"
 }
 
 themefile_main() {
