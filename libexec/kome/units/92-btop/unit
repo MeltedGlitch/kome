@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# btop — the btop system monitor's colours (an integration). kome writes
+# themes/kome.theme in btop's config dir; the user chooses it once in btop
+# (Esc → Options → Color theme), which btop saves as color_theme in
+# btop.conf. Running instances reload on SIGUSR2. The mechanics are in
+# lib/kome/themefile.sh.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: btop"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/themefile.sh
+. "$KOME_ROOT/lib/kome/themefile.sh"
+
+# shellcheck disable=SC2034 # read by themefile.sh
+{
+	dir=${XDG_CONFIG_HOME:-$HOME/.config}/btop
+	tf_app=btop
+	tf_title=btop
+	tf_conf=$dir/btop.conf
+	tf_theme=$dir/themes/kome.theme
+	tf_include=
+	tf_selected="$tf_conf:^color_theme *= *\"([^\"]*/)?kome(\\.theme)?\""
+	tf_choose="in btop press Esc, open Options and set Color theme to 'kome'"
+	tf_template=btop.theme.in
+	tf_signal=USR2
+}
+
+themefile_main "$@"

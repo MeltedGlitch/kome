@@ -1,0 +1,46 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# vesktop — Discord's colours in Vesktop (an integration). kome writes
+# themes/kome.theme.css in Vesktop's data dir (the Flatpak's when Vesktop
+# is a Flatpak); the user enables it once in Vencord's settings (Themes),
+# which Vencord saves in settings/settings.json. Vencord reloads enabled
+# themes when their file changes. The mechanics are in lib/kome/themefile.sh.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: vesktop"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/themefile.sh
+. "$KOME_ROOT/lib/kome/themefile.sh"
+
+flatpak_dir=$HOME/.var/app/dev.vencord.Vesktop
+
+tf_present() {
+	command -v vesktop >/dev/null 2>&1 || [ -d "$flatpak_dir" ]
+}
+
+# shellcheck disable=SC2034 # read by themefile.sh
+{
+	if ! command -v vesktop >/dev/null 2>&1 && [ -d "$flatpak_dir" ]; then
+		dir=$flatpak_dir/config/vesktop
+	else
+		dir=${XDG_CONFIG_HOME:-$HOME/.config}/vesktop
+	fi
+	tf_app=vesktop
+	tf_title=Vesktop
+	tf_conf=$dir/settings/settings.json
+	tf_theme=$dir/themes/kome.theme.css
+	tf_include=
+	tf_selected="$tf_conf:\"kome\\.theme\\.css\""
+	tf_choose="in Vesktop open Settings → Themes and enable 'kome.theme.css'"
+	tf_template=kome.theme.css.in
+	tf_signal=
+}
+
+themefile_main "$@"

@@ -18,12 +18,14 @@
 # Optional, for apps where the "include" is choosing a theme inside the app
 # rather than a config line (VS Code, btop…): leave tf_include empty and set
 #
-#   tf_selected  "<file>:<text>": the app uses kome's theme when <file>
-#                contains <text>
+#   tf_selected  "<file>:<regex>": the app uses kome's theme when a line of
+#                <file> matches the extended regex
 #   tf_choose    how to choose it, for the notice (e.g. "press Ctrl+K Ctrl+T…")
 #
 # and, when the app needs more than the theme file, define functions
 # tf_on_write (after writing the theme) and tf_on_remove (after removing it).
+# A unit whose app is not always a command on PATH (a Flatpak) defines
+# tf_present, which succeeds when the app is installed.
 #
 # apply writes the theme file and reloads the app; it never edits the user's
 # config. check announces the missing include line as a fix, and
@@ -49,11 +51,19 @@ tf_hook() {
 # tf_chosen — does the app use kome's theme (when that is the user's choice)?
 tf_chosen() {
 	[ -n "${tf_selected-}" ] || return 0
-	grep -qF "${tf_selected#*:}" "${tf_selected%%:*}" 2>/dev/null
+	grep -qE "${tf_selected#*:}" "${tf_selected%%:*}" 2>/dev/null
+}
+
+tf_installed() {
+	if command -v tf_present >/dev/null 2>&1; then
+		tf_present
+	else
+		command -v "$tf_app" >/dev/null 2>&1
+	fi
 }
 
 tf_check() {
-	if ! command -v "$tf_app" >/dev/null 2>&1; then
+	if ! tf_installed; then
 		printf 'app:%s\n' "$tf_app"
 		exit "$CHECK_ABSENT"
 	fi
