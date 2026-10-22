@@ -24,6 +24,8 @@ KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
 KOME_PROG="kome: decoration"
 # shellcheck source=lib/kome/common.sh
 . "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/keys.sh
+. "$KOME_ROOT/lib/kome/keys.sh"
 
 # Every key this unit owns: "<state name>:<file>:<group>:<key>".
 KEYS="library:kwinrc:org.kde.kdecoration2:library
@@ -47,43 +49,23 @@ show_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowIconNormallyInactive
 show_close_icon:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyActive
 show_close_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyInactive"
 
-# set_key <state name> <value> — write it, or delete it when empty.
-set_key() {
-	_entry=$(printf '%s\n' "$KEYS" | grep "^$1:")
-	_rest=${_entry#*:}
-	_file=${_rest%%:*}
-	_rest=${_rest#*:}
-	_group=${_rest%%:*}
-	_key=${_rest#*:}
-	if [ -z "$2" ]; then
-		kwriteconfig6 --notify --file "$_file" --group "$_group" --key "$_key" --delete
-	else
-		kwriteconfig6 --notify --file "$_file" --group "$_group" --key "$_key" "$2"
-	fi
-}
-
 # buttons_as <shape> <colours> <background always shown> <icon always shown>
 # Klassy shows a button's background only on hover by default, so every
 # visibility key is set explicitly, for active and inactive windows: that
 # way switching between button styles works from any previous klassyrc.
 # Inactive windows get dimmer backgrounds; close turns red on hover.
 buttons_as() {
-	set_key shape "$1"
+	key_set shape "$1"
 	for _s in '' _inactive; do
-		set_key "background$_s" "$2"
-		set_key "show_bg$_s" "$3"
-		set_key "show_close_bg$_s" "$3"
-		set_key "show_icon$_s" "$4"
-		set_key "show_close_icon$_s" "$4"
-		set_key "close_hover$_s" true
+		key_set "background$_s" "$2"
+		key_set "show_bg$_s" "$3"
+		key_set "show_close_bg$_s" "$3"
+		key_set "show_icon$_s" "$4"
+		key_set "show_close_icon$_s" "$4"
+		key_set "close_hover$_s" true
 	done
-	set_key opacity 100
-	set_key opacity_inactive 50
-}
-
-# Tell KWin to reload its decoration settings.
-reconfigure() {
-	dbus-send --session --dest=org.kde.KWin --type=method_call /KWin org.kde.KWin.reconfigure 2>/dev/null || :
+	key_set opacity 100
+	key_set opacity_inactive 50
 }
 
 do_check() {
@@ -117,40 +99,22 @@ do_apply() {
 	case ${KOME_DECORATION-} in
 	'') return 0 ;;
 	breeze)
-		set_key library org.kde.breeze
-		set_key theme Breeze
+		key_set library org.kde.breeze
+		key_set theme Breeze
 		;;
 	klassy)
-		set_key library org.kde.klassy
-		set_key theme Klassy
-		set_key radius "${KOME_WINDOW_RADIUS-}"
+		key_set library org.kde.klassy
+		key_set theme Klassy
+		key_set radius "${KOME_WINDOW_RADIUS-}"
 		case ${KOME_WINDOW_BUTTONS-} in
 		circles) buttons_as ShapeSmallCircle Accent true false ;;
 		icons) buttons_as ShapeIntegratedRoundedRectangle TitleBarTextNegativeClose false true ;;
 		esac
 		;;
 	esac
-	set_key buttons_left "${KOME_BUTTONS_LEFT-}"
-	set_key buttons_right "${KOME_BUTTONS_RIGHT-}"
-	reconfigure
-}
-
-# The state: every owned key's raw value (empty: never set).
-do_current() {
-	printf '%s\n' "$KEYS" | while IFS=: read -r _name _file _group _key; do
-		printf '%s=%s\n' "$_name" "$(kreadconfig6 --file "$_file" --group "$_group" --key "$_key")"
-	done
-}
-
-do_restore() {
-	_saved=$(cat)
-	printf '%s\n' "$_saved" | grep -q '^library=' ||
-		die "$EX_DATAERR" "no 'library=' line on stdin" "pipe in the output of 'unit current'"
-	printf '%s\n' "$KEYS" | while IFS=: read -r _name _rest; do
-		_line=$(printf '%s\n' "$_saved" | grep "^$_name=" | tail -n 1) || continue
-		set_key "$_name" "${_line#*=}"
-	done
-	reconfigure
+	key_set buttons_left "${KOME_BUTTONS_LEFT-}"
+	key_set buttons_right "${KOME_BUTTONS_RIGHT-}"
+	kwin_reconfigure
 }
 
 usage() {
@@ -167,8 +131,8 @@ EOF
 case ${1-} in
 check) do_check ;;
 apply) do_apply ;;
-current) do_current ;;
-restore) do_restore ;;
+current) keys_current ;;
+restore) keys_restore && kwin_reconfigure ;;
 -h | --help) usage ;;
 *)
 	usage >&2
