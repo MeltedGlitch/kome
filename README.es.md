@@ -8,7 +8,7 @@
 [![Licencia: GPL-3.0-or-later](https://img.shields.io/badge/licencia-GPL--3.0--or--later-cba6f7?labelColor=1e1e2e)](LICENSE)
 [![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6-89b4fa?labelColor=1e1e2e&logo=kde&logoColor=89b4fa)](https://kde.org/plasma-desktop/)
 [![POSIX sh](https://img.shields.io/badge/POSIX-sh-a6e3a1?labelColor=1e1e2e&logo=gnubash&logoColor=a6e3a1)](#como-funciona)
-[![Estado: 0.1](https://img.shields.io/badge/estado-0.1-a6e3a1?labelColor=1e1e2e)](#hoja-de-ruta)
+[![Estado: 0.2-dev](https://img.shields.io/badge/estado-0.2--dev-a6e3a1?labelColor=1e1e2e)](#hoja-de-ruta)
 
 **[Empezar](#empezar)** ·
 **[Presets](#presets)** ·
@@ -25,8 +25,10 @@
 
 **kome** (米, *arroz crudo* en japonés — un guiño a *ricing*) cambia **todo el
 aspecto de KDE Plasma 6 con un solo comando**: colores, fuentes, iconos,
-cursor, decoración de ventanas, apps GTK y tu terminal (kitty, Ghostty) — todo desde una misma
-paleta, todo en armonía, y siempre a un comando de volver a como estaba.
+cursor, decoración de ventanas, estilos de Plasma y de widgets, efectos,
+paneles, apps GTK, tu terminal (kitty, Ghostty) y apps como btop y Vesktop —
+todo desde una misma paleta, todo en armonía, y siempre a un comando de
+volver a como estaba.
 
 ```sh
 kome apply mocha          # Catppuccin Mocha, en todas partes
@@ -34,11 +36,10 @@ kome restore original     # exactamente tu escritorio de antes de kome
 ```
 
 > [!NOTE]
-> **Ya está kome 0.1** — colores, iconos, cursor, fuentes, renderizado de
-> fuentes, wallpaper y terminales (kitty, Ghostty). La decoración de ventanas,
-> el estilo de widgets y los layouts del panel llegan en la 0.2 (mira la
-> [hoja de ruta](#hoja-de-ruta)). La unit `wallpaper` es opt-in y aún no se ha
-> probado en escritorios reales.
+> **kome 0.2 está en desarrollo** en `main`: decoración de ventanas, estilos
+> de Plasma y de widgets, efectos, layouts del panel, siete presets más, btop
+> y Vesktop. Las units opt-in `wallpaper` y `panel` aún no se han probado en
+> escritorios reales.
 
 ## ✨ Por qué kome
 
@@ -122,12 +123,18 @@ kome purge && make uninstall            # quita kome y todo lo que creó
 
 <img src="assets/presets.svg" alt="Los cuatro presets de la v0.1: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha" width="100%">
 
-La v0.1 trae cuatro looks — un preset, un modo. Para la v0.2 están previstos
-Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest, Gruvbox Material y
-Kanagawa. Cada paleta se construye desde los colores oficiales de su proyecto.
+Once looks — un preset, un modo: Breeze, Breeze Dark, Catppuccin Latte y
+Mocha, Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest, Gruvbox
+Material y Kanagawa. Cada paleta se construye desde los colores oficiales de
+su proyecto; `kome validate` comprueba su contraste.
 
 Paletas y estilos son archivos separados, así que puedes mezclarlos: los
 colores de un look con las fuentes y formas de otro.
+
+```sh
+kome apply --palette nord mocha     # las formas de Mocha, los colores de Nord
+kome list palettes                  # y: kome list styles
+```
 
 <a id="comandos"></a>
 
@@ -135,8 +142,10 @@ colores de un look con las fuentes y formas de otro.
 
 | Comando | Qué hace |
 |---|---|
-| `kome apply <preset>` | Aplica un look. `-n` enseña el plan sin cambiar nada |
-| `kome list` | Lista los presets disponibles |
+| `kome apply <preset>` | Aplica un look. `-n` enseña el plan sin cambiar nada; `--palette`/`--style` mezclan looks |
+| `kome list` | Lista los presets disponibles (o `palettes`, `styles`) |
+| `kome validate` | Comprueba el contraste de los colores de cada preset |
+| `kome preview` | Una captura de tu escritorio con cada preset, y vuelta al tuyo |
 | `kome status` | Muestra el preset activo y lo que hayas cambiado a mano desde entonces |
 | `kome doctor` | Comprueba qué se puede tematizar y por qué no; `--fix` lo arregla, `--info` da datos del sistema |
 | `kome deps <preset>` | Da el comando para instalar lo que le falte al preset |
@@ -159,14 +168,14 @@ flowchart LR
     A --> U1[colors]
     A --> U2[icons]
     A --> U3[fonts]
-    A --> U4[gtk]
+    A --> U4[decoration]
     A --> U5[kitty]
     A --> U6[...]
 ```
 
 Todo lo que cambia tu escritorio es una **unit**: un programa pequeño e
-independiente en `units/` con exactamente tres verbos — `check`, `apply` y
-`current`. Las units leen sus valores de variables de entorno `KOME_*`,
+independiente en `units/` con los mismos cuatro verbos — `check`, `apply`,
+`current` y `restore`. Las units leen sus valores de variables de entorno `KOME_*`,
 rellenan sus propias plantillas y usan las herramientas que ya trae Plasma
 (`plasma-apply-colorscheme`, `kwriteconfig6`, D-Bus). Dar soporte a algo
 nuevo es añadir una carpeta; el núcleo no cambia.
@@ -190,10 +199,11 @@ nuevo es añadir una carpeta; el núcleo no cambia.
 **v0.2**
 
 - [x] Decoración de ventanas (esquinas, botones de la barra) con Klassy
-- [ ] Estilo de Plasma, desenfoque y animaciones, color de acento de KDE
-- [ ] Estilo de widgets, layouts del panel
-- [ ] Más integraciones (VS Code, Discord, btop, Starship…)
-- [ ] Más presets
+- [x] Estilo de Plasma, desenfoque y animaciones, color de acento de KDE
+- [x] Estilo de widgets, layouts del panel (barra, dock, barra superior + dock)
+- [x] Integraciones: btop, Vesktop (Discord)
+- [x] Siete presets más; `kome validate`, `kome preview`, mezclar looks
+- [ ] VS Code (necesita una extensión empaquetada; mira las preguntas frecuentes)
 
 **Más adelante** — una interfaz de terminal y una app gráfica para elegir
 looks, por encima de los mismos comandos.
@@ -244,6 +254,33 @@ si los cambias desde Ajustes del sistema. Por eso, cada vez que kome cambia
 tus iconos, refresca el panel por ti (parpadea un segundo). ¿No lo quieres?
 Pon `RefreshPanel=off` en `[General]` de `~/.config/kome/kome.conf` y kome
 solo te dirá cómo hacerlo tú.
+</details>
+
+<details>
+<summary><b>¿Y bat, delta, Starship, fastfetch, Firefox?</b></summary>
+
+No necesitan unit. Starship y fastfetch usan los 16 colores de tu terminal,
+que kome ya tematiza. bat y delta también, con `--theme=ansi` (o
+`syntax-theme = ansi` en delta). Firefox sigue el tema del sistema, que
+Plasma sincroniza con los colores de kome. VS Code no tiene forma soportada
+de añadir un tema sin instalar una extensión empaquetada, así que espera.
+</details>
+
+<details>
+<summary><b>btop o Vesktop no han cambiado de color.</b></summary>
+
+kome les escribe un tema llamado *kome*, pero nunca toca sus ajustes.
+Elígelo una vez: en btop, Esc → Options → Color theme; en Vesktop, Ajustes →
+Themes, activa `kome.theme.css`. A partir de ahí cada `kome apply` los
+recolorea.
+</details>
+
+<details>
+<summary><b>¿Me cambia los paneles?</b></summary>
+
+Solo si activas la unit `panel` (`panel=on` en `[Units]` de `kome.conf`).
+Sustituye todos los paneles y sus widgets por el layout del estilo;
+`kome restore` te devuelve los tuyos tal cual.
 </details>
 
 <details>

@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "kome.conf" "5" "2026-10-21"
+.TH "kome.conf" "5" "2026-10-22"
 .PP
 .SH NAME
 .PP
@@ -44,8 +44,8 @@ Whether kome refreshes Plasma'\&s panel after changing icons (default
 .RS 4
 \fIunit\fR\fB=on\fR|\fBoff\fR
 .RS 4
-Turn a unit on or off, overriding its default.\& \fBrendering\fR and
-\fBwallpaper\fR are off unless turned on here.\&
+Turn a unit on or off, overriding its default.\& \fBrendering\fR, \fBpanel\fR
+and \fBwallpaper\fR are off unless turned on here.\&
 .PP
 .RE
 .RE
@@ -170,11 +170,46 @@ Title bar buttons in KWin'\&s letters: \fBM\fR menu, \fBS\fR all desktops, \fBH\
 help, \fBI\fR minimise, \fBA\fR maximise, \fBX\fR close (empty: KDE'\&s default).\&
 .PP
 .RE
+\fBplasma_style\fR
+.RS 4
+The look of Plasma'\&s panel, widgets and notifications: \fBklassy\fR
+(Klassy'\&s, dark or light to match the mode; optional), \fBbreeze\fR (KDE'\&s
+default), or the id of any installed Plasma style.\& Empty: leave it alone.\&
+.PP
+.RE
+\fBwidget_style\fR
+.RS 4
+The widget style inside apps: \fBklassy\fR (optional) or \fBbreeze\fR.\& Empty:
+leave it alone.\& Apps started after the change use it.\&
+.PP
+.RE
+\fBblur\fR
+.RS 4
+\fBon\fR or \fBoff\fR: KWin'\&s blur behind translucent panels and menus.\& Empty:
+leave it alone.\&
+.PP
+.RE
+\fBanimation_speed\fR
+.RS 4
+\fBnormal\fR, \fBfast\fR, \fBslow\fR or \fBinstant\fR (no animations).\& Empty: leave it
+alone.\&
+.PP
+.RE
+\fBpanel\fR
+.RS 4
+The panel layout, used only when the \fBpanel\fR unit is on: \fBbar\fR (Plasma'\&s
+default bar), \fBdock\fR (a floating dock centred at the bottom) or \fBtopbar\fR
+(a thin top bar and a dock).\& Every panel is replaced, widgets included;
+\fBkome restore\fR brings yours back.\& Empty: leave the panels alone.\& Your own
+layout can be written as \fItemplates/panel/<name>.\&js\fR.\&
+.PP
+.RE
 .SH TEMPLATES
 .PP
 Each unit fills its templates from these values.\& To change what a unit
 writes, copy its template to \fI~/.\&config/kome/templates/<unit>/\fR and edit the
-copy.\& In templates, \fB{{role}}\fR is a value, \fB{{role:rgb}}\fR a colour as
+copy.\& Panel layouts are JavaScript for Plasma'\&s scripting instead (see the
+shipped \fIbar.\&js\fR).\& In templates, \fB{{role}}\fR is a value, \fB{{role:rgb}}\fR a colour as
 \fBr,g,b\fR, and \fBmix(a,b,t)\fR, \fBlighten(a,t)\fR, \fBdarken(a,t)\fR and
 \fBby_mode(dark,light)\fR derive colours.\&
 .PP

@@ -12,10 +12,11 @@ kome - change the whole look of KDE Plasma 6 in one command
 
 # DESCRIPTION
 
-*kome* themes the whole desktop from one palette: the Plasma colour scheme,
-icons (with folders in the look's accent colour), cursor, fonts, font
-rendering, wallpaper and terminals (kitty, Ghostty). GTK apps follow through
-Plasma's own GTK sync.
+*kome* themes the whole desktop from one palette: the Plasma colour scheme
+and accent colour, window decorations, the Plasma style, the widget style of
+apps, icons (with folders in the look's accent colour), cursor, fonts, font
+rendering, KWin effects, panels, wallpaper, terminals (kitty, Ghostty) and
+apps (btop, Vesktop). GTK apps follow through Plasma's own GTK sync.
 
 It never needs root and never installs packages: it says what to install.
 It writes only its own files, and adds at most one include line to a user's
@@ -31,18 +32,33 @@ run.
 Where a command takes a _preset_, it defaults to *Preset=* in *kome.conf*(5),
 else the active one.
 
-*apply* [*-n*] [*-v*] [*--partial*] [_preset_]
+*apply* [*-n*] [*-v*] [*--partial*] [*--palette* _P_] [*--style* _S_] [_preset_]
 	Apply a look. Checks every unit first: if something the preset needs is
 	missing, nothing is changed (see *deps*). Then saves the desktop and
 	applies each unit in order. Applying the same look twice changes nothing.
+	A bare *apply* of the active preset keeps the palette and style it was
+	mixed with.
 
 	*-n*, *--dry-run*: show what would be applied, change nothing.++
 *-v*, *--verbose*: say what each unit does.++
-*--partial*: apply what is possible even if something is missing.
+*--partial*: apply what is possible even if something is missing.++
+*--palette* _P_, *--style* _S_: mix looks: use another palette or style
+	than the preset's (see *list palettes*, *list styles*).
 
-*list*
-	List the presets: their name, a tab, and their full name. Your own presets
-	override shipped ones with the same name.
+*list* [*presets* | *palettes* | *styles*]
+	List the presets (or palettes, or styles): their name, a tab, and their
+	full name. Your own files override shipped ones with the same name.
+
+*validate* [_preset_...]
+	Check the contrast of each preset's palette (all presets by default):
+	text on backgrounds and on the accent, rated by WCAG contrast ratio as
+	pass (4.5 or more), warn (3 or more) or fail. Exit status 1 on a fail.
+
+*preview* [*-o* _DIR_] [*-d* _SECONDS_] [_preset_...]
+	Apply each preset (all by default), take a screenshot of the desktop
+	with *spectacle*(1) as _DIR_/_preset_.png, then put the desktop back
+	exactly as it was. *-d* waits that many seconds after each apply
+	(default 3). Presets that cannot be applied are skipped.
 
 *status* [*-v*]
 	Show the active preset and, for each unit, whether it is still as kome
@@ -52,7 +68,8 @@ else the active one.
 	Check what each unit can do here and why not: ok, missing (something to
 	install), optional, off (opt-in), absent (app not installed, with the
 	command to install it) or error. Also detects Plasma settings that would
-	undo the look (accent colour from the wallpaper).
+	undo the look (accent colour from the wallpaper, day/night theme
+	switching) and X11 apps that will look blurry with fractional scaling.
 
 	*--info*: also print facts about this system (Plasma and KWin versions,
 	session, GPUs, font rendering, screens).++
@@ -86,7 +103,10 @@ Each part of the look is a *unit*, run in this order:
 :[ window corners and title bar buttons (with Klassy, optional)
 :[ on
 |  colors
-:[ Plasma colour scheme (generated from the palette, or a KDE scheme)
+:[ Plasma colour scheme (generated from the palette, or a KDE scheme) and accent colour
+:[ on
+|  plasmastyle
+:[ look of the panel, widgets and notifications (Klassy's, optional)
 :[ on
 |  icons
 :[ icon theme, folders in the accent colour (a small theme kome generates)
@@ -97,14 +117,26 @@ Each part of the look is a *unit*, run in this order:
 |  fonts
 :[ every KDE font role, from the style
 :[ on
+|  widgets
+:[ widget style inside apps (Klassy's, optional; new apps only)
+:[ on
 |  rendering
 :[ greyscale antialiasing, slight hinting, stem darkening (needs re-login)
+:[ off
+|  effects
+:[ KWin blur behind panels and menus, animation speed
+:[ on
+|  panel
+:[ panel layout (bar, dock, topbar); replaces every panel and its widgets
 :[ off
 |  wallpaper
 :[ desktop and lock screen, from the preset's *wallpaper=*
 :[ off
 |  kitty, ghostty
 :[ terminal colours (if the terminal is installed)
+:[ on
+|  btop, vesktop
+:[ app colours (if installed); choose the *kome* theme once in the app
 :[ on
 
 Turn units on or off in the *[Units]* section of *kome.conf*(5).
@@ -165,9 +197,17 @@ Give a terminal kome's colours:
 
 	kome doctor --fix
 
+Mocha's style with Nord's colours:
+
+	kome apply --palette nord mocha
+
+Screenshots of every preset in _~/Pictures/kome_:
+
+	kome preview -o ~/Pictures/kome
+
 # SEE ALSO
 
-*kome.conf*(5), *plasma-apply-colorscheme*(1)
+*kome.conf*(5), *plasma-apply-colorscheme*(1), *spectacle*(1)
 
 # AUTHORS
 

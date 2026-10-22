@@ -29,8 +29,8 @@ _~/.config/kome/kome.conf_ holds global settings.
 
 *[Units]*
 	_unit_*=on*|*off*
-		Turn a unit on or off, overriding its default. *rendering* and
-		*wallpaper* are off unless turned on here.
+		Turn a unit on or off, overriding its default. *rendering*, *panel*
+		and *wallpaper* are off unless turned on here.
 
 Example:
 
@@ -123,11 +123,36 @@ _styles/<name>.ini_ has a *[Style]* section:
 	Title bar buttons in KWin's letters: *M* menu, *S* all desktops, *H*
 	help, *I* minimise, *A* maximise, *X* close (empty: KDE's default).
 
+*plasma_style*
+	The look of Plasma's panel, widgets and notifications: *klassy*
+	(Klassy's, dark or light to match the mode; optional), *breeze* (KDE's
+	default), or the id of any installed Plasma style. Empty: leave it alone.
+
+*widget_style*
+	The widget style inside apps: *klassy* (optional) or *breeze*. Empty:
+	leave it alone. Apps started after the change use it.
+
+*blur*
+	*on* or *off*: KWin's blur behind translucent panels and menus. Empty:
+	leave it alone.
+
+*animation_speed*
+	*normal*, *fast*, *slow* or *instant* (no animations). Empty: leave it
+	alone.
+
+*panel*
+	The panel layout, used only when the *panel* unit is on: *bar* (Plasma's
+	default bar), *dock* (a floating dock centred at the bottom) or *topbar*
+	(a thin top bar and a dock). Every panel is replaced, widgets included;
+	*kome restore* brings yours back. Empty: leave the panels alone. Your own
+	layout can be written as _templates/panel/<name>.js_.
+
 # TEMPLATES
 
 Each unit fills its templates from these values. To change what a unit
 writes, copy its template to _~/.config/kome/templates/<unit>/_ and edit the
-copy. In templates, *{{role}}* is a value, *{{role:rgb}}* a colour as
+copy. Panel layouts are JavaScript for Plasma's scripting instead (see the
+shipped _bar.js_). In templates, *{{role}}* is a value, *{{role:rgb}}* a colour as
 *r,g,b*, and *mix(a,b,t)*, *lighten(a,t)*, *darken(a,t)* and
 *by_mode(dark,light)* derive colours.
 

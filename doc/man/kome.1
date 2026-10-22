@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "kome" "1" "2026-10-21"
+.TH "kome" "1" "2026-10-22"
 .PP
 .SH NAME
 .PP
@@ -19,10 +19,11 @@ kome - change the whole look of KDE Plasma 6 in one command
 .PP
 .SH DESCRIPTION
 .PP
-\fBkome\fR themes the whole desktop from one palette: the Plasma colour scheme,
-icons (with folders in the look'\&s accent colour), cursor, fonts, font
-rendering, wallpaper and terminals (kitty, Ghostty).\& GTK apps follow through
-Plasma'\&s own GTK sync.\&
+\fBkome\fR themes the whole desktop from one palette: the Plasma colour scheme
+and accent colour, window decorations, the Plasma style, the widget style of
+apps, icons (with folders in the look'\&s accent colour), cursor, fonts, font
+rendering, KWin effects, panels, wallpaper, terminals (kitty, Ghostty) and
+apps (btop, Vesktop).\& GTK apps follow through Plasma'\&s own GTK sync.\&
 .PP
 It never needs root and never installs packages: it says what to install.\&
 It writes only its own files, and adds at most one include line to a user'\&s
@@ -38,23 +39,43 @@ run.\&
 Where a command takes a \fIpreset\fR, it defaults to \fBPreset=\fR in \fBkome.\&conf\fR(5),
 else the active one.\&
 .PP
-\fBapply\fR [\fB-n\fR] [\fB-v\fR] [\fB--partial\fR] [\fIpreset\fR]
+\fBapply\fR [\fB-n\fR] [\fB-v\fR] [\fB--partial\fR] [\fB--palette\fR \fIP\fR] [\fB--style\fR \fIS\fR] [\fIpreset\fR]
 .RS 4
 Apply a look.\& Checks every unit first: if something the preset needs is
 missing, nothing is changed (see \fBdeps\fR).\& Then saves the desktop and
 applies each unit in order.\& Applying the same look twice changes nothing.\&
+A bare \fBapply\fR of the active preset keeps the palette and style it was
+mixed with.\&
 .PP
 \fB-n\fR, \fB--dry-run\fR: show what would be applied, change nothing.\&
 .br
 \fB-v\fR, \fB--verbose\fR: say what each unit does.\&
 .br
 \fB--partial\fR: apply what is possible even if something is missing.\&
+.br
+\fB--palette\fR \fIP\fR, \fB--style\fR \fIS\fR: mix looks: use another palette or style
+than the preset'\&s (see \fBlist palettes\fR, \fBlist styles\fR).\&
 .PP
 .RE
-\fBlist\fR
+\fBlist\fR [\fBpresets\fR | \fBpalettes\fR | \fBstyles\fR]
 .RS 4
-List the presets: their name, a tab, and their full name.\& Your own presets
-override shipped ones with the same name.\&
+List the presets (or palettes, or styles): their name, a tab, and their
+full name.\& Your own files override shipped ones with the same name.\&
+.PP
+.RE
+\fBvalidate\fR [\fIpreset\fR.\&.\&.\&]
+.RS 4
+Check the contrast of each preset'\&s palette (all presets by default):
+text on backgrounds and on the accent, rated by WCAG contrast ratio as
+pass (4.\&5 or more), warn (3 or more) or fail.\& Exit status 1 on a fail.\&
+.PP
+.RE
+\fBpreview\fR [\fB-o\fR \fIDIR\fR] [\fB-d\fR \fISECONDS\fR] [\fIpreset\fR.\&.\&.\&]
+.RS 4
+Apply each preset (all by default), take a screenshot of the desktop
+with \fBspectacle\fR(1) as \fIDIR\fR/\fIpreset\fR.\&png, then put the desktop back
+exactly as it was.\& \fB-d\fR waits that many seconds after each apply
+(default 3).\& Presets that cannot be applied are skipped.\&
 .PP
 .RE
 \fBstatus\fR [\fB-v\fR]
@@ -68,7 +89,8 @@ left it, was changed by hand since, or was skipped.\& \fB-v\fR shows what change
 Check what each unit can do here and why not: ok, missing (something to
 install), optional, off (opt-in), absent (app not installed, with the
 command to install it) or error.\& Also detects Plasma settings that would
-undo the look (accent colour from the wallpaper).\&
+undo the look (accent colour from the wallpaper, day/night theme
+switching) and X11 apps that will look blurry with fractional scaling.\&
 .PP
 \fB--info\fR: also print facts about this system (Plasma and KWin versions,
 session, GPUs, font rendering, screens).\&
@@ -113,6 +135,11 @@ l l l
 l l l
 l l l
 l l l
+l l l
+l l l
+l l l
+l l l
+l l l
 l l l.
 T{
 \fBUnit\fR
@@ -131,7 +158,14 @@ T}
 T{
 colors
 T}	T{
-Plasma colour scheme (generated from the palette, or a KDE scheme)
+Plasma colour scheme (generated from the palette, or a KDE scheme) and accent colour
+T}	T{
+on
+T}
+T{
+plasmastyle
+T}	T{
+look of the panel, widgets and notifications (Klassy'\&s, optional)
 T}	T{
 on
 T}
@@ -157,9 +191,30 @@ T}	T{
 on
 T}
 T{
+widgets
+T}	T{
+widget style inside apps (Klassy'\&s, optional; new apps only)
+T}	T{
+on
+T}
+T{
 rendering
 T}	T{
 greyscale antialiasing, slight hinting, stem darkening (needs re-login)
+T}	T{
+off
+T}
+T{
+effects
+T}	T{
+KWin blur behind panels and menus, animation speed
+T}	T{
+on
+T}
+T{
+panel
+T}	T{
+panel layout (bar, dock, topbar); replaces every panel and its widgets
 T}	T{
 off
 T}
@@ -174,6 +229,13 @@ T{
 kitty, ghostty
 T}	T{
 terminal colours (if the terminal is installed)
+T}	T{
+on
+T}
+T{
+btop, vesktop
+T}	T{
+app colours (if installed); choose the \fBkome\fR theme once in the app
 T}	T{
 on
 T}
@@ -290,9 +352,21 @@ Give a terminal kome'\&s colours:
 kome doctor --fix
 .PP
 .RE
+Mocha'\&s style with Nord'\&s colours:
+.PP
+.RS 4
+kome apply --palette nord mocha
+.PP
+.RE
+Screenshots of every preset in \fI~/Pictures/kome\fR:
+.PP
+.RS 4
+kome preview -o ~/Pictures/kome
+.PP
+.RE
 .SH SEE ALSO
 .PP
-\fBkome.\&conf\fR(5), \fBplasma-apply-colorscheme\fR(1)
+\fBkome.\&conf\fR(5), \fBplasma-apply-colorscheme\fR(1), \fBspectacle\fR(1)
 .PP
 .SH AUTHORS
 .PP

@@ -8,7 +8,7 @@
 [![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-cba6f7?labelColor=1e1e2e)](LICENSE)
 [![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6-89b4fa?labelColor=1e1e2e&logo=kde&logoColor=89b4fa)](https://kde.org/plasma-desktop/)
 [![POSIX sh](https://img.shields.io/badge/POSIX-sh-a6e3a1?labelColor=1e1e2e&logo=gnubash&logoColor=a6e3a1)](#how-it-works)
-[![Status: 0.1](https://img.shields.io/badge/status-0.1-a6e3a1?labelColor=1e1e2e)](#roadmap)
+[![Status: 0.2-dev](https://img.shields.io/badge/status-0.2--dev-a6e3a1?labelColor=1e1e2e)](#roadmap)
 
 **[Quick start](#quick-start)** ·
 **[Presets](#presets)** ·
@@ -25,8 +25,9 @@
 
 **kome** (米, *uncooked rice* in Japanese — a nod to *ricing*) changes the
 **whole look of KDE Plasma 6 in one command**: colours, fonts, icons, cursor,
-window decorations, GTK apps and your terminal (kitty, Ghostty) — all from one palette, all in
-harmony, and always one command away from how it was before.
+window decorations, Plasma and widget styles, effects, panels, GTK apps, your
+terminal (kitty, Ghostty) and apps like btop and Vesktop — all from one
+palette, all in harmony, and always one command away from how it was before.
 
 ```sh
 kome apply mocha          # Catppuccin Mocha, everywhere
@@ -34,10 +35,10 @@ kome restore original     # exactly your desktop from before kome
 ```
 
 > [!NOTE]
-> **kome 0.1 is out** — colours, icons, cursor, fonts, font rendering,
-> wallpaper and terminals (kitty, Ghostty). Window decorations, widget style
-> and panel layouts come in 0.2 (see the [roadmap](#roadmap)). The
-> `wallpaper` unit is opt-in and not yet tested on real desktops.
+> **kome 0.2 is in development** on `main`: window decorations, Plasma and
+> widget styles, effects, panel layouts, seven more presets, btop and
+> Vesktop. The opt-in `wallpaper` and `panel` units are not yet tested on
+> real desktops.
 
 ## ✨ Why kome
 
@@ -120,12 +121,18 @@ kome purge && make uninstall            # remove kome and everything it created
 
 <img src="assets/presets.svg" alt="The four v0.1 presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha" width="100%">
 
-v0.1 ships four looks — one preset, one mode. More are planned for v0.2:
-Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest, Gruvbox Material
-and Kanagawa. Every palette is authored from its official upstream colours.
+Eleven looks — one preset, one mode: Breeze, Breeze Dark, Catppuccin Latte
+and Mocha, Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
+Gruvbox Material and Kanagawa. Every palette is authored from its official
+upstream colours; `kome validate` checks their contrast.
 
 Palettes and styles are separate files, so you can mix them: the colours of
 one look with the fonts and shapes of another.
+
+```sh
+kome apply --palette nord mocha     # Mocha's shapes, Nord's colours
+kome list palettes                  # and: kome list styles
+```
 
 <a id="commands"></a>
 
@@ -133,8 +140,10 @@ one look with the fonts and shapes of another.
 
 | Command | What it does |
 |---|---|
-| `kome apply <preset>` | Apply a look. `-n` shows the plan without changing anything |
-| `kome list` | List available presets |
+| `kome apply <preset>` | Apply a look. `-n` shows the plan without changing anything; `--palette`/`--style` mix looks |
+| `kome list` | List available presets (or `palettes`, `styles`) |
+| `kome validate` | Check the contrast of each preset's colours |
+| `kome preview` | A screenshot of your desktop with each preset, then back to yours |
 | `kome status` | Show the active preset and anything changed by hand since |
 | `kome doctor` | Check what can be themed and why not; `--fix` repairs, `--info` shows system facts |
 | `kome deps <preset>` | Print the install command for whatever the preset is missing |
@@ -157,14 +166,14 @@ flowchart LR
     A --> U1[colors]
     A --> U2[icons]
     A --> U3[fonts]
-    A --> U4[gtk]
+    A --> U4[decoration]
     A --> U5[kitty]
     A --> U6[...]
 ```
 
 Everything that changes your desktop is a **unit**: a small, independent
-program in `units/` with exactly three verbs — `check`, `apply` and
-`current`. Units read their values from `KOME_*` environment variables, fill
+program in `units/` with the same four verbs — `check`, `apply`, `current`
+and `restore`. Units read their values from `KOME_*` environment variables, fill
 their own templates, and use the tools Plasma already ships
 (`plasma-apply-colorscheme`, `kwriteconfig6`, D-Bus). Adding support for
 something new means adding one directory; the core does not change.
@@ -188,10 +197,11 @@ something new means adding one directory; the core does not change.
 **v0.2**
 
 - [x] Window decorations (corners, title bar buttons) with Klassy
-- [ ] Plasma style, blur and animations, KDE accent colour
-- [ ] Widget style, panel layouts
-- [ ] More integrations (VS Code, Discord, btop, Starship…)
-- [ ] More presets
+- [x] Plasma style, blur and animations, KDE accent colour
+- [x] Widget style, panel layouts (bar, dock, top bar + dock)
+- [x] Integrations: btop, Vesktop (Discord)
+- [x] Seven more presets; `kome validate`, `kome preview`, mixing looks
+- [ ] VS Code (needs a packaged extension; see the FAQ)
 
 **Later** — a terminal UI and a graphical app to pick looks, on top of the
 same commands.
@@ -242,6 +252,33 @@ System Settings. So whenever kome changes your icons it refreshes the panel
 for you (it blinks for a second). Don't want that? Put `RefreshPanel=off`
 under `[General]` in `~/.config/kome/kome.conf` and kome will only tell you
 how to do it yourself.
+</details>
+
+<details>
+<summary><b>What about bat, delta, Starship, fastfetch, Firefox?</b></summary>
+
+They need no unit. Starship and fastfetch use your terminal's 16 colours,
+which kome themes. bat and delta do too with `--theme=ansi` (or
+`syntax-theme = ansi` for delta). Firefox follows the system theme, which
+Plasma syncs from kome's colours. VS Code has no supported way to add a
+theme without installing a packaged extension, so it waits.
+</details>
+
+<details>
+<summary><b>btop or Vesktop did not change colour.</b></summary>
+
+kome writes a theme called *kome* for them but never edits their settings.
+Choose it once: in btop, Esc → Options → Color theme; in Vesktop, Settings →
+Themes, enable `kome.theme.css`. From then on every `kome apply` recolours
+them.
+</details>
+
+<details>
+<summary><b>Does it change my panels?</b></summary>
+
+Only if you turn the `panel` unit on (`panel=on` under `[Units]` in
+`kome.conf`). It replaces every panel and its widgets with the style's
+layout; `kome restore` brings yours back exactly.
 </details>
 
 <details>

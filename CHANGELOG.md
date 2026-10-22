@@ -11,6 +11,23 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `decoration` unit: window corners and title bar buttons from the style,
   through Klassy (optional: without it windows keep their frame); the
   Breeze presets go back to KDE's own decoration.
+- Seven presets: Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
+  Gruvbox Material and Kanagawa.
+- `kome validate`: WCAG contrast check of each preset's palette.
+- KDE accent colour set to the palette's accent; a softer disabled effect
+  for light looks.
+- Units `plasmastyle` (Plasma style: Klassy's or Breeze), `widgets` (widget
+  style inside apps) and `effects` (blur, animation speed).
+- `panel` unit (opt-in): `bar`, `dock` and `topbar` layouts on every
+  screen; `kome restore` brings back the user's own panels exactly.
+- Integrations `btop` and `vesktop`: a *kome* theme the user chooses once
+  in the app.
+- Mixing looks: `kome apply --palette P --style S`, `kome list palettes`,
+  `kome list styles`.
+- `kome preview`: a screenshot of the desktop with each preset, then back to
+  the user's desktop.
+- `kome doctor` detects Plasma's day/night theme switching (and turns it off
+  with `--fix`) and advises on blurry X11 apps with fractional scaling.
 
 ### Fixed
 
@@ -18,6 +35,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
   always visible (icons appear on hover), from the first apply on.
 - `kome restore original` can now put back settings a unit started owning
   in a newer kome version.
+- `kome restore` now brings back the palette and style a restored look was
+  mixed with.
 
 ## [0.1.0] - 2026-10-22
 
