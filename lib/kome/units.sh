@@ -99,8 +99,9 @@ unit_save() {
 
 # snapshot_take <name>
 # Save every unit's current state (enabled or not) as snapshots/<name>/<unit>,
-# plus the active preset in snapshots/<name>/.preset. Atomic: the old snapshot
-# is replaced only once the new one is complete.
+# plus the active preset in snapshots/<name>/.preset (and the palette and
+# style it was mixed with, .palette and .style). Atomic: the old snapshot is
+# replaced only once the new one is complete.
 snapshot_take() {
 	mkdir -p "$KOME_SNAP_DIR"
 	_tmp=$KOME_SNAP_DIR/.$1.tmp
@@ -114,7 +115,11 @@ snapshot_take() {
 			return "$_rc"
 		}
 	done
-	cat "$KOME_STATE_DIR/active" >"$_tmp/.preset" 2>/dev/null || : >"$_tmp/.preset"
+	for _f in preset palette style; do
+		_from=$KOME_STATE_DIR/active
+		[ "$_f" = preset ] || _from=$_from.$_f
+		cat "$_from" >"$_tmp/.$_f" 2>/dev/null || : >"$_tmp/.$_f"
+	done
 	rm -rf "${KOME_SNAP_DIR:?}/${1:?}"
 	mv "$_tmp" "$KOME_SNAP_DIR/$1"
 }

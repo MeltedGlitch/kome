@@ -63,3 +63,14 @@ setup() {
 	run "$KOME" apply odd
 	[ "$status" -eq 65 ]
 }
+
+@test "restore previous brings back the mix of the look it restores" {
+	"$KOME" apply --palette nord mocha
+	"$KOME" apply breeze
+	[ ! -e "$XDG_STATE_HOME/kome/active.palette" ]
+	"$KOME" restore previous
+	[ "$(cat "$XDG_STATE_HOME/kome/active")" = mocha ]
+	[ "$(cat "$XDG_STATE_HOME/kome/active.palette")" = nord ]
+	run "$KOME" status
+	[[ "$output" == *"preset: mocha (Catppuccin Mocha), palette nord"* ]]
+}

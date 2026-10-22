@@ -43,11 +43,15 @@ if ! snapshot_restore "$which"; then
 	exit "$EX_SOFTWARE"
 fi
 
-if [ -s "$KOME_SNAP_DIR/$which/.preset" ]; then
-	cp "$KOME_SNAP_DIR/$which/.preset" "$KOME_STATE_DIR/active"
-else
-	rm -f "$KOME_STATE_DIR/active"
-fi
+for f in preset palette style; do
+	to=$KOME_STATE_DIR/active
+	[ "$f" = preset ] || to=$to.$f
+	if [ -s "$KOME_SNAP_DIR/$which/.$f" ]; then
+		cp "$KOME_SNAP_DIR/$which/.$f" "$to"
+	else
+		rm -f "$to"
+	fi
+done
 rm -f "$KOME_STATE_DIR/failed"
 # The restored desktop is now the expected one for `kome status`.
 rm -rf "${KOME_STATE_DIR:?}/applied"
