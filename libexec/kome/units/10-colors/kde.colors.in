@@ -4,11 +4,14 @@
 # and edit the copy. Each double-brace placeholder is a palette role (see
 # the palette files); mix/lighten/darken derive shades from them.
 
+# Disabled items fade towards the background. Light looks fade less: with
+# Breeze Dark's 0.65, disabled icons (e.g. KDE Connect with no phone) all but
+# vanished on Latte's light panel.
 [ColorEffects:Disabled]
 Color={{base:rgb}}
 ColorAmount=0
 ColorEffect=0
-ContrastAmount=0.65
+ContrastAmount={{by_mode(0.65,0.4)}}
 ContrastEffect=1
 IntensityAmount=0.1
 IntensityEffect=2

@@ -37,7 +37,8 @@ setup() {
 
 @test "current prints the active scheme" {
 	run "$UNIT" current
-	[ "$output" = "scheme=BreezeDark" ]
+	[ "${lines[0]}" = "scheme=BreezeDark" ]
+	[ "${lines[1]}" = "accent=" ]
 }
 
 @test "apply generates a complete scheme and applies it" {
@@ -134,4 +135,31 @@ ini_get_kde() {
 		/^\[/ { in_g = ($0 == g); next }
 		in_g && index($0, k "=") == 1 { print substr($0, length(k) + 2); exit }
 	' "$1"
+}
+
+@test "KDE's accent colour follows the palette, and goes back to KDE's default for Breeze" {
+	preset_export mocha
+	"$UNIT" apply
+	[ "$(kcfg kdeglobals General AccentColor)" = "180,190,254" ]
+	preset_export breeze-dark
+	"$UNIT" apply
+	[ "$(kcfg kdeglobals General AccentColor)" = "" ]
+}
+
+@test "restore brings back the user's own accent colour" {
+	kwriteconfig6 --file kdeglobals --group General --key AccentColor "233,61,130"
+	saved=$("$UNIT" current)
+	preset_export mocha
+	"$UNIT" apply
+	printf '%s\n' "$saved" | "$UNIT" restore
+	[ "$(kcfg kdeglobals General AccentColor)" = "233,61,130" ]
+}
+
+@test "disabled items fade less in light looks" {
+	preset_export mocha
+	KOME_SCHEME=x run template_fill "$(template_find colors kde.colors.in)"
+	[[ "$output" == *"ContrastAmount=0.65"* ]]
+	preset_export latte
+	KOME_SCHEME=x run template_fill "$(template_find colors kde.colors.in)"
+	[[ "$output" == *"ContrastAmount=0.4"* ]]
 }

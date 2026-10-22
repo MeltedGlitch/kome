@@ -75,6 +75,13 @@ first_path() {
 	return 1
 }
 
+# hex_rgb <#rrggbb> — print the colour as KDE's "r,g,b".
+hex_rgb() {
+	_hex=${1#\#}
+	_mid=${_hex#??}
+	printf '%d,%d,%d\n' "0x${_hex%????}" "0x${_mid%??}" "0x${_hex#????}"
+}
+
 # kome_awk <awk args>...
 # Run awk with a fixed locale, so output never depends on the user's
 # language (e.g. "0,5" instead of "0.5" for decimals).

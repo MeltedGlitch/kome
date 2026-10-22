@@ -128,3 +128,10 @@ fill() {
 	[ "$status" -eq 65 ]
 	[[ "$output" == *"needs mode=dark or mode=light"* ]]
 }
+
+@test "by_mode also picks plain numbers, returned as is" {
+	KOME_MODE=light run fill 'x={{by_mode(0.65,0.4)}}'
+	[ "$output" = 'x=0.4' ]
+	KOME_MODE=dark run fill 'x={{by_mode(10,-2)}}'
+	[ "$output" = 'x=10' ]
+}

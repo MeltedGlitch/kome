@@ -12,7 +12,8 @@
 #   {{mix(a,b,t)}}      a blended towards b by t
 #   {{lighten(a,t)}}    a blended towards white by t
 #   {{darken(a,t)}}     a blended towards black by t
-#   {{by_mode(a,b)}}    a for dark looks, b for light ones (KOME_MODE)
+#   {{by_mode(a,b)}}    a for dark looks, b for light ones (KOME_MODE); a and
+#                       b are colours, or plain numbers (returned as is)
 #
 # Function arguments are names or #rrggbb literals; t is a number from 0 to
 # 1. Functions default to :hex. Spaces inside {{ }} are ignored. Text outside
@@ -47,6 +48,13 @@ function amount(arg) {
 	return arg + 0
 }
 
+# mode_value <arg> — a number literal as is, else a colour.
+function mode_value(arg) {
+	if (arg ~ /^-?[0-9]+(\.[0-9]+)?$/)
+		return arg
+	return colour(arg)
+}
+
 function call(fn, args,    a, n) {
 	n = split(args, a, ",")
 	if (fn == "mix") {
@@ -65,9 +73,9 @@ function call(fn, args,    a, n) {
 		if (n != 2)
 			fail("by_mode() takes 2 arguments: by_mode(dark,light)")
 		if (ENVIRON["KOME_MODE"] == "light")
-			return colour(a[2])
+			return mode_value(a[2])
 		if (ENVIRON["KOME_MODE"] == "dark")
-			return colour(a[1])
+			return mode_value(a[1])
 		fail("by_mode() needs mode=dark or mode=light in the preset")
 	}
 	fail("unknown function '" fn "()'")
@@ -84,7 +92,7 @@ function expand(expr,    fmt, p, v) {
 	if (expr ~ /^[a-z_]+\(.*\)$/) {
 		p = index(expr, "(")
 		v = call(substr(expr, 1, p - 1), substr(expr, p + 1, length(expr) - p - 1))
-		if (fmt == "")
+		if (fmt == "" && color_valid(v))
 			fmt = "hex"
 	} else
 		v = value(expr)

@@ -26,6 +26,21 @@ KOME_PROG="kome: colors"
 
 scheme_dir=${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes
 
+# KDE's accent colour (kdeglobals [General] AccentColor, "r,g,b"): set to the
+# palette's accent so Plasma and apps that read it agree with the scheme;
+# deleted for KDE's own schemes so their factory accent comes back.
+set_accent() {
+	if [ -z "$1" ]; then
+		kwriteconfig6 --notify --file kdeglobals --group General --key AccentColor --delete
+	else
+		kwriteconfig6 --notify --file kdeglobals --group General --key AccentColor "$1"
+	fi
+}
+
+current_accent() {
+	kreadconfig6 --file kdeglobals --group General --key AccentColor
+}
+
 # Plasma's default when kdeglobals has no ColorScheme key is BreezeLight.
 current_scheme() {
 	kreadconfig6 --file kdeglobals --group General --key ColorScheme --default BreezeLight
@@ -52,9 +67,12 @@ do_check() {
 
 do_apply() {
 	if [ -n "${KOME_COLOR_SCHEME-}" ]; then
+		set_accent ''
 		set_scheme "$KOME_COLOR_SCHEME"
 		return
 	fi
+	_accent=$(hex_rgb "${KOME_ACCENT-}")
+	[ "$(current_accent)" = "$_accent" ] || set_accent "$_accent"
 	[ -n "${KOME_PRESET-}" ] ||
 		die "$EX_USAGE" "KOME_PRESET is not set" "apply a look with 'kome apply <preset>'"
 
@@ -88,13 +106,18 @@ do_apply() {
 
 do_restore() {
 	_scheme=
+	_accent=
 	while IFS= read -r _line; do
 		case $_line in
 		scheme=*) _scheme=${_line#scheme=} ;;
+		accent=*) _accent=${_line#accent=} ;;
 		esac
 	done
 	[ -n "$_scheme" ] ||
 		die "$EX_DATAERR" "no 'scheme=' line on stdin" "pipe in the output of 'unit current'"
+	if [ "$(current_accent)" != "$_accent" ]; then
+		set_accent "$_accent"
+	fi
 	if [ "$(current_scheme)" != "$_scheme" ]; then
 		set_scheme "$_scheme"
 	fi
@@ -106,7 +129,7 @@ usage: unit check | apply | current | restore
 
   check    exit 0 if the colour scheme can be set here (2: scheme missing)
   apply    apply the colours from the KOME_* environment
-  current  print the active colour scheme as scheme=<name>
+  current  print the active colour scheme and KDE accent (scheme=, accent=)
   restore  re-apply a scheme printed by 'current', read from stdin
 EOF
 }
@@ -114,7 +137,7 @@ EOF
 case ${1-} in
 check) do_check ;;
 apply) do_apply ;;
-current) printf 'scheme=%s\n' "$(current_scheme)" ;;
+current) printf 'scheme=%s\naccent=%s\n' "$(current_scheme)" "$(current_accent)" ;;
 restore) do_restore ;;
 -h | --help) usage ;;
 *)

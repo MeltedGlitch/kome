@@ -22,8 +22,8 @@ user_file() {
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"kome: restart your apps to see the fonts of Plasma and KDE apps"* ]]
 	[ "$(cat "$STATE")" = "Kome-mocha-A" ]
-	[ "$(cat "$snaps/original/colors")" = "scheme=BreezeDark" ]
-	[ "$(cat "$snaps/previous/colors")" = "scheme=BreezeDark" ]
+	grep -qx "scheme=BreezeDark" "$snaps/original/colors"
+	grep -qx "scheme=BreezeDark" "$snaps/previous/colors"
 	[ "$(cat "$state/active")" = "mocha" ]
 	[ ! -e "$state/lock" ]
 }
@@ -32,9 +32,9 @@ user_file() {
 	"$KOME" apply mocha
 	"$KOME" apply latte
 	[ "$(cat "$STATE")" = "Kome-latte-A" ]
-	[ "$(cat "$snaps/previous/colors")" = "scheme=Kome-mocha-A" ]
+	grep -qx "scheme=Kome-mocha-A" "$snaps/previous/colors"
 	[ "$(cat "$snaps/previous/.preset")" = "mocha" ]
-	[ "$(cat "$snaps/original/colors")" = "scheme=BreezeDark" ]
+	grep -qx "scheme=BreezeDark" "$snaps/original/colors"
 }
 
 @test "restore previous undoes the last apply, restore original undoes all" {
@@ -96,7 +96,7 @@ Preset=latte'
 colors=off'
 	"$KOME" apply mocha
 	[ ! -e "$LOG" ]
-	[ "$(cat "$snaps/original/colors")" = "scheme=BreezeDark" ]
+	grep -qx "scheme=BreezeDark" "$snaps/original/colors"
 }
 
 @test "a missing ingredient stops apply, --partial applies the rest" {
@@ -121,11 +121,11 @@ color_scheme=NotInstalled'
 	[ "$status" -eq 70 ]
 	[[ "$output" == *"hint: run 'kome restore previous'"* ]]
 	[ -e "$state/failed" ]
-	[ "$(cat "$snaps/previous/colors")" = "scheme=Kome-mocha-A" ]
+	grep -qx "scheme=Kome-mocha-A" "$snaps/previous/colors"
 	printf 'Broken\n' >"$STATE"
 	FAIL_APPLY=1 run "$KOME" apply latte
 	[[ "$output" == *"the last apply failed"* ]]
-	[ "$(cat "$snaps/previous/colors")" = "scheme=Kome-mocha-A" ]
+	grep -qx "scheme=Kome-mocha-A" "$snaps/previous/colors"
 	"$KOME" apply latte
 	[ ! -e "$state/failed" ]
 }

@@ -105,3 +105,10 @@ setup() {
 	[ "$status" -eq 65 ]
 	[[ "$output" == *"second.ini:1:"* ]]
 }
+
+@test "hex_rgb turns #rrggbb into KDE's r,g,b" {
+	run hex_rgb '#b4befe'
+	[ "$output" = "180,190,254" ]
+	run hex_rgb '#000000'
+	[ "$output" = "0,0,0" ]
+}
