@@ -87,22 +87,24 @@ EOF
 fam=$(printf '%s' "$1" | sed 's/\\//g')
 grep -ix -- "$fam" "$FONTS" || :
 EOF
+	# Plasma's shell: systemd-managed if $SYSTEMD_SHELL is set, running if
+	# $SHELL_RUNNING is set (until pkill stops it); every restart, replace,
+	# stop and start is logged to $LOG.
 	cat >"$stubs/pkill" <<'EOF'
 #!/bin/sh
 printf 'pkill %s\n' "$*" >>"$LOG"
+[ "$*" != "-x plasmashell" ] || : >"$BATS_TEST_TMPDIR/shell-stopped"
 EOF
-	# Plasma's shell: systemd-managed if $SYSTEMD_SHELL is set, running if
-	# $SHELL_RUNNING is set; every restart/replace is logged to $LOG.
 	cat >"$stubs/systemctl" <<'EOF'
 #!/bin/sh
 case "$*" in
 *is-active*) [ -n "${SYSTEMD_SHELL-}" ] ;;
-*restart*) printf 'systemctl %s\n' "$*" >>"$LOG" ;;
+*restart* | *stop* | *start*) printf 'systemctl %s\n' "$*" >>"$LOG" ;;
 esac
 EOF
 	cat >"$stubs/pgrep" <<'EOF'
 #!/bin/sh
-[ -n "${SHELL_RUNNING-}" ]
+[ -n "${SHELL_RUNNING-}" ] && [ ! -e "$BATS_TEST_TMPDIR/shell-stopped" ]
 EOF
 	cat >"$stubs/plasmashell" <<'EOF'
 #!/bin/sh

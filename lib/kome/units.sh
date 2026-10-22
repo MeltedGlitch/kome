@@ -4,6 +4,9 @@
 #
 # Units and snapshots. Source common.sh and preset.sh first.
 
+# shellcheck source=lib/kome/plasmashell.sh
+. "$KOME_ROOT/lib/kome/plasmashell.sh"
+
 KOME_UNITS_DIR=${KOME_UNITS_DIR:-$KOME_ROOT/libexec/kome/units}
 KOME_SNAP_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kome/snapshots
 KOME_CONF=$KOME_USER_DIR/kome.conf
@@ -220,10 +223,8 @@ effects_report() {
 
 # panel_refresh
 # Refresh Plasma's panel and desktop (plasmashell), which otherwise keeps
-# showing old icons until hovered — a known Plasma bug. With systemd the
-# shell runs as a user unit; without it (or when Plasma was not started by
-# systemd) plasmashell replaces itself. kome.conf [General] RefreshPanel=off
-# turns this into a hint only.
+# showing old icons until hovered — a known Plasma bug (see plasmashell.sh).
+# kome.conf [General] RefreshPanel=off turns this into a hint only.
 panel_refresh() {
 	_how="systemctl --user restart plasma-plasmashell"
 	if [ "$(ini_get "$KOME_CONF" General RefreshPanel 2>/dev/null || :)" = off ]; then
@@ -231,14 +232,7 @@ panel_refresh() {
 		hint "run '$_how' (or 'plasmashell --replace &') to refresh the panel"
 		return 0
 	fi
-	if command -v systemctl >/dev/null 2>&1 &&
-		systemctl --user is-active --quiet plasma-plasmashell.service 2>/dev/null; then
-		systemctl --user restart plasma-plasmashell.service && return 0
-	fi
-	if pgrep -x plasmashell >/dev/null 2>&1 && command -v plasmashell >/dev/null 2>&1; then
-		nohup plasmashell --replace >/dev/null 2>&1 &
-		return 0
-	fi
+	shell_restart && return 0
 	printf 'kome: Plasma is not running here, so the panel was not refreshed\n' >&2
 	hint "in your Plasma session, run '$_how' (or 'plasmashell --replace &')"
 }

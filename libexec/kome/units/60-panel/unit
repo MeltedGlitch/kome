@@ -1,0 +1,200 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# panel — Plasma's panels (opt-in: panel=on in kome.conf, and `panel=` in
+# the style). It replaces every panel, with the widgets on them.
+#
+# apply: builds the style's layout (bar, dock, topbar…) on every screen
+# through Plasma's scripting over D-Bus (the layout file + panel.js), then
+# restarts plasmashell so Plasma writes the new panels to its config now.
+# Panels that already match the layout are left alone.
+#
+# current/restore work on Plasma's own config, so the user's panels come
+# back exactly, widget settings and all: the sections of every panel and
+# system tray containment in plasma-org.kde.plasma.desktop-appletsrc, and
+# their [PlasmaViews] in plasmashellrc. restore stops plasmashell, puts
+# those sections back in place of the current panels', and starts it again.
+
+set -eu
+
+here=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
+KOME_PROG="kome: panel"
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/plasmashell.sh
+. "$KOME_ROOT/lib/kome/plasmashell.sh"
+
+cfg=${XDG_CONFIG_HOME:-$HOME/.config}
+appletsrc=$cfg/plasma-org.kde.plasma.desktop-appletsrc
+shellrc=$cfg/plasmashellrc
+
+do_check() {
+	[ -n "${KOME_PANEL-}" ] || exit "$CHECK_READY"
+	if [ ! -f "$(template_find panel "$KOME_PANEL.js")" ]; then
+		err "unknown panel layout: panel=$KOME_PANEL"
+		hint "use bar, dock or topbar in the style, or write $KOME_USER_DIR/templates/panel/$KOME_PANEL.js"
+		exit "$CHECK_ERROR"
+	fi
+	need_tools dbus-send
+	exit "$CHECK_READY"
+}
+
+do_apply() {
+	[ -n "${KOME_PANEL-}" ] || return 0
+	_mode=$(shell_mode)
+	if [ "$_mode" = none ]; then
+		die "$EX_UNAVAILABLE" "Plasma's shell is not running, so the panels cannot be built" \
+			"run 'kome apply' again from your Plasma session"
+	fi
+	_layout=$(template_find panel "$KOME_PANEL.js")
+	_js=$(cat "$_layout" "$(template_find panel panel.js)")
+	_out=$(dbus-send --session --dest=org.kde.plasmashell --type=method_call --print-reply=literal \
+		/PlasmaShell org.kde.PlasmaShell.evaluateScript "string:$_js") ||
+		die "$EX_UNAVAILABLE" "Plasma did not run the panel layout" "is plasmashell running? run 'kome doctor'"
+	_out=$(printf '%s\n' "$_out" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+	case $_out in
+	unchanged) ;;
+	changed)
+		# Plasma writes its config later, on a timer; a restart writes it now,
+		# so 'current' (snapshots, kome status) sees the new panels.
+		if ! shell_stop "$_mode" || ! shell_start "$_mode"; then
+			die "$EX_SOFTWARE" "plasmashell did not restart after building the panels" \
+				"run 'systemctl --user restart plasma-plasmashell' (or 'plasmashell --replace &')"
+		fi
+		;;
+	*)
+		die "$EX_SOFTWARE" "the panel layout failed in Plasma: $_out" \
+			"check $_layout, or run 'kome restore previous'"
+		;;
+	esac
+}
+
+# The awk test for "this section belongs to one of the ids": sections
+# "[Containments][N]…" (appletsrc) and "[PlasmaViews][Panel N]…"
+# (plasmashellrc). Used by sections and replace.
+owned='
+function owned(line) {
+	if (match(line, /^\[Containments\]\[[0-9]+\]/))
+		return index(ids, " " substr(line, 16, RLENGTH - 16) " ") > 0
+	if (match(line, /^\[PlasmaViews\]\[Panel [0-9]+\]/))
+		return index(ids, " " substr(line, 21, RLENGTH - 21) " ") > 0
+	return 0
+}'
+
+# panel_ids — ids of the panel and system tray containments, sorted.
+panel_ids() {
+	[ -f "$appletsrc" ] || return 0
+	awk '
+		/^\[/ {
+			id = ""
+			if (match($0, /^\[Containments\]\[[0-9]+\]$/))
+				id = substr($0, 16, RLENGTH - 16)
+			next
+		}
+		id != "" && ($0 == "plugin=org.kde.panel" || $0 == "plugin=org.kde.plasma.private.systemtray") { print id }
+	' "$appletsrc" | sort -n | tr '\n' ' ' | sed 's/ $//'
+}
+
+# sections <file> <prefix> <ids…> — print the ids' sections of <file>, each
+# line as <prefix>=line. Popup sizes, which Plasma rewrites whenever a popup
+# is resized, are left out.
+sections() {
+	_f=$1 _p=$2
+	shift 2
+	[ -f "$_f" ] || return 0
+	awk -v p="$_p" -v ids=" $* " "$owned"'
+		/^\[/ { keep = owned($0) }
+		keep && $0 != "" && $0 !~ /^popup(Width|Height)=/ { print p "=" $0 }
+	' "$_f"
+}
+
+do_current() {
+	_ids=$(panel_ids)
+	printf 'panels=%s\n' "${_ids:-none}"
+	[ -n "$_ids" ] || return 0
+	# shellcheck disable=SC2086 # one id per word
+	sections "$appletsrc" a $_ids
+	# shellcheck disable=SC2086
+	sections "$shellrc" v $_ids
+}
+
+# replace <file> <saved> <ids…> — drop the ids' sections from <file> and
+# append the saved lines.
+replace() {
+	_f=$1 _saved=$2
+	shift 2
+	mkdir -p "$(dirname -- "$_f")"
+	[ -f "$_f" ] || : >"$_f"
+	awk -v ids=" $* " "$owned"'
+		/^\[/ { drop = owned($0) }
+		!drop
+	' "$_f" >"$_f.kome-tmp"
+	if [ -s "$_saved" ]; then
+		# KConfig groups are separated by a blank line.
+		if [ -s "$_f.kome-tmp" ] && [ -n "$(tail -n 1 "$_f.kome-tmp")" ]; then
+			printf '\n' >>"$_f.kome-tmp"
+		fi
+		awk 'NR > 1 && /^\[/ { print "" } { print }' "$_saved" >>"$_f.kome-tmp"
+	fi
+	mv -f "$_f.kome-tmp" "$_f"
+}
+
+do_restore() {
+	_saved=$(cat)
+	printf '%s\n' "$_saved" | grep -q '^panels=' ||
+		die "$EX_DATAERR" "no 'panels=' line on stdin" "pipe in the output of 'unit current'"
+	[ "$_saved" != "$(do_current)" ] || return 0
+
+	_want=$(printf '%s\n' "$_saved" | sed -n 's/^panels=//p')
+	[ "$_want" != none ] || _want=
+	_have=$(panel_ids)
+	# A saved panel whose id now belongs to something else (a desktop added
+	# since) cannot come back without breaking that containment.
+	for _id in $_want; do
+		case " $_have " in *" $_id "*) continue ;; esac
+		if grep -qxF "[Containments][$_id]" "$appletsrc" 2>/dev/null; then
+			die "$EX_DATAERR" "cannot restore the panels: containment $_id is no longer a panel" \
+				"rebuild your panels by hand, or apply a layout with 'kome apply'"
+		fi
+	done
+
+	_mode=$(shell_mode)
+	shell_stop "$_mode" ||
+		die "$EX_SOFTWARE" "plasmashell did not stop, so the panels were not restored" \
+			"try again, or log out and back in first"
+	_tmp=$(mktemp -d)
+	printf '%s\n' "$_saved" | sed -n 's/^a=//p' >"$_tmp/a"
+	printf '%s\n' "$_saved" | sed -n 's/^v=//p' >"$_tmp/v"
+	# shellcheck disable=SC2086 # one id per word
+	replace "$appletsrc" "$_tmp/a" $_have $_want
+	# shellcheck disable=SC2086
+	replace "$shellrc" "$_tmp/v" $_have $_want
+	rm -rf "$_tmp"
+	shell_start "$_mode"
+}
+
+usage() {
+	cat <<EOF
+usage: unit check | apply | current | restore
+
+  check    exit 0 if the style's panel layout exists (3: it does not)
+  apply    replace every panel with the style's layout (bar, dock, topbar…)
+  current  print the panels' sections of Plasma's config
+  restore  put back the panels printed by 'current', read from stdin
+EOF
+}
+
+case ${1-} in
+check) do_check ;;
+apply) do_apply ;;
+current) do_current ;;
+restore) do_restore ;;
+-h | --help) usage ;;
+*)
+	usage >&2
+	exit "$EX_USAGE"
+	;;
+esac
