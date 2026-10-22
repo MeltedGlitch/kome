@@ -20,6 +20,13 @@ _kome() {
 		esac
 		;;
 	list) compadd -- presets palettes styles --help ;;
+	preview)
+		case $words[CURRENT-1] in
+		-o) _files -/ ;;
+		-d) ;;
+		*) compadd -- -o -d --help $presets ;;
+		esac
+		;;
 	validate) compadd -- --help $presets ;;
 	deps) compadd -- --help $presets ;;
 	doctor) compadd -- --info --fix --help $presets ;;

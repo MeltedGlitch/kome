@@ -1,0 +1,102 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome preview — a screenshot of the desktop with each preset.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome preview [-o DIR] [-d SECONDS] [preset...]
+
+Apply each preset (all of them by default), take a screenshot of the whole
+desktop as DIR/<preset>.png, and finally put your desktop back exactly as
+it was. Arrange the windows you want to see first: kome does not move them.
+
+  -o DIR      where to save the screenshots (default: the current directory)
+  -d SECONDS  how long to wait after each apply, so the desktop settles (default: 3)
+
+Presets that need something not installed are skipped (see kome deps).
+EOF
+}
+
+out=.
+delay=3
+presets=
+while [ $# -gt 0 ]; do
+	case $1 in
+	-o | -d)
+		[ $# -ge 2 ] || die "$EX_USAGE" "$1 needs a value" "run 'kome preview --help'"
+		if [ "$1" = -o ]; then out=$2; else delay=$2; fi
+		shift
+		;;
+	-h | --help)
+		usage
+		exit "$EX_OK"
+		;;
+	-*) die "$EX_USAGE" "unknown option: $1" "run 'kome preview --help'" ;;
+	*) presets="$presets $1" ;;
+	esac
+	shift
+done
+case $delay in
+'' | *[!0-9]*) die "$EX_USAGE" "-d needs a whole number of seconds: $delay" "run 'kome preview -d 5'" ;;
+esac
+for p in $presets; do
+	data_find presets "$p" >/dev/null ||
+		die "$EX_USAGE" "no preset named '$p'" "run 'kome list' to see the presets"
+done
+[ -n "$presets" ] || presets=$(data_list presets)
+need_tools spectacle
+[ ! -f "$KOME_STATE_DIR/failed" ] ||
+	die "$EX_TEMPFAIL" "the last apply failed, so kome cannot tell what to come back to" \
+		"run 'kome restore previous' first"
+mkdir -p "$out" || die "$EX_USAGE" "cannot create $out" "pick another directory with -o"
+
+# The first apply saves the desktop as 'previous'; keep that copy, and put
+# it back at the end with 'kome restore previous', so the user gets exactly
+# their desktop back (hand-made changes included) whatever was previewed.
+saved=
+back() {
+	if [ -n "$saved" ]; then
+		rm -rf "${KOME_SNAP_DIR:?}/previous"
+		mv "$saved" "$KOME_SNAP_DIR/previous"
+		"$KOME_ROOT/libexec/kome/kome-restore" previous ||
+			hint "run 'kome restore previous' to get your desktop back"
+	fi
+}
+trap 'back' EXIT
+trap 'exit 130' INT TERM
+
+shot=0
+for p in $presets; do
+	if ! "$KOME_ROOT/libexec/kome/kome-apply" "$p" 2>/dev/null; then
+		printf 'kome: skipped %s: it cannot be applied here\n' "$p" >&2
+		hint "run 'kome apply $p' to see why, or 'kome deps $p'"
+		continue
+	fi
+	if [ -z "$saved" ]; then
+		saved=$(mktemp -d "$KOME_SNAP_DIR/.preview.XXXXXX")
+		rmdir "$saved"
+		cp -R "$KOME_SNAP_DIR/previous" "$saved"
+	fi
+	sleep "$delay"
+	if spectacle --background --nonotify --fullscreen --output "$out/$p.png" >/dev/null 2>&1 &&
+		[ -s "$out/$p.png" ]; then
+		printf '%s\n' "$out/$p.png"
+		shot=$((shot + 1))
+	else
+		printf 'kome: spectacle could not take the screenshot of %s\n' "$p" >&2
+	fi
+done
+
+[ "$shot" -gt 0 ] || die "$EX_SOFTWARE" "no screenshot was taken" "run 'kome doctor' to see what is wrong"

@@ -22,7 +22,7 @@ complete_bash() {
 @test "kome --commands lists every subcommand, one per line" {
 	run kome --commands
 	[ "$status" -eq 0 ]
-	for c in apply deps doctor list purge restore status; do
+	for c in apply deps doctor list preview purge restore status validate; do
 		printf '%s\n' "$output" | grep -qx "$c"
 	done
 }
@@ -55,4 +55,13 @@ complete_bash() {
 @test "zsh and fish completion files load" {
 	if command -v zsh >/dev/null; then zsh -n "$KOME_ROOT/completions/zsh/_kome"; fi
 	if command -v fish >/dev/null; then fish -n "$KOME_ROOT/completions/fish/kome.fish"; fi
+}
+
+@test "bash completes preview's presets and its -o directory" {
+	run complete_bash kome preview la
+	[ "$output" = "latte" ]
+	mkdir -p "$BATS_TEST_TMPDIR/shots-dir"
+	cd "$BATS_TEST_TMPDIR"
+	run complete_bash kome preview -o shots-
+	[ "$output" = "shots-dir" ]
 }

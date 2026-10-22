@@ -24,4 +24,6 @@ complete -c kome -n '__fish_seen_subcommand_from purge' -s y -l yes -d 'do not a
 complete -c kome -n '__fish_seen_subcommand_from apply' -l palette -r -a '(kome list palettes 2>/dev/null | string split -f1 \t)' -d 'use this palette'
 complete -c kome -n '__fish_seen_subcommand_from apply' -l style -r -a '(kome list styles 2>/dev/null | string split -f1 \t)' -d 'use this style'
 complete -c kome -n '__fish_seen_subcommand_from list' -a 'presets palettes styles'
-complete -c kome -n '__fish_seen_subcommand_from validate' -a '(__kome_presets)'
+complete -c kome -n '__fish_seen_subcommand_from validate preview' -a '(__kome_presets)'
+complete -c kome -n '__fish_seen_subcommand_from preview' -s o -r -F -d 'save the screenshots here'
+complete -c kome -n '__fish_seen_subcommand_from preview' -s d -x -d 'seconds to wait after each apply'
