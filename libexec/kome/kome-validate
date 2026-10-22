@@ -1,0 +1,76 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome validate — check a preset: its files are well formed, and its
+# colours are readable (WCAG 2 contrast of the pairs kome draws text with).
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
+# shellcheck source=lib/kome/units.sh
+. "$KOME_ROOT/lib/kome/units.sh"
+
+usage() {
+	cat <<EOF
+usage: kome validate [preset…]
+
+Check that each preset (default: all of them) resolves — its palette has
+every role as a real colour, its style and preset are well formed — and
+that its main text pairs are readable. Prints one line per contrast pair:
+
+  pass  WCAG AA (4.5:1) for normal text
+  warn  only AA for large text (3:1): fine for titles, weak for body text
+  fail  below 3:1: hard to read
+
+Exit status 1 if any preset fails.
+EOF
+}
+
+case ${1-} in
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+-*) die "$EX_USAGE" "unknown option: $1" "run 'kome validate --help'" ;;
+esac
+
+# Preset names never contain spaces (data_find rejects anything odd).
+# shellcheck disable=SC2046
+[ $# -gt 0 ] || set -- $(data_list presets)
+
+# Pairs kome draws text with: "<fg role>/<bg role>/<what>".
+PAIRS="text/base/text on views
+text/mantle/text on windows
+subtext0/base/secondary text
+text/surface0/text on buttons
+base/accent/text on selections
+text/crust/title bar text"
+
+failed=
+for preset in "$@"; do
+	if ! env=$(preset_resolve "$preset"); then
+		failed=1
+		continue
+	fi
+	printf '%s\n' "$preset"
+	scheme=$(printf '%s\n' "$env" | sed -n 's/^KOME_COLOR_SCHEME=//p')
+	if [ -n "$scheme" ]; then
+		printf '  note  desktop colours come from KDE'"'"'s %s scheme, not this palette\n' "$scheme"
+		continue
+	fi
+	result=$(printf '%s\n' "$env" | PAIRS=$PAIRS kome_awk -f "$KOME_ROOT/lib/kome/color.awk" -f "$KOME_ROOT/lib/kome/contrast.awk")
+	printf '%s\n' "$result"
+	case $result in
+	*"  fail  "*) failed=1 ;;
+	esac
+done
+
+if [ -n "$failed" ]; then
+	hint "adjust the palette colours marked fail, or check the preset's files"
+	exit 1
+fi
