@@ -10,40 +10,44 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 232 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 289 bats tests passing (also under `gawk --posix`).
 
-Done: dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps}.sh`
-and `{ini,color,template,resolve}.awk`; presets `breeze`, `breeze-dark`,
-`mocha`, `latte`; styles `soft`, `breeze`; units `colors`, `icons`,
-`cursor`, `fonts` and integrations `kitty`, `ghostty` (each with
-`unit.ini`); commands `list`, `apply`, `restore`, `deps`, `status`,
-`doctor` (`--info`, `--fix`), `purge`; completions (bash/zsh/fish). Tests
-run against a fake Plasma with a hermetic PATH (`tests/helpers.bash`).
+Done (v0.1): dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps,themefile}.sh`
+and `{ini,color,template,resolve}.awk`; units `colors`, `icons`, `cursor`,
+`fonts`, `rendering`, `wallpaper`, `kitty`, `ghostty`; commands `list`,
+`apply`, `restore`, `deps`, `status`, `doctor` (`--info`, `--fix`), `purge`;
+completions (bash/zsh/fish); man pages. Tests run against a fake Plasma with
+a hermetic PATH (`tests/helpers.bash`).
 
-Verified live by the owner: colours, fonts, icons (incl. the
-FollowsColorScheme fix), GTK sync via `--notify`, automatic panel refresh
-after icon changes (systemd path), idempotent re-apply (no refresh), purge.
-Owner switched terminal to Ghostty (COPR); kitty uninstalled.
+Done (v0.2, all of §14 except the TUI/GUI and VS Code): `decoration`;
+seven presets (Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
+Gruvbox Material, Kanagawa) + `kome validate` (`contrast.awk`); KDE accent
+colour + softer Disabled effect for light looks (in `colors`);
+`lib/kome/keys.sh`; units `plasmastyle`, `widgets`, `effects`, `panel`
+(opt-in, `lib/kome/plasmashell.sh`), `btop`, `vesktop`; doctor detects
+day/night switching and blurry X11 apps; mixing (`--palette/--style`,
+`kome list palettes|styles`); `kome preview`.
+
+**Not verified live yet** (owner to test): everything of v0.2 except
+`decoration`. In particular `panel` (never run on a real Plasma: the JS was
+checked against Plasma's scripting sources and a mock), Klassy's Plasma and
+widget styles (owner has not installed Klassy), effects, btop/Vesktop
+themes, `kome preview`, the softer Disabled effect (KDE Connect on Latte).
 
 Owner's machine: Fedora 44, Plasma/KWin 6.7.5, Wayland, Intel + NVIDIA
 RTX 4070, HDMI-A-1 2560x1440@143.91 and DP-1 2560x1440@144 (he said one is
 165 Hz), both scale 1.25.
 
 Open threads:
-- KDE Connect's tray phone looks very faint on Latte: likely its
-  "disconnected" state drawn with the colour scheme's Disabled effect,
-  which kome copied from Breeze Dark. Owner was asked whether his phone was
-  connected; proposal: a softer Disabled effect for light looks.
-- `kome doctor`: detect Plasma's automatic light/dark switching (key to
-  verify).
 - `wallpaper` is **not tested live**: the owner declined (one screen has an
   animated wallpaper from an unknown plugin; he cannot recreate it if
-  restore failed). Unverified: restoring non-image plugins whose own config
-  kome never touches. Safe read-only check offered: `unit current`. Must be
-  verified (with a backup of `plasma-org.kde.plasma.desktop-appletsrc`)
-  before a public release.
+  restore failed). Must be verified (with a backup of
+  `plasma-org.kde.plasma.desktop-appletsrc`) before a public release.
+  The same backup advice applies to the first live test of `panel`.
+- Defaults chosen without asking the owner (to confirm): `soft` has
+  `blur=on`, `animation_speed=fast`, `panel=dock`; `breeze` `panel=bar`.
 
-**v0.1.0 tagged and released** (private repo). **v0.2 in progress:** `decoration` unit done (soft style: Klassy, 8 px corners, accent circles on the right; owner's choices). Owner has not installed Klassy yet. **Next (v0.2 order, §14):** Plasma style, KWin effects, KDE accent colour, softer Disabled effect for light looks, `style`, `panel`. TUI/GUI later. (`rendering` verified live: works, little visible gain on Fedora at 109 ppi.)
+**Next:** owner's live tests of v0.2, then tag v0.2.0. TUI/GUI after that.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -195,7 +199,7 @@ For the owner, "one click on any PC" = `dotfiles` bootstrap (e.g.
 | Concept | What it is | Contains |
 |---|---|---|
 | **Palette** | Colours only | Catppuccin's 26 roles + `accent`: `base mantle crust surface0 surface1 surface2 overlay0 overlay1 overlay2 text subtext0 subtext1 rosewater flamingo pink mauve red maroon peach yellow green teal sky sapphire blue lavender accent`. Every palette defines all 27, as `#rrggbb` only. Other upstream palettes (Nord, Tokyo Night…) are mapped onto these roles |
-| **Style** | Shape only | UI font, monospace font, `font_size` (points, default 10; an empty font = KDE's default); window decoration (`decoration`, `window_radius`, `window_buttons`, `buttons_left/right`; empty = KDE's default). Later (with `style`/`panel`): widget style, panel layout, opacity |
+| **Style** | Shape only | UI font, monospace font, `font_size` (points, default 10; an empty font = KDE's default); window decoration (`decoration`, `window_radius`, `window_buttons`, `buttons_left/right`; empty = KDE's default); `plasma_style`, `widget_style` (`klassy`/`breeze`/an id); `blur` (`on`/`off`), `animation_speed` (`normal`/`fast`/`slow`/`instant`); `panel` layout (`bar`/`dock`/`topbar`). An empty value leaves that setting alone |
 | **Preset** | A palette + a style + a few extras | Icon folder accent (a Papirus folder colour name: `violet`, `blue`, `indigo`…), cursor theme, light/dark flag, optional KDE `color_scheme`, optional wallpaper path |
 | **Unit** | One appearance target | Implements the unit contract (§6) |
 | **Snapshot** | Saved state of everything `kome` can touch | Used by `kome restore`. Only two exist: `original` and `previous` |
@@ -316,8 +320,12 @@ Power users can run any unit directly by path; there is no special subcommand.
 | `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen (`kscreenlockerrc`), only from the preset's `wallpaper=` (absolute or `~/`). `current` reads each desktop's plugin and image from `plasma-org.kde.plasma.desktop-appletsrc`; `restore` puts every screen back (slideshows, per-screen images) through Plasma scripting over D-Bus (`evaluateScript`, `desktopById`). Never on by default: the user's wallpapers are kept | **opt-in** | yes |
 | `kitty` | integration | generated theme file included from `kitty.conf`; reload all instances (SIGUSR1 / remote control) | on | yes |
 | `decoration` | core | KWin decoration from the style: `decoration=klassy|breeze`, `window_radius`, `window_buttons=circles|icons`, `buttons_left/right` (KWin letters). Writes only its keys in `kwinrc` `[org.kde.kdecoration2]` and `klassy/klassyrc` (`Windeco`, `ButtonColors`), then `org.kde.KWin.reconfigure` over D-Bus. Klassy (≥ Plasma 6.6) is an **optional ingredient** (detected by `klassy-settings`): without it windows are left untouched, with a notice. Colours come from the colour scheme | on | yes |
-| `style` (v0.2) | core | widget style (Klassy / Darkly / Breeze) via `kwriteconfig6` | on | new apps only |
-| `panel` (v0.2) | core | Plasma desktop scripting (JS) via D-Bus `evaluateScript`; multi-monitor aware; destroys custom widgets | **opt-in** | yes |
+| `plasmastyle` | core | `plasma-apply-desktoptheme` from the style's `plasma_style`: `klassy` → `klassy-dark`/`klassy-light` by mode, `breeze` → `default`, else an installed id. Klassy's styles are an **optional ingredient** | on | yes |
+| `widgets` | core | kdeglobals `[KDE] widgetStyle` from `widget_style` (`klassy` → `Klassy`, optional; `breeze` → `Breeze`) | on | new apps only (`restart`) |
+| `effects` | core | KWin blur (`kwinrc [Plugins] blurEnabled` + `loadEffect`/`unloadEffect` over D-Bus) and `AnimationDurationFactor` in kdeglobals (`fast` 0.5, `slow` 2, `instant` 0, `normal` = key deleted) | on | yes |
+| `panel` | core | Layout file (`bar.js`, `dock.js`, `topbar.js`, user-overridable) + `panel.js` sent through D-Bus `evaluateScript`; every screen, tray on the first; leaves matching panels alone, else replaces all panels and restarts plasmashell so the config is written. `current`/`restore` copy the panel and systray containment sections of `plasma-org.kde.plasma.desktop-appletsrc` and their `[PlasmaViews]` in `plasmashellrc`, with plasmashell stopped (exact restore, widgets included) | **opt-in** | yes |
+| `btop` | integration | `themes/kome.theme`; the user picks it once in btop (kome never edits `btop.conf`); reload SIGUSR2 | on | yes |
+| `vesktop` | integration | Vencord theme `themes/kome.theme.css` (Flatpak data dir when Vesktop is a Flatpak); the user enables it once; Vencord reloads it on change. Variables follow Catppuccin's Discord theme | on | yes |
 
 Every write to KDE's config uses **`kwriteconfig6 --notify`**, so Plasma and
 its GTK sync react as if the change came from System Settings (without it,
@@ -500,7 +508,7 @@ snapshot must capture the prior state of both.
 
 **v0.1 ships only `breeze`, `breeze-dark`, Catppuccin Mocha and Catppuccin
 Latte** (factory light/dark + one pastel light/dark pair — enough to validate
-the engine). The rest arrive in v0.2.
+the engine). The rest are on `main` for v0.2 (added 2026-10-22).
 
 Chosen to be clearly different from each other. All palettes are authored by
 `kome` from the official upstream palettes (not third-party KDE ports, whose
@@ -553,14 +561,18 @@ kome/
 │   └── units/
 │       ├── 05-decoration/       # runs before colors (see the unit)
 │       ├── 10-colors/           # unit, unit metadata, kde.colors.in
-│       ├── 20-icons/  30-cursor/  40-fonts/  50-rendering/
-│       └── 70-wallpaper/  90-kitty/  91-ghostty/
+│       ├── 15-plasmastyle/  20-icons/  30-cursor/  40-fonts/  45-widgets/
+│       ├── 50-rendering/  55-effects/  60-panel/  70-wallpaper/
+│       └── 90-kitty/  91-ghostty/  92-btop/  93-vesktop/
 ├── lib/kome/
 │   ├── common.sh                # exit codes, messages, INI/template/XDG helpers, manifest
 │   ├── preset.sh                # find/list/resolve presets, palettes, styles
 │   ├── units.sh                 # units, snapshots, effects, panel refresh, preset_pick
 │   ├── deps.sh                  # ingredients → install commands
-│   ├── themefile.sh             # integrations: one theme file + one include line
+│   ├── themefile.sh             # integrations: one theme file + one include line (or a theme chosen in the app)
+│   ├── keys.sh                  # units whose state is a set of KDE keys
+│   ├── plasmashell.sh           # stop/start/restart Plasma's shell
+│   ├── contrast.awk             # kome validate's WCAG ratings
 │   ├── ini.awk                  # INI reader for kome's own files
 │   ├── color.awk                # colour maths
 │   ├── template.awk             # {{placeholder}} filling
@@ -595,7 +607,8 @@ templates only.
   `--fix`), `deps`, `status`, `restore`, `purge`; presets `breeze`,
   `breeze-dark`, `mocha`, `latte`; man pages; completions; CI.
 
-- **v0.2** — the deeper look. In this order (owner agreed 2026-10-22):
+- **v0.2** — the deeper look. In this order (owner agreed 2026-10-22).
+  All done 2026-10-22 except the live tests:
   1. ~~`decoration`~~ (done): Klassy window corners and title bar buttons.
   2. **Plasma style** unit: the look of the panel, widgets, notifications
      and launcher (`plasma-apply-desktoptheme`; Klassy ships one that
@@ -606,24 +619,25 @@ templates only.
      palette's accent, so apps and Plasma that read it agree.
   5. **Softer Disabled effect for light looks** in `kde.colors.in` (the
      faint KDE Connect tray icon on Latte).
-  6. **`style`** unit: widget style inside apps (Klassy's application style,
+  6. **`widgets`** unit (named `style` until 2026-10-22): widget style inside apps (Klassy's application style,
      Darkly, Breeze); applies to newly started apps.
   7. **`panel`** unit (opt-in, replaces panel widgets): layouts such as a
      full bar, a floating centred dock, top bar + dock; multi-monitor aware.
   8. Remaining presets (§11).
 
 - **Integrations** (each is a small unit; `lib/kome/themefile.sh` covers the
-  "one theme file + one include line" kind): VS Code; Discord/Vesktop;
-  btop; fastfetch; bat and delta; Starship; Firefox (delicate: theme via an
-  extension or the profile — must respect principle 10, decide first).
+  "one theme file + one include line" kind): ~~Discord/Vesktop~~, ~~btop~~
+  (done). fastfetch, Starship, bat/delta and Firefox need no unit (decided
+  2026-10-22, §17). VS Code: deferred (§15).
 
 - **Tooling and polish**:
-  - `kome doctor`: detect Plasma's automatic light/dark switching; advise on
-    blurry XWayland/Electron apps at fractional scaling.
-  - Palette × style mixing from the CLI (`kome apply --palette … --style …`).
-  - `kome preview`: automatic screenshots per preset (README, picker).
-  - `kome validate`: format + WCAG contrast check of a palette.
-  - Light/dark pairs + timer (in `dotfiles`).
+  - ~~`kome doctor`: detect Plasma's automatic light/dark switching; advise
+    on blurry XWayland apps at fractional scaling~~ (done).
+  - ~~Palette × style mixing from the CLI~~ (done).
+  - ~~`kome preview`~~ (done).
+  - ~~`kome validate`~~ (done; format errors were already caught by the
+    resolver).
+  - Light/dark pairs + timer (in `dotfiles`, not kome).
 
 - **Front ends: a TUI and a GUI** (owner wants both, eventually). Rule: they
   are **thin layers over the CLI** — they run `kome list`, `kome apply`,
@@ -650,6 +664,8 @@ templates only.
 | Tuning keys for font rendering in `kome.conf` | Fixed recommended values; power users override the template |
 | Distro packages (COPR, AUR, …) | `make install` to `~/.local` is enough until there are users asking |
 | Flatpak GTK theming (overrides via `doctor --fix [y/N]`) | Plasma syncs GTK for native apps; Flatpak needs filesystem overrides, which touch another program. Revisit when someone needs it |
+| VS Code integration | No supported way to add an unpacked theme: VS Code tracks extensions in its own `extensions.json` (editing it touches another program, principle 10). The clean route is a packaged `.vsix` + `code --install-extension`, which needs a zip tool and an install step — revisit with `doctor --fix [y/N]` |
+| Electron apps on native Wayland (`kome doctor` advice) | Per-app flags, no single setting to detect; XWayland scaling advice covers the common case |
 | Purge without a manifest (state dir lost): units list the files they generate (all carry "Generated by kome") | Only pre-manifest dev installs have unregistered files; no public user can. Revisit if manifests get lost in practice |
 
 ---
@@ -659,11 +675,10 @@ templates only.
 - Flatpak-only / immutable systems (Silverblue, Kinoite): what should
   `kome deps` suggest there?
 - Should `make uninstall` suggest running `kome purge` first?
-- Klassy vs Darkly as the widget style for non-default presets (v0.2).
-- Plasma's automatic light/dark theme switching: which kdeglobals key
-  enables it (verify on Plasma 6.7) so `kome doctor` can detect it.
-- Panel layouts to offer (full bar, floating centred dock, top bar + dock…) and
-  their multi-monitor behaviour (v0.2).
+- Klassy vs Darkly as the widget style for non-default presets (Klassy
+  chosen for now; Darkly not supported).
+- Panel layouts: `bar`, `dock`, `topbar` shipped (every screen, tray on the
+  first). Owner to confirm the choice and the `soft` default (`dock`).
 
 ---
 
@@ -762,7 +777,18 @@ templates only.
 | 2026-10-22 | Fix (design): a unit that learns new keys in an upgrade could never restore them — `original` had no value for them. Each apply now runs `snapshot_extend original`: for units kome has applied, plain `key=value` lines missing from the snapshot are added with their current value (still the user's, kome never wrote them). |
 | 2026-10-22 | Fix (found live, confirmed by the owner): with `decoration` after `colors`, the colour scheme's KWin reload could read Klassy's old settings, so the first apply showed bare icons. `decoration` now runs first (`05-decoration`); the colour scheme's reload then sees the new settings, and decoration's own reconfigure covers applies where the scheme does not change. |
 | 2026-10-22 | Roadmap extended (owner: "apunta todos"): Plasma style, KWin effects, KDE accent colour, softer Disabled effect, more integrations, tooling, and a TUI + GUI as thin front ends over the CLI (no logic of their own). |
-
+| 2026-10-22 | Owner: "program everything except the TUI/GUI, with tests for each addition". Done in small commits; each addition has its own bats file or tests. |
+| 2026-10-22 | Seven presets from official upstream palettes (tokyonight.nvim night, rose-pine main/dawn, nordtheme, everforest dark medium, gruvbox-material dark medium, kanagawa wave); all use style `soft`. `kome validate` rates text/base, text/mantle, subtext0/base, text/surface0, base/accent, text/crust (pass ≥ 4.5, warn ≥ 3, fail), exit 1 on fail; presets with a KDE `color_scheme` only get a note. |
+| 2026-10-22 | `colors` also sets kdeglobals `[General] AccentColor` from the palette (deleted for KDE schemes); `ContrastAmount` of the Disabled effect is `by_mode(0.65,0.4)` (softer on light looks). `by_mode` accepts numbers. |
+| 2026-10-22 | `lib/kome/keys.sh`: one table "name:file:group:key" gives a unit `current`/`restore` for a set of KDE keys (decoration, widgets, effects). |
+| 2026-10-22 | The `style` unit of the roadmap is named **`widgets`** (style key `widget_style`): "style" already names the style file. New `plasmastyle` (`plasma_style`) and `effects` (`blur`, `animation_speed`). Facts from Klassy's sources: Plasma styles `klassy-dark`/`klassy-light`, widget style `Klassy`. Defaults in `soft` chosen without the owner: `blur=on`, `animation_speed=fast` (to confirm). |
+| 2026-10-22 | `kome doctor`: day/night switching is kdeglobals `[KDE] AutomaticLookAndFeel=true` (verified in plasma-workspace's kcfg); `--fix` sets it false after `[y/N]`. Blurry X11 apps: kdeglobals `[KScreen] XwaylandClientsScale=false` (verified in KWin) gives advice only. |
+| 2026-10-22 | Mixing: `kome apply --palette P --style S`; a typo in either is EX_USAGE, a missing file named by a preset EX_DATAERR. The mix is saved (`active.palette`/`.style`), reused by a bare apply of the active preset, shown by `status`, and kept in snapshots (fix: restore used to lose it). `kome list presets|palettes|styles`. |
+| 2026-10-22 | `themefile.sh` also covers apps whose "include" is choosing the theme inside the app (`tf_selected` regex, `tf_choose` hint, hooks, `tf_present`). kome never edits those apps' settings. |
+| 2026-10-22 | Integrations `btop` (theme file; SIGUSR2 reload verified in btop's source) and `vesktop` (Vencord theme in Vesktop's data dir, verified in Vesktop's source; Flatpak `~/.var/app/dev.vencord.Vesktop`; variables from Catppuccin's Discord theme, which Discord may rename). |
+| 2026-10-22 | No unit for fastfetch and Starship (they use the terminal's 16 colours), bat/delta (`--theme=ansi` does the same; documented in the README FAQ) or Firefox (follows the system/GTK theme, which Plasma syncs). VS Code deferred (§15). |
+| 2026-10-22 | `panel` unit (opt-in). Apply through Plasma scripting (API checked in plasma-workspace `shell/scripting`): remove all panels, create the layout's panels per screen; a signature check (screen, location, length mode, alignment, floating, hiding, widget types) skips matching panels. Plasma writes its config on a timer, so after a change kome restarts plasmashell (stop + start) to have the files current. Restore works on the files (exact, widgets and tray included), refusing if a saved id now belongs to a non-panel containment. Popup sizes are left out of `current` (Plasma rewrites them). Shell control moved to `lib/kome/plasmashell.sh`. |
+| 2026-10-22 | `kome preview [-o DIR] [-d S] [preset…]`: applies each preset, `spectacle --background --nonotify --fullscreen --output`, and at the end puts back the `previous` snapshot taken by its first apply and restores it — the user's exact desktop, hand changes included. Refuses after a failed apply. |
 ---
 
 ## 18. Reference machines (owner's)
