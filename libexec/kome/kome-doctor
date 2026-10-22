@@ -133,6 +133,18 @@ if command -v kreadconfig6 >/dev/null 2>&1 &&
 	printf 'warning: Plasma takes the accent colour from the wallpaper, overriding the preset\n'
 	traps="$traps accent"
 fi
+if command -v kreadconfig6 >/dev/null 2>&1 &&
+	[ "$(kreadconfig6 --file kdeglobals --group KDE --key AutomaticLookAndFeel)" = true ]; then
+	printf 'warning: Plasma switches Global Themes at day and night, which would undo the look\n'
+	traps="$traps daynight"
+fi
+
+# 2b. Advice only: monitor scaling is System Settings' business (§3).
+if [ "${XDG_SESSION_TYPE-}" = wayland ] && command -v kreadconfig6 >/dev/null 2>&1 &&
+	[ "$(kreadconfig6 --file kdeglobals --group KScreen --key XwaylandClientsScale)" = false ]; then
+	printf 'advice:  X11 apps are scaled by the system, so with fractional scaling they look blurry\n'
+	hint "in System Settings > Display & Monitor > Legacy Applications (X11), choose 'Apply scaling themselves'"
+fi
 
 if [ -n "$traps$unit_fixes" ] && [ -z "$fix" ]; then
 	hint "run 'kome doctor --fix' to fix it"
@@ -161,6 +173,16 @@ if [ -n "$fix" ]; then
 		if ask "Stop Plasma from taking the accent colour from the wallpaper?"; then
 			kwriteconfig6 --notify --file kdeglobals --group General --key accentColorFromWallpaper false
 			printf 'fixed: the accent colour no longer comes from the wallpaper\n'
+		else
+			problems=1
+		fi
+		;;
+	esac
+	case " $traps " in
+	*" daynight "*)
+		if ask "Stop Plasma from switching Global Themes at day and night?"; then
+			kwriteconfig6 --notify --file kdeglobals --group KDE --key AutomaticLookAndFeel false
+			printf 'fixed: Plasma no longer switches themes by itself\n'
 		else
 			problems=1
 		fi

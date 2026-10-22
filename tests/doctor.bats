@@ -101,3 +101,23 @@ setup() {
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"ok        colors"* ]]
 }
+
+@test "Plasma's day/night theme switching is detected as a trap" {
+	kwriteconfig6 --file kdeglobals --group KDE --key AutomaticLookAndFeel true
+	run "$KOME" doctor mocha
+	[ "$status" -eq 1 ]
+	[[ "$output" == *"switches Global Themes at day and night"* ]]
+	run "$KOME" doctor --fix mocha </dev/null
+	[[ "$output" == *"skipped (not a terminal)"* ]]
+	[ "$(kcfg kdeglobals KDE AutomaticLookAndFeel)" = "true" ]
+}
+
+@test "blurry X11 apps get advice, not a fix, and only on Wayland" {
+	kwriteconfig6 --file kdeglobals --group KScreen --key XwaylandClientsScale false
+	XDG_SESSION_TYPE=wayland run "$KOME" doctor mocha
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"advice:  X11 apps are scaled by the system"* ]]
+	[[ "$output" == *"Apply scaling themselves"* ]]
+	XDG_SESSION_TYPE=x11 run "$KOME" doctor mocha
+	[[ "$output" != *"advice:"* ]]
+}
