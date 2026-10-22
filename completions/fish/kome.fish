@@ -21,3 +21,7 @@ complete -c kome -n '__fish_seen_subcommand_from doctor' -l fix -d 'fix what doc
 complete -c kome -n '__fish_seen_subcommand_from restore' -a 'original previous'
 complete -c kome -n '__fish_seen_subcommand_from status' -s v -l verbose -d 'show what changed'
 complete -c kome -n '__fish_seen_subcommand_from purge' -s y -l yes -d 'do not ask for confirmation'
+complete -c kome -n '__fish_seen_subcommand_from apply' -l palette -r -a '(kome list palettes 2>/dev/null | string split -f1 \t)' -d 'use this palette'
+complete -c kome -n '__fish_seen_subcommand_from apply' -l style -r -a '(kome list styles 2>/dev/null | string split -f1 \t)' -d 'use this style'
+complete -c kome -n '__fish_seen_subcommand_from list' -a 'presets palettes styles'
+complete -c kome -n '__fish_seen_subcommand_from validate' -a '(__kome_presets)'

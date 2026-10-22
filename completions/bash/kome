@@ -9,12 +9,20 @@ _kome_presets() {
 }
 
 _kome() {
-	local cur=${COMP_WORDS[COMP_CWORD]} words
+	local cur=${COMP_WORDS[COMP_CWORD]} prev=${COMP_WORDS[COMP_CWORD-1]} words
 	if [ "$COMP_CWORD" -eq 1 ]; then
 		words="$(kome --commands 2>/dev/null) --help --version"
 	else
 		case ${COMP_WORDS[1]} in
-		apply) words="-n --dry-run -v --verbose --partial --help $(_kome_presets)" ;;
+		apply)
+			case $prev in
+			--palette) words=$(kome list palettes 2>/dev/null | cut -f1) ;;
+			--style) words=$(kome list styles 2>/dev/null | cut -f1) ;;
+			*) words="-n --dry-run -v --verbose --partial --palette --style --help $(_kome_presets)" ;;
+			esac
+			;;
+		list) words="presets palettes styles --help" ;;
+		validate) words="--help $(_kome_presets)" ;;
 		deps) words="--help $(_kome_presets)" ;;
 		doctor) words="--info --fix --help $(_kome_presets)" ;;
 		restore) words="original previous --help" ;;

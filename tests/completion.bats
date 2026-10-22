@@ -44,8 +44,10 @@ complete_bash() {
 }
 
 @test "bash completes options and snapshot names" {
-	run complete_bash kome apply --p
-	[ "$output" = "--partial" ]
+	run complete_bash kome apply --pa
+	[ "$output" = "$(printf -- '--partial\n--palette')" ]
+	run complete_bash kome apply --palette no
+	[ "$output" = "nord" ]
 	run complete_bash kome restore ""
 	[ "$output" = "$(printf 'original\nprevious\n--help')" ]
 }

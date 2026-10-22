@@ -13,16 +13,18 @@ KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
 
 usage() {
 	cat <<EOF
-usage: kome list
+usage: kome list [presets | palettes | styles]
 
-List the available presets, one per line: the name to use with
-'kome apply', a tab, and the preset's full name. Your own presets in
-$KOME_USER_DIR/presets/ override shipped ones with the same name.
+List what is available, one per line: the name to use (with 'kome apply',
+or its --palette and --style), a tab, and the full name. Your own files in
+$KOME_USER_DIR/ override shipped ones with the same name.
 EOF
 }
 
+kind=presets
 case ${1-} in
-'') ;;
+'' | presets) ;;
+palettes | styles) kind=$1 ;;
 -h | --help)
 	usage
 	exit "$EX_OK"
@@ -31,9 +33,17 @@ case ${1-} in
 	die "$EX_USAGE" "unexpected argument: $1" "run 'kome list --help'"
 	;;
 esac
+[ $# -le 1 ] || die "$EX_USAGE" "too many arguments" "run 'kome list --help'"
 
-data_list presets | while IFS= read -r name; do
-	file=$(data_find presets "$name")
-	title=$(ini_get "$file" Preset name 2>/dev/null) || title=$name
+# The full name: a preset's name=, or a palette's/style's first comment line.
+data_list "$kind" | while IFS= read -r name; do
+	file=$(data_find "$kind" "$name")
+	if [ "$kind" = presets ]; then
+		title=$(ini_get "$file" Preset name 2>/dev/null) || title=$name
+	else
+		title=$(sed -n '1s/^# *//p' "$file")
+		title=${title%% — *}
+		[ -n "$title" ] || title=$name
+	fi
 	printf '%s\t%s\n' "$name" "$title"
 done

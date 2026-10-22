@@ -16,14 +16,17 @@ export KOME_ROOT
 
 usage() {
 	cat <<EOF
-usage: kome apply [-n] [-v] [--partial] [preset]
+usage: kome apply [-n] [-v] [--partial] [--palette P] [--style S] [preset]
 
 Apply a look to the whole desktop. Without a preset, uses Preset= from
-$KOME_CONF, else the active one.
+$KOME_CONF, else the active one (with the palette and style it was
+applied with).
 
-  -n, --dry-run  show what would be applied, change nothing
-  -v, --verbose  say what each unit does
-  --partial      apply what is possible even if something is missing
+  -n, --dry-run    show what would be applied, change nothing
+  -v, --verbose    say what each unit does
+  --partial        apply what is possible even if something is missing
+  --palette P      use palette P instead of the preset's (see kome list palettes)
+  --style S        use style S instead of the preset's (see kome list styles)
 
 Your desktop is saved first: 'kome restore previous' undoes this apply,
 'kome restore original' brings back your desktop from before kome.
@@ -34,11 +37,18 @@ dry=
 verbose=
 partial=
 preset=
+with_palette=
+with_style=
 while [ $# -gt 0 ]; do
 	case $1 in
 	-n | --dry-run) dry=1 ;;
 	-v | --verbose) verbose=1 ;;
 	--partial) partial=1 ;;
+	--palette | --style)
+		[ $# -ge 2 ] || die "$EX_USAGE" "$1 needs a name" "run 'kome list ${1#--}s' to see them"
+		if [ "$1" = --palette ]; then with_palette=$2; else with_style=$2; fi
+		shift
+		;;
 	-h | --help)
 		usage
 		exit "$EX_OK"
@@ -54,8 +64,17 @@ done
 
 say() { [ -z "$verbose" ] || printf 'kome: %s\n' "$*" >&2; }
 
+given=$preset
 preset=$(preset_pick "$preset") ||
 	die "$EX_USAGE" "no preset given" "run 'kome list' to see the presets, then 'kome apply <preset>'"
+# Re-applying the active look keeps the palette and style it was mixed with.
+if [ -z "$given" ] && [ "$preset" = "$(cat "$KOME_STATE_DIR/active" 2>/dev/null || :)" ]; then
+	[ -n "$with_palette" ] || with_palette=$(cat "$KOME_STATE_DIR/active.palette" 2>/dev/null || :)
+	[ -n "$with_style" ] || with_style=$(cat "$KOME_STATE_DIR/active.style" 2>/dev/null || :)
+fi
+KOME_WITH_PALETTE=$with_palette
+KOME_WITH_STYLE=$with_style
+export KOME_WITH_PALETTE KOME_WITH_STYLE
 preset_export "$preset" || exit
 
 # 1. Check every enabled unit before touching anything.
@@ -89,9 +108,10 @@ if [ -n "$missing" ] && [ -z "$partial" ]; then
 fi
 
 if [ -n "$dry" ]; then
-	printf 'preset: %s (%s)\n' "$preset" "${KOME_NAME:-$preset}"
+	printf 'preset: %s (%s)%s%s\n' "$preset" "${KOME_NAME:-$preset}" \
+		"${with_palette:+, palette $with_palette}" "${with_style:+, style $with_style}"
 	for u in $apply_units; do printf 'apply: %s\n' "$(unit_name "$u")"; done
-	env | grep '^KOME_' | grep -v '^KOME_ROOT=' | sort
+	env | grep '^KOME_' | grep -v '^KOME_\(ROOT\|WITH_[A-Z]*\)=' | sort
 	exit "$EX_OK"
 fi
 
@@ -137,6 +157,14 @@ rm -rf "${applied:?}"
 mv "$applied.tmp" "$applied"
 
 printf '%s\n' "$preset" >"$KOME_STATE_DIR/active"
+for what in palette style; do
+	eval "value=\$with_$what"
+	if [ -n "$value" ]; then
+		printf '%s\n' "$value" >"$KOME_STATE_DIR/active.$what"
+	else
+		rm -f "$KOME_STATE_DIR/active.$what"
+	fi
+done
 rm -f "$KOME_STATE_DIR/failed"
 effects_report
 if [ -n "$notices" ]; then

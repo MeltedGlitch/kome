@@ -50,7 +50,10 @@ if [ -s "$KOME_STATE_DIR/active" ]; then
 	if file=$(data_find presets "$preset"); then
 		title=$(ini_get "$file" Preset name 2>/dev/null) || title=$preset
 	fi
-	printf 'preset: %s (%s)\n' "$preset" "$title"
+	mix=
+	[ ! -s "$KOME_STATE_DIR/active.palette" ] || mix="$mix, palette $(cat "$KOME_STATE_DIR/active.palette")"
+	[ ! -s "$KOME_STATE_DIR/active.style" ] || mix="$mix, style $(cat "$KOME_STATE_DIR/active.style")"
+	printf 'preset: %s (%s)%s\n' "$preset" "$title" "$mix"
 else
 	printf 'preset: none (your original desktop)\n'
 fi

@@ -12,7 +12,15 @@ _kome() {
 	fi
 	presets=(${(f)"$(kome list 2>/dev/null | cut -f1)"})
 	case $words[2] in
-	apply) compadd -- -n --dry-run -v --verbose --partial --help $presets ;;
+	apply)
+		case $words[CURRENT-1] in
+		--palette) compadd -- ${(f)"$(kome list palettes 2>/dev/null | cut -f1)"} ;;
+		--style) compadd -- ${(f)"$(kome list styles 2>/dev/null | cut -f1)"} ;;
+		*) compadd -- -n --dry-run -v --verbose --partial --palette --style --help $presets ;;
+		esac
+		;;
+	list) compadd -- presets palettes styles --help ;;
+	validate) compadd -- --help $presets ;;
 	deps) compadd -- --help $presets ;;
 	doctor) compadd -- --info --fix --help $presets ;;
 	restore) compadd -- original previous --help ;;
