@@ -37,6 +37,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
   in a newer kome version.
 - `kome restore` now brings back the palette and style a restored look was
   mixed with.
+- With Klassy's Plasma style the panel kept Klassy's fixed colours: kome
+  now uses a derived style with Klassy's graphics and the look's colours.
+- `make install` left removed or renamed files behind (an old unit ran
+  twice); kome doctor and kome list output is aligned and shorter.
 
 ## [0.1.0] - 2026-10-22
 

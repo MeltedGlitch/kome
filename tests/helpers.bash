@@ -225,5 +225,10 @@ fake_ghostty() {
 fake_klassy() {
 	printf '#!/bin/sh\n' >"$stubs/klassy-settings"
 	chmod +x "$stubs/klassy-settings"
-	mkdir -p "$XDG_DATA_DIRS/plasma/desktoptheme/klassy-dark" "$XDG_DATA_DIRS/plasma/desktoptheme/klassy-light"
+	for _m in dark light; do
+		_d="$XDG_DATA_DIRS/plasma/desktoptheme/klassy-$_m"
+		mkdir -p "$_d"
+		printf '[Colors:Window]\nBackgroundNormal=49,54,59\n' >"$_d/colors"
+		printf '[Settings]\nFallbackTheme=breeze-%s\n\n[ContrastEffect]\nenabled=true\n' "$_m" >"$_d/plasmarc"
+	done
 }

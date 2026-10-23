@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 294 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 297 bats tests passing (also under `gawk --posix`).
 
 Done (v0.1): dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps,themefile}.sh`
 and `{ini,color,template,resolve}.awk`; units `colors`, `icons`, `cursor`,
@@ -320,7 +320,7 @@ Power users can run any unit directly by path; there is no special subcommand.
 | `wallpaper` | core | `plasma-apply-wallpaperimage` + lock screen (`kscreenlockerrc`), only from the preset's `wallpaper=` (absolute or `~/`). `current` reads each desktop's plugin and image from `plasma-org.kde.plasma.desktop-appletsrc`; `restore` puts every screen back (slideshows, per-screen images) through Plasma scripting over D-Bus (`evaluateScript`, `desktopById`). Never on by default: the user's wallpapers are kept | **opt-in** | yes |
 | `kitty` | integration | generated theme file included from `kitty.conf`; reload all instances (SIGUSR1 / remote control) | on | yes |
 | `decoration` | core | KWin decoration from the style: `decoration=klassy|breeze`, `window_radius`, `window_buttons=circles|icons`, `buttons_left/right` (KWin letters). Writes only its keys in `kwinrc` `[org.kde.kdecoration2]` and `klassy/klassyrc` (`Windeco`, `ButtonColors`), then `org.kde.KWin.reconfigure` over D-Bus. Klassy (≥ Plasma 6.6) is an **optional ingredient** (detected by `klassy-settings`): without it windows are left untouched, with a notice. Colours come from the colour scheme | on | yes |
-| `plasmastyle` | core | `plasma-apply-desktoptheme` from the style's `plasma_style`: `klassy` → `klassy-dark`/`klassy-light` by mode, `breeze` → `default`, else an installed id. Klassy's styles are an **optional ingredient** | on | yes |
+| `plasmastyle` | core | `plasma-apply-desktoptheme` from the style's `plasma_style`: `klassy` → kome's derived `kome-klassy-dark`/`-light` by mode (in `$XDG_DATA_HOME/plasma/desktoptheme/`: Klassy's graphics via `FallbackTheme`, Klassy's plasmarc settings, **no `colors` file**, so the panel takes the colour scheme), `breeze` → `default`, else an installed id. Klassy's styles are an **optional ingredient** | on | yes |
 | `widgets` | core | kdeglobals `[KDE] widgetStyle` from `widget_style` (`klassy` → `Klassy`, optional; `breeze` → `Breeze`) | on | new apps only (`restart`) |
 | `effects` | core | KWin blur (`kwinrc [Plugins] blurEnabled` + `loadEffect`/`unloadEffect` over D-Bus) and `AnimationDurationFactor` in kdeglobals (`fast` 0.5, `slow` 2, `instant` 0, `normal` = key deleted) | on | yes |
 | `panel` | core | Layout file (`bar.js`, `dock.js`, `topbar.js`, user-overridable) + `panel.js` sent through D-Bus `evaluateScript`; every screen, tray on the first; leaves matching panels alone, else replaces all panels and restarts plasmashell so the config is written. `current`/`restore` copy the panel and systray containment sections of `plasma-org.kde.plasma.desktop-appletsrc` and their `[PlasmaViews]` in `plasmashellrc`, with plasmashell stopped (exact restore, widgets included) | **opt-in** | yes |
@@ -795,6 +795,7 @@ templates only.
 | 2026-10-22 | `kome preview [-o DIR] [-d S] [preset…]`: applies each preset, `spectacle --background --nonotify --fullscreen --output`, and at the end puts back the `previous` snapshot taken by its first apply and restores it — the user's exact desktop, hand changes included. Refuses after a failed apply. |
 | 2026-10-23 | Found live (`kome doctor` on the owner's machine): `decoration` listed twice, because `make install` never removed the old `60-decoration` after the move to `05-decoration`, so both ran. `make install` now replaces `lib/kome`, `libexec/kome` and `share/kome` whole (tests/install.bats). Doctor rows: the name column fits the longest unit name, and details (opt-in hint, install command) go on their own line. `kome list` aligns its columns on a terminal and keeps one tab otherwise. |
 | 2026-10-23 | Found live: `kome preview` ended with a plasmashell crash report (SIGSEGV in Mesa's iris driver in Plasma's render thread while plasmashell was quitting for a panel refresh). Not kome's code, but preview restarts the shell once per preset (icon changes). Open: how to make preview gentler (§16). |
+| 2026-10-23 | Found live: the taskbar ignored kome's colours with `plasma_style=klassy`. Klassy's Plasma styles ship a fixed `colors` file (Breeze Dark's), which Plasma prefers over the colour scheme. `plasmastyle` now applies a derived style `kome-klassy-<mode>` with Klassy's graphics (`FallbackTheme`, followed recursively) and settings but no `colors` — verified in libplasma's `theme_p.cpp`: colours are read only from the theme itself, else the colour scheme is used. Same pattern as the derived icon theme; Klassy untouched; in the manifest. |
 ---
 
 ## 18. Reference machines (owner's)

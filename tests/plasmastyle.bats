@@ -13,14 +13,54 @@ setup() {
 	. "$KOME_ROOT/lib/kome/preset.sh"
 }
 
-@test "plasmastyle: Klassy's style in the look's mode" {
+@test "plasmastyle: Klassy's style in the look's mode, through kome's derived style" {
 	fake_klassy
 	preset_export mocha
 	"$U/15-plasmastyle/unit" apply
-	[ "$(kcfg plasmarc Theme name)" = "klassy-dark" ]
+	[ "$(kcfg plasmarc Theme name)" = "kome-klassy-dark" ]
 	preset_export latte
 	"$U/15-plasmastyle/unit" apply
-	[ "$(kcfg plasmarc Theme name)" = "klassy-light" ]
+	[ "$(kcfg plasmarc Theme name)" = "kome-klassy-light" ]
+}
+
+@test "plasmastyle: the derived style has no colours of its own, so the panel takes kome's" {
+	fake_klassy
+	preset_export mocha
+	"$U/15-plasmastyle/unit" apply
+	d="$XDG_DATA_HOME/plasma/desktoptheme/kome-klassy-dark"
+	[ ! -e "$d/colors" ]
+	grep -q '"Id": "kome-klassy-dark"' "$d/metadata.json"
+	# Klassy's graphics and settings, never Klassy's own fallback.
+	[ "$(sed -n '/^\[Settings\]/,/^\[/p' "$d/plasmarc" | grep -c FallbackTheme)" -eq 1 ]
+	grep -qx 'FallbackTheme=klassy-dark' "$d/plasmarc"
+	grep -qx '\[ContrastEffect\]' "$d/plasmarc"
+	! grep -q breeze-dark "$d/plasmarc"
+	# Klassy itself is untouched.
+	[ -f "$XDG_DATA_DIRS/plasma/desktoptheme/klassy-dark/colors" ]
+	grep -qx "path $d" "$XDG_STATE_HOME/kome/manifest"
+}
+
+@test "plasmastyle: re-applying leaves the derived style alone" {
+	fake_klassy
+	preset_export mocha
+	"$U/15-plasmastyle/unit" apply
+	d="$XDG_DATA_HOME/plasma/desktoptheme/kome-klassy-dark"
+	touch -d '2000-01-01' "$d/plasmarc"
+	"$U/15-plasmastyle/unit" apply
+	[ "$(find "$d/plasmarc" -newermt '2001-01-01')" = "" ]
+	[ "$(grep -c 'plasmastyle' "$LOG")" -eq 1 ]
+}
+
+@test "plasmastyle: purge removes the derived style; restore writes it again" {
+	fake_klassy
+	"$KOME_ROOT/bin/kome" apply mocha 2>/dev/null
+	d="$XDG_DATA_HOME/plasma/desktoptheme/kome-klassy-dark"
+	[ -d "$d" ]
+	saved=$("$U/15-plasmastyle/unit" current)
+	"$KOME_ROOT/bin/kome" purge --yes >/dev/null 2>&1
+	[ ! -e "$d" ]
+	printf '%s\n' "$saved" | "$U/15-plasmastyle/unit" restore
+	[ -f "$d/plasmarc" ]
 }
 
 @test "plasmastyle: without Klassy, an optional ingredient; Breeze needs nothing" {
