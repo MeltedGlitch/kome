@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 289 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 294 bats tests passing (also under `gawk --posix`).
 
 Done (v0.1): dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps,themefile}.sh`
 and `{ini,color,template,resolve}.awk`; units `colors`, `icons`, `cursor`,
@@ -677,6 +677,10 @@ templates only.
 - Should `make uninstall` suggest running `kome purge` first?
 - Klassy vs Darkly as the widget style for non-default presets (Klassy
   chosen for now; Darkly not supported).
+- `kome preview` restarts plasmashell once per preset (icon refresh); on the
+  owner's machine one restart crashed in Mesa (iris) while quitting. Skip the
+  refresh between previews (panel icons may be stale in screenshots), or
+  keep it?
 - Panel layouts: `bar`, `dock`, `topbar` shipped (every screen, tray on the
   first). Owner to confirm the choice and the `soft` default (`dock`).
 
@@ -789,6 +793,8 @@ templates only.
 | 2026-10-22 | No unit for fastfetch and Starship (they use the terminal's 16 colours), bat/delta (`--theme=ansi` does the same; documented in the README FAQ) or Firefox (follows the system/GTK theme, which Plasma syncs). VS Code deferred (§15). |
 | 2026-10-22 | `panel` unit (opt-in). Apply through Plasma scripting (API checked in plasma-workspace `shell/scripting`): remove all panels, create the layout's panels per screen; a signature check (screen, location, length mode, alignment, floating, hiding, widget types) skips matching panels. Plasma writes its config on a timer, so after a change kome restarts plasmashell (stop + start) to have the files current. Restore works on the files (exact, widgets and tray included), refusing if a saved id now belongs to a non-panel containment. Popup sizes are left out of `current` (Plasma rewrites them). Shell control moved to `lib/kome/plasmashell.sh`. |
 | 2026-10-22 | `kome preview [-o DIR] [-d S] [preset…]`: applies each preset, `spectacle --background --nonotify --fullscreen --output`, and at the end puts back the `previous` snapshot taken by its first apply and restores it — the user's exact desktop, hand changes included. Refuses after a failed apply. |
+| 2026-10-23 | Found live (`kome doctor` on the owner's machine): `decoration` listed twice, because `make install` never removed the old `60-decoration` after the move to `05-decoration`, so both ran. `make install` now replaces `lib/kome`, `libexec/kome` and `share/kome` whole (tests/install.bats). Doctor rows: the name column fits the longest unit name, and details (opt-in hint, install command) go on their own line. `kome list` aligns its columns on a terminal and keeps one tab otherwise. |
+| 2026-10-23 | Found live: `kome preview` ended with a plasmashell crash report (SIGSEGV in Mesa's iris driver in Plasma's render thread while plasmashell was quitting for a panel refresh). Not kome's code, but preview restarts the shell once per preset (icon changes). Open: how to make preview gentler (§16). |
 ---
 
 ## 18. Reference machines (owner's)

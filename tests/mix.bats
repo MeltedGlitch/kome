@@ -6,6 +6,7 @@
 load helpers
 
 setup() {
+	host_path=$PATH
 	fake_plasma
 	KOME="$KOME_ROOT/bin/kome"
 	state="$XDG_STATE_HOME/kome"
@@ -73,4 +74,14 @@ setup() {
 	[ "$(cat "$XDG_STATE_HOME/kome/active.palette")" = nord ]
 	run "$KOME" status
 	[[ "$output" == *"preset: mocha (Catppuccin Mocha), palette nord"* ]]
+}
+
+@test "on a terminal, kome list aligns its columns" {
+	py=$(PATH=$host_path command -v python3) || skip "python3 is not installed"
+	"$py" -c 'import pty, sys; pty.spawn(sys.argv[1:])' "$KOME" list | tr -d '\r' >"$BATS_TEST_TMPDIR/out"
+	grep -q '^gruvbox-material  Gruvbox Material$' "$BATS_TEST_TMPDIR/out"
+	grep -q '^nord              Nord$' "$BATS_TEST_TMPDIR/out"
+	! grep -q "$(printf '\t')" "$BATS_TEST_TMPDIR/out"
+	run "$KOME" list
+	[[ "$output" == *"$(printf 'nord\tNord')"* ]]
 }

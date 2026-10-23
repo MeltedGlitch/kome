@@ -36,14 +36,26 @@ esac
 [ $# -le 1 ] || die "$EX_USAGE" "too many arguments" "run 'kome list --help'"
 
 # The full name: a preset's name=, or a palette's/style's first comment line.
-data_list "$kind" | while IFS= read -r name; do
-	file=$(data_find "$kind" "$name")
-	if [ "$kind" = presets ]; then
-		title=$(ini_get "$file" Preset name 2>/dev/null) || title=$name
-	else
-		title=$(sed -n '1s/^# *//p' "$file")
-		title=${title%% — *}
-		[ -n "$title" ] || title=$name
-	fi
-	printf '%s\t%s\n' "$name" "$title"
-done
+# On a terminal the two columns are aligned; elsewhere (scripts, the shell
+# completions) they are separated by one tab.
+list() {
+	data_list "$kind" | while IFS= read -r name; do
+		file=$(data_find "$kind" "$name")
+		if [ "$kind" = presets ]; then
+			title=$(ini_get "$file" Preset name 2>/dev/null) || title=$name
+		else
+			title=$(sed -n '1s/^# *//p' "$file")
+			title=${title%% — *}
+			[ -n "$title" ] || title=$name
+		fi
+		printf '%s\t%s\n' "$name" "$title"
+	done
+}
+
+if [ -t 1 ]; then
+	list | awk -F '\t' '
+		{ name[NR] = $1; title[NR] = $2; if (length($1) > w) w = length($1) }
+		END { f = "%-" w "s  %s\n"; for (i = 1; i <= NR; i++) printf f, name[i], title[i] }'
+else
+	list
+fi

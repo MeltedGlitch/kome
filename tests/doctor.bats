@@ -14,7 +14,7 @@ setup() {
 	run "$KOME" doctor breeze-dark
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"preset: breeze-dark"* ]]
-	[[ "$output" == *"ok        colors     Plasma colour scheme"* ]]
+	[[ "$output" == *"ok        colors      Plasma colour scheme"* ]]
 	[[ "$output" == *"ok        icons"* ]]
 }
 
@@ -22,14 +22,14 @@ setup() {
 	rm -rf "$XDG_DATA_DIRS/icons/Papirus-Dark"
 	run "$KOME" doctor mocha
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"missing   icons      needs Papirus-Dark"* ]]
+	[[ "$output" == *"missing   icons       needs Papirus-Dark"* ]]
 	[[ "$output" == *"hint: run 'kome deps mocha'"* ]]
 }
 
 @test "an optional ingredient is reported but is not a problem" {
 	run "$KOME" doctor mocha
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"optional  cursor     install catppuccin-mocha-lavender-cursors to also theme the mouse cursor"* ]]
+	[[ "$output" == *"optional  cursor      install catppuccin-mocha-lavender-cursors to also theme the mouse cursor"* ]]
 }
 
 @test "off and absent units are explained" {
@@ -37,8 +37,8 @@ setup() {
 	fake_unit 90-kitty 1 "" default=on "description=Kitty terminal"
 	run "$KOME" doctor mocha
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"off       rendering  Crisp font rendering (opt-in: add rendering=on under [Units] in kome.conf)"* ]]
-	[[ "$output" == *"absent    kitty      Kitty terminal (its app is not installed)"* ]]
+	[[ "$output" == *"off       rendering Crisp font rendering"*"opt-in: add rendering=on under [Units] in kome.conf"* ]]
+	[[ "$output" == *"absent    kitty     Kitty terminal"*"its app is not installed"* ]]
 }
 
 @test "a unit that cannot run shows its reason" {
@@ -96,7 +96,7 @@ setup() {
 	fake_unit 10-colors 0 "" default=on "description=Colours" min_plasma=6.8
 	PLASMA_VERSION=6.7.5 run "$KOME" doctor mocha
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"error     colors     needs Plasma 6.8 or newer (this is 6.7.5)"* ]]
+	[[ "$output" == *"error     colors needs Plasma 6.8 or newer (this is 6.7.5)"* ]]
 	PLASMA_VERSION=6.10.0 run "$KOME" doctor mocha
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"ok        colors"* ]]
@@ -120,4 +120,13 @@ setup() {
 	[[ "$output" == *"Apply scaling themselves"* ]]
 	XDG_SESSION_TYPE=x11 run "$KOME" doctor mocha
 	[[ "$output" != *"advice:"* ]]
+}
+
+@test "doctor keeps rows short: details go on their own line, names aligned" {
+	run "$KOME" doctor mocha
+	# Every row's text starts in the same column, after the longest name.
+	[ -z "$(printf '%s\n' "$output" | awk '/^(ok|off|absent|optional|fix|missing|error) / && (substr($0, 22, 1) != " " || substr($0, 23, 1) == " ")')" ]
+	printf '%s\n' "$output" | grep -q '^[a-z]* *plasmastyle [A-Za-z]'
+	printf '%s\n' "$output" | grep -qx '                      opt-in: add panel=on under \[Units\] in kome.conf'
+	[ -z "$(printf '%s\n' "$output" | awk 'length > 100')" ]
 }

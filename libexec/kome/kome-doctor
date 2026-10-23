@@ -76,16 +76,27 @@ errfile=$(mktemp)
 trap 'rm -f "$errfile"' EXIT
 problems=
 unit_fixes=
+# One row per unit: status, name, what; details go on a line of their own
+# under "what", so rows stay short enough for a terminal.
+width=0
+for u in $(units_all); do
+	n=$(unit_name "$u")
+	[ "${#n}" -le "$width" ] || width=${#n}
+done
+row() { # <status> <name> <text> [detail]
+	printf '%-9s %-*s %s\n' "$1" "$width" "$2" "$3"
+	[ -z "${4-}" ] || printf '%-9s %-*s %s\n' '' "$width" '' "$4"
+}
 for u in $(units_all); do
 	name=$(unit_name "$u")
 	what=$(unit_meta "$u" description) || what=$name
 	if ! unit_enabled "$u"; then
-		printf '%-9s %-10s %s (opt-in: add %s=on under [Units] in kome.conf)\n' off "$name" "$what" "$name"
+		row off "$name" "$what" "opt-in: add $name=on under [Units] in kome.conf"
 		continue
 	fi
 	min=$(unit_meta "$u" min_plasma) || min=
 	if [ -n "$plasma" ] && [ -n "$min" ] && version_below "$plasma" "$min"; then
-		printf '%-9s %-10s needs Plasma %s or newer (this is %s)\n' error "$name" "$min" "$plasma"
+		row error "$name" "needs Plasma $min or newer (this is $plasma)"
 		problems=1
 		continue
 	fi
@@ -96,10 +107,10 @@ for u in $(units_all); do
 	fixes_here=$(printf '%s\n' "$check_out" | sed -n 's/^fix://p')
 	case $check_status in
 	"$CHECK_READY")
-		printf '%-9s %-10s %s\n' ok "$name" "$what"
+		row ok "$name" "$what"
 		if [ -n "$fixes_here" ]; then
 			printf '%s\n' "$fixes_here" | while IFS= read -r f; do
-				printf '%-9s %-10s %s\n' fix "$name" "$f"
+				row fix "$name" "$f"
 			done
 			unit_fixes="$unit_fixes $u"
 		fi
@@ -108,18 +119,18 @@ for u in $(units_all); do
 		app_cmd=
 		[ -z "$check_out" ] || app_cmd=$(deps_commands "$check_out" 2>/dev/null | head -n 1)
 		if [ -n "$app_cmd" ]; then
-			printf '%-9s %-10s %s (not installed: %s)\n' absent "$name" "$what" "$app_cmd"
+			row absent "$name" "$what" "not installed: $app_cmd"
 		else
-			printf '%-9s %-10s %s (its app is not installed)\n' absent "$name" "$what"
+			row absent "$name" "$what" "its app is not installed"
 		fi
 		;;
 	"$CHECK_MISSING")
-		printf '%-9s %-10s needs %s\n' missing "$name" "$needs"
+		row missing "$name" "needs $needs"
 		problems=1
 		;;
-	"$CHECK_OPTIONAL") printf '%-9s %-10s install %s to also theme %s\n' optional "$name" "$needs" "$(unit_label "$u")" ;;
+	"$CHECK_OPTIONAL") row optional "$name" "install $needs to also theme $(unit_label "$u")" ;;
 	*)
-		printf '%-9s %-10s %s\n' error "$name" "$(printf '%s\n' "$reason" | grep -v '^hint:' | head -n 1 | sed 's/^kome: [a-z]*: error: //')"
+		row error "$name" "$(printf '%s\n' "$reason" | grep -v '^hint:' | head -n 1 | sed 's/^kome: [a-z]*: error: //')"
 		problems=1
 		;;
 	esac

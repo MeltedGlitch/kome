@@ -18,7 +18,11 @@ SCRIPTS = bin/kome lib/kome/*.sh libexec/kome/kome-* libexec/kome/units/*/unit
 all:
 	@echo "Nothing to build. Run 'make install' (PREFIX=$(PREFIX))."
 
+# lib/kome, libexec/kome and share/kome hold only kome's own files: replace
+# them whole, so files removed or renamed since the last install (e.g. a unit
+# that moved to another NN-) do not linger and run twice.
 install:
+	rm -rf $(DEST)/lib/kome $(DEST)/libexec/kome $(DEST)/share/kome
 	install -Dm755 bin/kome $(DEST)/bin/kome
 	find lib/kome share/kome -type f | while IFS= read -r f; do \
 		install -Dm644 "$$f" "$(DEST)/$$f" || exit; done
