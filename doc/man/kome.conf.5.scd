@@ -117,7 +117,9 @@ _styles/<name>.ini_ has a *[Style]* section:
 	Window corner radius in pixels (Klassy).
 
 *window_buttons*
-	*circles* (small circles in the accent colour) or *icons* (Klassy).
+	*circles* (small circles in the accent colour, their symbols always shown
+	in a softer tone of the same colour; the colours come from
+	_templates/decoration/button-colors.in_) or *icons* (Klassy).
 
 *buttons_left*, *buttons_right*
 	Title bar buttons in KWin's letters: *M* menu, *S* all desktops, *H*

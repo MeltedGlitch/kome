@@ -39,12 +39,13 @@ klassy() { kcfg klassy/klassyrc "$1" "$2"; }
 	[ "$(klassy Windeco ButtonShape)" = "ShapeSmallCircle" ]
 	[ "$(klassy ButtonColors ButtonBackgroundColorsActive)" = "Accent" ]
 	[ "$(klassy ButtonColors NegativeCloseBackgroundHoverPressActive)" = "true" ]
-	# Circles always visible, icons only on hover — Klassy's default would
-	# show the circles on hover only (found live).
+	# Circles and their symbols always visible — Klassy's default would
+	# show the circles on hover only (found live), and symbols only on hover
+	# looked broken to the owner.
 	[ "$(klassy ButtonBehaviour ShowBackgroundNormallyActive)" = "true" ]
 	[ "$(klassy ButtonBehaviour ShowCloseBackgroundNormallyInactive)" = "true" ]
-	[ "$(klassy ButtonBehaviour ShowIconNormallyActive)" = "false" ]
-	[ "$(klassy ButtonBehaviour ShowCloseIconNormallyActive)" = "false" ]
+	[ "$(klassy ButtonBehaviour ShowIconNormallyActive)" = "true" ]
+	[ "$(klassy ButtonBehaviour ShowCloseIconNormallyActive)" = "true" ]
 	[ "$(klassy ButtonColors ButtonBackgroundOpacityActive)" = "100" ]
 	grep -q 'org.kde.KWin.reconfigure' "$DBUSLOG"
 }
@@ -105,4 +106,54 @@ klassy() { kcfg klassy/klassyrc "$1" "$2"; }
 	[ "$(klassy ButtonBehaviour ShowBackgroundNormallyActive)" = "false" ]
 	[ "$(klassy ButtonBehaviour ShowIconNormallyActive)" = "true" ]
 	[ "$(klassy Windeco ButtonShape)" = "ShapeIntegratedRoundedRectangle" ]
+}
+
+@test "circle colours come from the palette: soft symbols in the circle's own hue" {
+	fake_klassy
+	preset_export mocha
+	"$UNIT" apply
+	# Mocha: lavender circle (180,190,254); symbol = lavender halfway to base.
+	[ "$(klassy ButtonColors ButtonOverrideColorsActiveMinimize)" = '{"BackgroundNormal":[180,190,254],"BackgroundHover":[165,174,233],"BackgroundPress":[150,158,212],"IconNormal":[105,110,150],"IconHover":[90,94,129],"IconPress":[90,94,129]}' ]
+	klassy ButtonColors ButtonOverrideColorsActiveClose | grep -q '"BackgroundHover":\['
+	klassy ButtonColors ButtonOverrideColorsInactiveMaximize | grep -q '"BackgroundNormal":\[105,110,150\]'
+	# Klassy must not replace the soft symbol with black or white.
+	[ "$(klassy ButtonColors OnPoorIconContrastActive)" = "Nothing" ]
+	[ "$(klassy ButtonColors OnPoorIconContrastInactive)" = "Nothing" ]
+}
+
+@test "light looks get symbols lighter than the circle" {
+	fake_klassy
+	preset_export latte
+	"$UNIT" apply
+	# Latte: blue circle (30,102,245); symbol pulled towards the light base.
+	klassy ButtonColors ButtonOverrideColorsActiveMaximize | grep -q '"IconNormal":\[135,172,245\]'
+}
+
+@test "icons and Breeze drop the circle colours again" {
+	fake_klassy
+	preset_export mocha
+	"$UNIT" apply
+	KOME_WINDOW_BUTTONS=icons "$UNIT" apply
+	[ "$(klassy ButtonColors ButtonOverrideColorsActiveClose)" = "" ]
+	[ "$(klassy ButtonColors OnPoorIconContrastActive)" = "" ]
+}
+
+@test "a user's copy of button-colors.in wins" {
+	fake_klassy
+	mkdir -p "$KOME_USER_DIR/templates/decoration"
+	sed 's/IconNormal":\[{{mix(accent,base,0.5):rgb}}\]/IconNormal":[{{text:rgb}}]/' \
+		"$KOME_ROOT/libexec/kome/units/05-decoration/button-colors.in" >"$KOME_USER_DIR/templates/decoration/button-colors.in"
+	preset_export mocha
+	"$UNIT" apply
+	klassy ButtonColors ButtonOverrideColorsActiveMinimize | grep -q '"IconNormal":\[205,214,244\]'
+}
+
+@test "the decoration keeps current | restore a no-op with the colours" {
+	fake_klassy
+	preset_export mocha
+	"$UNIT" apply
+	before=$("$UNIT" current)
+	printf '%s\n' "$before" | "$UNIT" restore
+	[ "$("$UNIT" current)" = "$before" ]
+	printf '%s\n' "$before" | grep -q '^minimize={"BackgroundNormal"'
 }

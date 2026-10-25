@@ -37,6 +37,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   in a newer kome version.
 - `kome restore` now brings back the palette and style a restored look was
   mixed with.
+- Circle window buttons always show their symbols, in a softer tone of the
+  circle's colour, and barely change on hover (colours from the palette,
+  in `button-colors.in`).
 - With Klassy's Plasma style the panel kept Klassy's fixed colours: kome
   now uses a derived style with Klassy's graphics and the look's colours.
 - `make install` left removed or renamed files behind (an old unit ran

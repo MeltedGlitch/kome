@@ -8,9 +8,11 @@
 # window_radius, window_buttons=circles|icons, buttons_left/right in KWin's
 # letters: M menu, S all desktops, H help, I minimise, A maximise, X close);
 # only this unit knows how Klassy spells them. Klassy is an optional
-# ingredient: without it the windows keep their frame, with a notice. Its
-# colours come from the colour scheme (the colors unit), so nothing here is
-# about colour. Empty values mean KDE's default (the key is deleted).
+# ingredient: without it the windows keep their frame, with a notice. The
+# frame's colours come from the colour scheme (the colors unit); only the
+# circle buttons get their own, from the palette (button-colors.in, through
+# Klassy's per-button colour overrides). Empty values mean KDE's default
+# (the key is deleted).
 #
 # It runs first (05): applying the colour scheme makes KWin reload every
 # decoration, and that reload must already find Klassy's new settings —
@@ -24,6 +26,8 @@ KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$here/../../../.." && pwd)}
 KOME_PROG="kome: decoration"
 # shellcheck source=lib/kome/common.sh
 . "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/preset.sh
+. "$KOME_ROOT/lib/kome/preset.sh"
 # shellcheck source=lib/kome/keys.sh
 . "$KOME_ROOT/lib/kome/keys.sh"
 
@@ -47,7 +51,15 @@ show_close_bg_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseBackgroundNormal
 show_icon:klassy/klassyrc:ButtonBehaviour:ShowIconNormallyActive
 show_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowIconNormallyInactive
 show_close_icon:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyActive
-show_close_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyInactive"
+show_close_icon_inactive:klassy/klassyrc:ButtonBehaviour:ShowCloseIconNormallyInactive
+poor_contrast:klassy/klassyrc:ButtonColors:OnPoorIconContrastActive
+poor_contrast_inactive:klassy/klassyrc:ButtonColors:OnPoorIconContrastInactive
+minimize:klassy/klassyrc:ButtonColors:ButtonOverrideColorsActiveMinimize
+maximize:klassy/klassyrc:ButtonColors:ButtonOverrideColorsActiveMaximize
+close:klassy/klassyrc:ButtonColors:ButtonOverrideColorsActiveClose
+minimize_inactive:klassy/klassyrc:ButtonColors:ButtonOverrideColorsInactiveMinimize
+maximize_inactive:klassy/klassyrc:ButtonColors:ButtonOverrideColorsInactiveMaximize
+close_inactive:klassy/klassyrc:ButtonColors:ButtonOverrideColorsInactiveClose"
 
 # buttons_as <shape> <colours> <background always shown> <icon always shown>
 # Klassy shows a button's background only on hover by default, so every
@@ -66,6 +78,27 @@ buttons_as() {
 	done
 	key_set opacity 100
 	key_set opacity_inactive 50
+}
+
+# button_colors on|off — the circles' own colours from button-colors.in
+# (Klassy's per-button overrides), or none (Klassy's colours). With them,
+# Klassy must not swap a soft symbol for black or white on "poor contrast".
+OVERRIDES="minimize maximize close minimize_inactive maximize_inactive close_inactive"
+button_colors() {
+	if [ "$1" = off ]; then
+		for _b in $OVERRIDES poor_contrast poor_contrast_inactive; do key_set "$_b" ''; done
+		return 0
+	fi
+	_template=$(template_find decoration button-colors.in)
+	_colors=$(template_fill "$_template") ||
+		die "$EX_DATAERR" "could not fill $_template" "fix the template, or delete your copy of it"
+	for _b in $OVERRIDES; do
+		_line=$(printf '%s\n' "$_colors" | grep "^$_b=" | tail -n 1) ||
+			die "$EX_DATAERR" "$_template has no '$_b=' line" "fix the template, or delete your copy of it"
+		key_set "$_b" "${_line#*=}"
+	done
+	key_set poor_contrast Nothing
+	key_set poor_contrast_inactive Nothing
 }
 
 do_check() {
@@ -107,8 +140,14 @@ do_apply() {
 		key_set theme Klassy
 		key_set radius "${KOME_WINDOW_RADIUS-}"
 		case ${KOME_WINDOW_BUTTONS-} in
-		circles) buttons_as ShapeSmallCircle Accent true false ;;
-		icons) buttons_as ShapeIntegratedRoundedRectangle TitleBarTextNegativeClose false true ;;
+		circles)
+			buttons_as ShapeSmallCircle Accent true true
+			button_colors on
+			;;
+		icons)
+			buttons_as ShapeIntegratedRoundedRectangle TitleBarTextNegativeClose false true
+			button_colors off
+			;;
 		esac
 		;;
 	esac
