@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 302 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 303 bats tests passing (also under `gawk --posix`).
 
 Done (v0.1): dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps,themefile}.sh`
 and `{ini,color,template,resolve}.awk`; units `colors`, `icons`, `cursor`,
@@ -21,7 +21,7 @@ a hermetic PATH (`tests/helpers.bash`).
 
 Done (v0.2, all of §14 except the TUI/GUI and VS Code): `decoration`;
 seven presets (Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
-Gruvbox Material, Kanagawa) + `kome validate` (`contrast.awk`); KDE accent
+Gruvbox Material, Kanagawa; later Melange Dark/Light) + `kome validate` (`contrast.awk`); KDE accent
 colour + softer Disabled effect for light looks (in `colors`);
 `lib/kome/keys.sh`; units `plasmastyle`, `widgets`, `effects`, `panel`
 (opt-in, `lib/kome/plasmashell.sh`), `btop`, `vesktop`; doctor detects
@@ -531,6 +531,8 @@ back to the community, like most of the KDE ecosystem.
 | 7 | Everforest | dark | forest, relaxing | sage green |
 | 8 | Gruvbox Material | dark | warm retro | ochre orange |
 | 9 | Kanagawa | dark | Japanese ink | gold & indigo |
+| 10 | Melange Dark | dark | earthy, warm browns | ochre orange |
+| 11 | Melange Light | light | earthy, warm paper | burnt orange |
 
 ---
 
@@ -797,6 +799,7 @@ templates only.
 | 2026-10-23 | Found live: `kome preview` ended with a plasmashell crash report (SIGSEGV in Mesa's iris driver in Plasma's render thread while plasmashell was quitting for a panel refresh). Not kome's code, but preview restarts the shell once per preset (icon changes). Open: how to make preview gentler (§16). |
 | 2026-10-23 | Found live: the taskbar ignored kome's colours with `plasma_style=klassy`. Klassy's Plasma styles ship a fixed `colors` file (Breeze Dark's), which Plasma prefers over the colour scheme. `plasmastyle` now applies a derived style `kome-klassy-<mode>` with Klassy's graphics (`FallbackTheme`, followed recursively) and settings but no `colors` — verified in libplasma's `theme_p.cpp`: colours are read only from the theme itself, else the colour scheme is used. Same pattern as the derived icon theme; Klassy untouched; in the manifest. |
 | 2026-10-25 | Owner's request (from a screenshot): circle buttons must show their symbols without hovering, glow much less on hover, and their symbols must not be black/white but a tone of the circle's own colour. `window_buttons=circles` now shows icons always and writes Klassy's per-button colour overrides (`ButtonOverrideColors{Active,Inactive}{Minimize,Maximize,Close}`, JSON per state, format read from Klassy's `decorationbuttoncolors.cpp`) from a template `button-colors.in`: circle = accent, symbol = mix(accent, base, 0.5) (darker on dark looks, lighter on light ones), hover dims the circle slightly (mix with base 0.1) instead of brightening, close moves towards red; inactive windows dimmer. `OnPoorIconContrast=Nothing` so Klassy does not swap the symbol for the title bar colour. `icons` deletes the overrides. Supersedes "icons on hover" of 2026-10-22. |
+| 2026-10-25 | Owner's request: an earthy light and dark pair. Chosen: **Melange** (savq/melange-nvim, MIT), a warm earthy scheme with official dark and light palettes: presets `melange-dark` (accent ochre `#e49b5d`, Papirus `palebrown`) and `melange-light` (accent `#bc5c00`, `brown`). Melange has fewer shades than Catppuccin's roles, so mantle/crust (dark), surface1/2, overlay1 and subtext1 are kome's blends of Melange's own colours; light mantle/crust are its beige `float`/`sel`. `kome validate`: all pass except light's text-on-selection (3.98, warn — like Latte 4.34 and Rosé Pine Dawn 3.47). |
 ---
 
 ## 18. Reference machines (owner's)

@@ -11,8 +11,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `decoration` unit: window corners and title bar buttons from the style,
   through Klassy (optional: without it windows keep their frame); the
   Breeze presets go back to KDE's own decoration.
-- Seven presets: Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
-  Gruvbox Material and Kanagawa.
+- Nine presets: Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
+  Gruvbox Material, Kanagawa, and an earthy pair, Melange Light and Dark.
 - `kome validate`: WCAG contrast check of each preset's palette.
 - KDE accent colour set to the palette's accent; a softer disabled effect
   for light looks.

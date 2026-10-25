@@ -147,3 +147,17 @@ style=soft'
 	# Empty font names: KDE's own defaults.
 	printf '%s\n' "$output" | grep -qx 'KOME_FONT_UI='
 }
+
+@test "melange is an earthy light/dark pair, credited to its authors" {
+	run preset_resolve melange-dark
+	[[ "$output" == *"KOME_MODE=dark"* ]]
+	[[ "$output" == *"KOME_BASE=#292522"* ]]
+	[[ "$output" == *"KOME_ACCENT=#e49b5d"* ]]
+	[[ "$output" == *"KOME_ICON_ACCENT=palebrown"* ]]
+	run preset_resolve melange-light
+	[[ "$output" == *"KOME_MODE=light"* ]]
+	[[ "$output" == *"KOME_TEXT=#54433a"* ]]
+	[[ "$output" == *"KOME_ICON_THEME=Papirus-Light"* ]]
+	grep -q 'savq/melange-nvim' "$KOME_ROOT/share/kome/palettes/melange-dark.ini"
+	grep -q 'MIT' "$KOME_ROOT/share/kome/palettes/melange-light.ini"
+}

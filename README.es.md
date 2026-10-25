@@ -123,9 +123,9 @@ kome purge && make uninstall            # quita kome y todo lo que creó
 
 <img src="assets/presets.svg" alt="Los cuatro presets de la v0.1: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha" width="100%">
 
-Once looks — un preset, un modo: Breeze, Breeze Dark, Catppuccin Latte y
+Trece looks — un preset, un modo: Breeze, Breeze Dark, Catppuccin Latte y
 Mocha, Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest, Gruvbox
-Material y Kanagawa. Cada paleta se construye desde los colores oficiales de
+Material, Kanagawa y los terrosos Melange Light y Dark. Cada paleta se construye desde los colores oficiales de
 su proyecto; `kome validate` comprueba su contraste.
 
 Paletas y estilos son archivos separados, así que puedes mezclarlos: los

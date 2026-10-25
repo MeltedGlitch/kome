@@ -121,9 +121,9 @@ kome purge && make uninstall            # remove kome and everything it created
 
 <img src="assets/presets.svg" alt="The four v0.1 presets: Breeze, Breeze Dark, Catppuccin Latte, Catppuccin Mocha" width="100%">
 
-Eleven looks — one preset, one mode: Breeze, Breeze Dark, Catppuccin Latte
-and Mocha, Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
-Gruvbox Material and Kanagawa. Every palette is authored from its official
+Thirteen looks — one preset, one mode: Breeze, Breeze Dark, Catppuccin
+Latte and Mocha, Tokyo Night, Rosé Pine, Rosé Pine Dawn, Nord, Everforest,
+Gruvbox Material, Kanagawa, and the earthy Melange Light and Dark. Every palette is authored from its official
 upstream colours; `kome validate` checks their contrast.
 
 Palettes and styles are separate files, so you can mix them: the colours of
