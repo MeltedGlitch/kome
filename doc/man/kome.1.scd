@@ -82,6 +82,17 @@ else the active one.
 	package manager (dnf, zypper, pacman, apt). kome never runs it. Optional
 	extras come after a *# optional* line.
 
+*tui*
+	Menus in the terminal to apply a look (the active one preselected),
+	undo the last change, go back to your own desktop, see what changed, and
+	check this system. Drawn with *dialog*(1) or *whiptail*(1) when one is
+	installed, else as plain numbered menus; *KOME_TUI*=*dialog*|*whiptail*|*plain*
+	picks one. It only runs the commands below and shows what they say.
+
+*gui*
+	The same menus as KDE dialogs (*kdialog*), also in the application
+	launcher and KRunner as "kome".
+
 *restore* *original* | *previous*
 	*original*: the desktop as it was before kome ever changed it.++
 *previous*: the desktop before the last *apply*.

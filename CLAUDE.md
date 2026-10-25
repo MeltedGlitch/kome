@@ -10,7 +10,7 @@
 ## Current state (update at the end of every session)
 
 **Last session: 2026-10-22.** Repo: `github.com/MeltedGlitch/kome` (private),
-branch `main`, CI green, 303 bats tests passing (also under `gawk --posix`).
+branch `main`, CI green, 316 bats tests passing (also under `gawk --posix`).
 
 Done (v0.1): dispatcher (+ `--commands`); `lib/kome/{common,preset,units,deps,themefile}.sh`
 and `{ini,color,template,resolve}.awk`; units `colors`, `icons`, `cursor`,
@@ -26,7 +26,8 @@ colour + softer Disabled effect for light looks (in `colors`);
 `lib/kome/keys.sh`; units `plasmastyle`, `widgets`, `effects`, `panel`
 (opt-in, `lib/kome/plasmashell.sh`), `btop`, `vesktop`; doctor detects
 day/night switching and blurry X11 apps; mixing (`--palette/--style`,
-`kome list palettes|styles`); `kome preview`.
+`kome list palettes|styles`); `kome preview`; front ends `kome tui` and
+`kome gui` (`lib/kome/frontend.sh`, `share/applications/kome.desktop`).
 
 **Not verified live yet** (owner to test): everything of v0.2 except
 `decoration`. In particular `panel` (never run on a real Plasma: the JS was
@@ -47,7 +48,7 @@ Open threads:
 - Defaults chosen without asking the owner (to confirm): `soft` has
   `blur=on`, `animation_speed=fast`, `panel=dock`; `breeze` `panel=bar`.
 
-**Next:** owner's live tests of v0.2, then tag v0.2.0. TUI/GUI after that.
+**Next:** owner's live tests of v0.2 (including `kome tui` and `kome gui`), then tag v0.2.0.
 
 Ask before reading or changing anything outside the repo on the owner's
 machine.
@@ -574,6 +575,7 @@ kome/
 │   ├── themefile.sh             # integrations: one theme file + one include line (or a theme chosen in the app)
 │   ├── keys.sh                  # units whose state is a set of KDE keys
 │   ├── plasmashell.sh           # stop/start/restart Plasma's shell
+│   ├── frontend.sh              # menus shared by kome tui and kome gui
 │   ├── contrast.awk             # kome validate's WCAG ratings
 │   ├── ini.awk                  # INI reader for kome's own files
 │   ├── color.awk                # colour maths
@@ -584,6 +586,7 @@ kome/
 │   └── deps/                    # ingredient → package name per package manager
 ├── doc/man/kome.1.scd  kome.conf.5.scd
 ├── completions/{bash,zsh,fish}/
+├── share/applications/kome.desktop   # launcher entry for kome gui
 ├── tests/*.bats
 ├── .github/workflows/ci.yml     # shellcheck + bats + build man pages
 ├── Makefile                     # install/uninstall; PREFIX defaults to ~/.local (no root);
@@ -641,7 +644,7 @@ templates only.
     resolver).
   - Light/dark pairs + timer (in `dotfiles`, not kome).
 
-- **Front ends: a TUI and a GUI** (owner wants both, eventually). Rule: they
+- ~~**Front ends: a TUI and a GUI**~~ (done 2026-10-25: `kome tui`, `kome gui`). Rule: they
   are **thin layers over the CLI** — they run `kome list`, `kome apply`,
   `kome status`, `kome doctor` and show their output; no logic of their own,
   so they can never behave differently from the command line (principles 1
@@ -800,6 +803,7 @@ templates only.
 | 2026-10-23 | Found live: the taskbar ignored kome's colours with `plasma_style=klassy`. Klassy's Plasma styles ship a fixed `colors` file (Breeze Dark's), which Plasma prefers over the colour scheme. `plasmastyle` now applies a derived style `kome-klassy-<mode>` with Klassy's graphics (`FallbackTheme`, followed recursively) and settings but no `colors` — verified in libplasma's `theme_p.cpp`: colours are read only from the theme itself, else the colour scheme is used. Same pattern as the derived icon theme; Klassy untouched; in the manifest. |
 | 2026-10-25 | Owner's request (from a screenshot): circle buttons must show their symbols without hovering, glow much less on hover, and their symbols must not be black/white but a tone of the circle's own colour. `window_buttons=circles` now shows icons always and writes Klassy's per-button colour overrides (`ButtonOverrideColors{Active,Inactive}{Minimize,Maximize,Close}`, JSON per state, format read from Klassy's `decorationbuttoncolors.cpp`) from a template `button-colors.in`: circle = accent, symbol = mix(accent, base, 0.5) (darker on dark looks, lighter on light ones), hover dims the circle slightly (mix with base 0.1) instead of brightening, close moves towards red; inactive windows dimmer. `OnPoorIconContrast=Nothing` so Klassy does not swap the symbol for the title bar colour. `icons` deletes the overrides. Supersedes "icons on hover" of 2026-10-22. |
 | 2026-10-25 | Owner's request: an earthy light and dark pair. Chosen: **Melange** (savq/melange-nvim, MIT), a warm earthy scheme with official dark and light palettes: presets `melange-dark` (accent ochre `#e49b5d`, Papirus `palebrown`) and `melange-light` (accent `#bc5c00`, `brown`). Melange has fewer shades than Catppuccin's roles, so mantle/crust (dark), surface1/2, overlay1 and subtext1 are kome's blends of Melange's own colours; light mantle/crust are its beige `float`/`sel`. `kome validate`: all pass except light's text-on-selection (3.98, warn — like Latte 4.34 and Rosé Pine Dawn 3.47). |
+| 2026-10-25 | Owner: "make the TUI and GUI". Both are thin front ends over the CLI with **one shared set of menus** (`lib/kome/frontend.sh`: apply a look with the active one preselected, undo the last change, back to my own desktop, what changed, check this system); each front end only defines how to draw (`ui_menu`, `ui_text`, `ui_note`). Every action runs a `kome` command and shows its output; when a look needs something, `kome deps` is shown next. TUI: `dialog` or `whiptail` if installed, else plain numbered menus (no dependency); `KOME_TUI` forces one. GUI: `kdialog` (ships with KDE; principle 5) plus `share/applications/kome.desktop` (launcher + KRunner), installed with kome's absolute path in `Exec=`. A Kirigami/QML app was not chosen: it would add Qt/QML build and runtime dependencies for the same menus. `purge` and `preview` are left to the CLI (destructive / long-running). |
 ---
 
 ## 18. Reference machines (owner's)

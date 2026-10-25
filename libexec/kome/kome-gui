@@ -1,0 +1,54 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome gui — pick and apply looks from KDE dialogs (kdialog, part of KDE).
+# The menus themselves are in lib/kome/frontend.sh, shared with kome tui;
+# share/applications/kome.desktop puts this in the launcher and KRunner.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/frontend.sh
+. "$KOME_ROOT/lib/kome/frontend.sh"
+
+usage() {
+	cat <<EOF
+usage: kome gui
+
+KDE dialogs to apply a look, undo the last change, go back to your own
+desktop, and check this system. Needs kdialog (part of KDE).
+EOF
+}
+
+case ${1-} in
+'') ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+*) die "$EX_USAGE" "unexpected argument: $1" "run 'kome gui --help'" ;;
+esac
+
+if ! command -v kdialog >/dev/null 2>&1; then
+	die "$EX_UNAVAILABLE" "kdialog not found: kome gui needs it" \
+		"install kdialog with your package manager, or run 'kome tui'"
+fi
+
+ui_menu() {
+	_title=$1 _text=$2 _default=$3
+	shift 3
+	kdialog --title "$_title" --default "$_default" --menu "$_text" "$@"
+}
+
+ui_text() {
+	kdialog --title "$1" --textbox "$2" 720 480
+}
+
+ui_note() {
+	kdialog --title kome --passivepopup "$1" 4
+}
+
+frontend_main

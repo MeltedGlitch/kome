@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "kome" "1" "2026-10-22"
+.TH "kome" "1" "2026-10-25"
 .PP
 .SH NAME
 .PP
@@ -105,6 +105,21 @@ Plasma setting asks first.\&
 Print the command that installs what the preset is missing, for your
 package manager (dnf, zypper, pacman, apt).\& kome never runs it.\& Optional
 extras come after a \fB# optional\fR line.\&
+.PP
+.RE
+\fBtui\fR
+.RS 4
+Menus in the terminal to apply a look (the active one preselected),
+undo the last change, go back to your own desktop, see what changed, and
+check this system.\& Drawn with \fBdialog\fR(1) or \fBwhiptail\fR(1) when one is
+installed, else as plain numbered menus; \fBKOME_TUI\fR=\fBdialog\fR|\fBwhiptail\fR|\fBplain\fR
+picks one.\& It only runs the commands below and shows what they say.\&
+.PP
+.RE
+\fBgui\fR
+.RS 4
+The same menus as KDE dialogs (\fBkdialog\fR), also in the application
+launcher and KRunner as "kome".\&
 .PP
 .RE
 \fBrestore\fR \fBoriginal\fR | \fBprevious\fR

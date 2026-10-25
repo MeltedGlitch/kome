@@ -32,3 +32,10 @@ setup() {
 	make -s -C "$root" uninstall DESTDIR="$dest" PREFIX=/usr/local
 	[ -z "$(find "$dest" -type f)" ]
 }
+
+@test "install adds a launcher entry that runs kome by its full path" {
+	make -s -C "$root" install DESTDIR="$dest" PREFIX=/opt/kome
+	f="$dest/opt/kome/share/applications/kome.desktop"
+	grep -qx 'Exec=/opt/kome/bin/kome gui' "$f"
+	if command -v desktop-file-validate >/dev/null; then desktop-file-validate "$f"; fi
+}

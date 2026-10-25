@@ -24,6 +24,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
   in the app.
 - Mixing looks: `kome apply --palette P --style S`, `kome list palettes`,
   `kome list styles`.
+- Front ends: `kome tui` (dialog, whiptail or plain menus) and `kome gui`
+  (kdialog, with a launcher entry), sharing one set of menus that only run
+  kome commands.
 - `kome preview`: a screenshot of the desktop with each preset, then back to
   the user's desktop.
 - `kome doctor` detects Plasma's day/night theme switching (and turns it off

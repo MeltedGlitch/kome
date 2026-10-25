@@ -20,7 +20,8 @@ all:
 
 # lib/kome, libexec/kome and share/kome hold only kome's own files: replace
 # them whole, so files removed or renamed since the last install (e.g. a unit
-# that moved to another NN-) do not linger and run twice.
+# that moved to another NN-) do not linger and run twice. The launcher entry
+# runs kome by its full path: ~/.local/bin is not on every session's PATH.
 install:
 	rm -rf $(DEST)/lib/kome $(DEST)/libexec/kome $(DEST)/share/kome
 	install -Dm755 bin/kome $(DEST)/bin/kome
@@ -35,6 +36,9 @@ install:
 	install -Dm644 completions/bash/kome $(DEST)/share/bash-completion/completions/kome
 	install -Dm644 completions/zsh/_kome $(DEST)/share/zsh/site-functions/_kome
 	install -Dm644 completions/fish/kome.fish $(DEST)/share/fish/vendor_completions.d/kome.fish
+	mkdir -p $(DEST)/share/applications
+	sed 's|^Exec=kome |Exec=$(PREFIX)/bin/kome |' share/applications/kome.desktop \
+		>$(DEST)/share/applications/kome.desktop
 
 uninstall:
 	rm -f $(DEST)/bin/kome
@@ -42,6 +46,7 @@ uninstall:
 	rm -f $(DEST)/share/bash-completion/completions/kome
 	rm -f $(DEST)/share/zsh/site-functions/_kome
 	rm -f $(DEST)/share/fish/vendor_completions.d/kome.fish
+	rm -f $(DEST)/share/applications/kome.desktop
 	rm -rf $(DEST)/lib/kome $(DEST)/libexec/kome $(DEST)/share/kome
 
 lint:

@@ -144,6 +144,8 @@ kome list palettes                  # and: kome list styles
 | `kome list` | List available presets (or `palettes`, `styles`) |
 | `kome validate` | Check the contrast of each preset's colours |
 | `kome preview` | A screenshot of your desktop with each preset, then back to yours |
+| `kome tui` | Menus in the terminal: pick a look, undo, go back, check the system |
+| `kome gui` | The same menus as KDE dialogs; also "kome" in the launcher and KRunner |
 | `kome status` | Show the active preset and anything changed by hand since |
 | `kome doctor` | Check what can be themed and why not; `--fix` repairs, `--info` shows system facts |
 | `kome deps <preset>` | Print the install command for whatever the preset is missing |
@@ -203,8 +205,8 @@ something new means adding one directory; the core does not change.
 - [x] Seven more presets; `kome validate`, `kome preview`, mixing looks
 - [ ] VS Code (needs a packaged extension; see the FAQ)
 
-**Later** — a terminal UI and a graphical app to pick looks, on top of the
-same commands.
+- [x] A terminal UI (`kome tui`) and KDE dialogs (`kome gui`) on top of the
+  same commands
 
 <a id="faq"></a>
 

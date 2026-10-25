@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=kome
+GenericName=Desktop Look
+Comment=Change the whole look of Plasma in one click
+Exec=kome gui
+Icon=preferences-desktop-theme-global
+Terminal=false
+Categories=Settings;DesktopSettings;Qt;KDE;
+Keywords=theme;rice;look;colors;palette;catppuccin;kome;

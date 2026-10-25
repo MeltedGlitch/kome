@@ -1,0 +1,122 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# kome tui — pick and apply looks from menus in the terminal. Drawn with
+# dialog or whiptail when one is installed, else as plain numbered menus.
+# The menus themselves are in lib/kome/frontend.sh, shared with kome gui.
+
+set -eu
+
+KOME_ROOT=${KOME_ROOT:-$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)}
+export KOME_ROOT
+# shellcheck source=lib/kome/common.sh
+. "$KOME_ROOT/lib/kome/common.sh"
+# shellcheck source=lib/kome/frontend.sh
+. "$KOME_ROOT/lib/kome/frontend.sh"
+
+usage() {
+	cat <<EOF
+usage: kome tui
+
+Menus in the terminal to apply a look, undo the last change, go back to
+your own desktop, and check this system. Uses dialog or whiptail if one is
+installed, else plain numbered menus. KOME_TUI=dialog|whiptail|plain picks
+one.
+EOF
+}
+
+case ${1-} in
+'') ;;
+-h | --help)
+	usage
+	exit "$EX_OK"
+	;;
+*) die "$EX_USAGE" "unexpected argument: $1" "run 'kome tui --help'" ;;
+esac
+
+backend=${KOME_TUI-}
+if [ -z "$backend" ]; then
+	if command -v dialog >/dev/null 2>&1; then
+		backend=dialog
+	elif command -v whiptail >/dev/null 2>&1; then
+		backend=whiptail
+	else
+		backend=plain
+	fi
+fi
+case $backend in
+dialog | whiptail) need_tools "$backend" ;;
+plain) ;;
+*) die "$EX_USAGE" "KOME_TUI=$backend is not known" "use KOME_TUI=dialog, whiptail or plain" ;;
+esac
+
+ui_menu() {
+	if [ "$backend" = plain ]; then
+		plain_menu "$@"
+		return
+	fi
+	_title=$1 _text=$2 _default=$3
+	shift 3
+	# dialog and whiptail draw on the terminal and give the answer on
+	# stderr; swap the two so it can be captured.
+	"$backend" --title "$_title" --default-item "$_default" \
+		--menu "$_text" 20 72 12 "$@" 3>&1 1>&2 2>&3
+}
+
+ui_text() {
+	if [ "$backend" = plain ]; then
+		printf '\n== %s ==\n' "$1" >&2
+		cat "$2" >&2
+		printf '\n[Enter] ' >&2
+		read -r _ || :
+		return 0
+	fi
+	case $backend in
+	whiptail) whiptail --title "$1" --scrolltext --textbox "$2" 20 76 ;;
+	*) dialog --title "$1" --textbox "$2" 20 76 ;;
+	esac
+}
+
+ui_note() {
+	if [ "$backend" = plain ]; then
+		printf '%s\n' "$1" >&2
+		return 0
+	fi
+	"$backend" --title kome --msgbox "$1" 7 50
+}
+
+# plain_menu <title> <text> <default> <tag> <label>... — a numbered menu on
+# stderr; the answer is read from stdin. Enter takes the default; q quits.
+plain_menu() {
+	printf '\n== %s ==\n%s\n' "$1" "$2" >&2
+	_default=$3
+	shift 3
+	_n=0
+	_def=
+	_tags=
+	while [ $# -ge 2 ]; do
+		_n=$((_n + 1))
+		_mark=' '
+		if [ "$1" = "$_default" ]; then
+			_mark='*'
+			_def=$_n
+		fi
+		printf '%s %2d) %s\n' "$_mark" "$_n" "$2" >&2
+		_tags="$_tags $1"
+		shift 2
+	done
+	printf 'Choose 1-%d%s, or q: ' "$_n" "${_def:+ (Enter: $_def)}" >&2
+	read -r _ans || return 1
+	[ -n "$_ans" ] || _ans=$_def
+	case $_ans in
+	'' | q | Q) return 1 ;;
+	*[!0-9]*) return 1 ;;
+	esac
+	[ "$_ans" -ge 1 ] && [ "$_ans" -le "$_n" ] || return 1
+	# shellcheck disable=SC2086 # one tag per word
+	set -- $_tags
+	shift $((_ans - 1))
+	printf '%s\n' "$1"
+}
+
+frontend_main
