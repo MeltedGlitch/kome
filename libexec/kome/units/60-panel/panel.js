@@ -10,7 +10,9 @@
 // "first:" prefix keeps a widget on the first screen only, e.g. the tray).
 //
 // Prints "unchanged" when the panels already match the layout (nothing is
-// touched), else replaces every panel and prints "changed".
+// touched). When they match but some height differs, only the heights are
+// set (widgets kept) and it prints "changed"; otherwise every panel is
+// replaced and it prints "changed".
 
 function wanted() {
     var out = [];
@@ -40,6 +42,11 @@ function signature(screen, l, widgets) {
             widgets.join(",")].join("|");
 }
 
+// A panel's height in pixels: even, so the panel's contents stay centred.
+function pixels(l) {
+    return 2 * Math.floor(gridUnit * l.height / 2);
+}
+
 var want = wanted(), have = panels(), a = [], b = [];
 for (var i = 0; i < want.length; i++)
     a.push(signature(want[i].screen, want[i].panel, want[i].widgets));
@@ -53,7 +60,21 @@ a.sort();
 b.sort();
 
 if (a.join("\n") == b.join("\n")) {
-    print("unchanged");
+    // Same panels and widgets; heights are not in the signature, so that a
+    // new height resizes the user's panels instead of replacing them.
+    var resized = false;
+    for (var i = 0; i < have.length; i++) {
+        for (var k = 0; k < want.length; k++) {
+            if (want[k].screen == have[i].screen && want[k].panel.location == have[i].location) {
+                if (have[i].height != pixels(want[k].panel)) {
+                    have[i].height = pixels(want[k].panel);
+                    resized = true;
+                }
+                break;
+            }
+        }
+    }
+    print(resized ? "changed" : "unchanged");
 } else {
     for (var i = 0; i < have.length; i++)
         have[i].remove();
@@ -61,7 +82,7 @@ if (a.join("\n") == b.join("\n")) {
         var l = want[i].panel, p = new Panel("org.kde.panel");
         p.screen = want[i].screen;
         p.location = l.location;
-        p.height = 2 * Math.floor(gridUnit * l.height / 2);
+        p.height = pixels(l);
         p.lengthMode = l.lengthMode;
         p.alignment = l.alignment;
         p.floating = l.floating;
