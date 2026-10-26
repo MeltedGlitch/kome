@@ -84,7 +84,7 @@ notices=
 for u in $(units_all); do
 	name=$(unit_name "$u")
 	if ! unit_enabled "$u"; then
-		say "$name: off (turn it on with '$name=on' under [Units] in kome.conf)"
+		say "$name: off (turn it on with '$name=on' under [Units] in $KOME_CONF)"
 		continue
 	fi
 	unit_check "$u"

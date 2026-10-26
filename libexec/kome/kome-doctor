@@ -91,7 +91,7 @@ for u in $(units_all); do
 	name=$(unit_name "$u")
 	what=$(unit_meta "$u" description) || what=$name
 	if ! unit_enabled "$u"; then
-		row off "$name" "$what" "opt-in: add $name=on under [Units] in kome.conf"
+		row off "$name" "$what" "opt-in: add $name=on under [Units] in $KOME_CONF"
 		continue
 	fi
 	min=$(unit_meta "$u" min_plasma) || min=

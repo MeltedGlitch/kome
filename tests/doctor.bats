@@ -37,7 +37,7 @@ setup() {
 	fake_unit 90-kitty 1 "" default=on "description=Kitty terminal"
 	run "$KOME" doctor mocha
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"off       rendering Crisp font rendering"*"opt-in: add rendering=on under [Units] in kome.conf"* ]]
+	[[ "$output" == *"off       rendering Crisp font rendering"*"opt-in: add rendering=on under [Units] in $XDG_CONFIG_HOME/kome/kome.conf"* ]]
 	[[ "$output" == *"absent    kitty     Kitty terminal"*"its app is not installed"* ]]
 }
 
@@ -127,6 +127,7 @@ setup() {
 	# Every row's text starts in the same column, after the longest name.
 	[ -z "$(printf '%s\n' "$output" | awk '/^(ok|off|absent|optional|fix|missing|error) / && (substr($0, 22, 1) != " " || substr($0, 23, 1) == " ")')" ]
 	printf '%s\n' "$output" | grep -q '^[a-z]* *plasmastyle [A-Za-z]'
-	printf '%s\n' "$output" | grep -qx '                      opt-in: add panel=on under \[Units\] in kome.conf'
-	[ -z "$(printf '%s\n' "$output" | awk 'length > 100')" ]
+	printf '%s\n' "$output" | grep -qxF "                      opt-in: add panel=on under [Units] in $XDG_CONFIG_HOME/kome/kome.conf"
+	# A real path (~/.config/kome/kome.conf) is short; the test dir's is not.
+	[ -z "$(printf '%s\n' "$output" | awk -v p="$XDG_CONFIG_HOME" '{ i = index($0, p); if (i) $0 = substr($0, 1, i - 1) "~/.config" substr($0, i + length(p)) } length > 100')" ]
 }
