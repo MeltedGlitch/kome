@@ -37,8 +37,27 @@ setup() {
 	fake_unit 90-kitty 1 "" default=on "description=Kitty terminal"
 	run "$KOME" doctor mocha
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"off       rendering Crisp font rendering"*"opt-in: add rendering=on under [Units] in $XDG_CONFIG_HOME/kome/kome.conf"* ]]
+	[[ "$output" == *"off       rendering Crisp font rendering"*"opt-in, to turn it on: "* ]]
 	[[ "$output" == *"absent    kitty     Kitty terminal"*"its app is not installed"* ]]
+}
+
+@test "the opt-in hint is a command that turns the unit on, kome.conf or not" {
+	fake_unit 50-rendering 0 "" default=off "description=Crisp font rendering"
+	[ ! -e "$XDG_CONFIG_HOME/kome" ]
+	run "$KOME" doctor mocha
+	cmd=$(printf '%s\n' "$output" | sed -n 's/.*opt-in, to turn it on: //p' | head -n 1)
+	[[ "$cmd" == "mkdir -p \"$XDG_CONFIG_HOME/kome\" && "*">>\"$XDG_CONFIG_HOME/kome/kome.conf\"" ]]
+	sh -c "$cmd"
+	run "$KOME" doctor mocha
+	[[ "$output" == *"ok        rendering"* ]]
+	# With kome.conf present (and its own [Units]), the hint only appends.
+	printf '[General]\nPreset=mocha\n[Units]\nrendering=off\n' >"$XDG_CONFIG_HOME/kome/kome.conf"
+	run "$KOME" doctor mocha
+	cmd=$(printf '%s\n' "$output" | sed -n 's/.*opt-in, to turn it on: //p' | head -n 1)
+	[[ "$cmd" == "printf "* ]]
+	sh -c "$cmd"
+	run "$KOME" doctor mocha
+	[[ "$output" == *"ok        rendering"* ]]
 }
 
 @test "a unit that cannot run shows its reason" {
@@ -127,7 +146,7 @@ setup() {
 	# Every row's text starts in the same column, after the longest name.
 	[ -z "$(printf '%s\n' "$output" | awk '/^(ok|off|absent|optional|fix|missing|error) / && (substr($0, 22, 1) != " " || substr($0, 23, 1) == " ")')" ]
 	printf '%s\n' "$output" | grep -q '^[a-z]* *plasmastyle [A-Za-z]'
-	printf '%s\n' "$output" | grep -qxF "                      opt-in: add panel=on under [Units] in $XDG_CONFIG_HOME/kome/kome.conf"
-	# A real path (~/.config/kome/kome.conf) is short; the test dir's is not.
-	[ -z "$(printf '%s\n' "$output" | awk -v p="$XDG_CONFIG_HOME" '{ i = index($0, p); if (i) $0 = substr($0, 1, i - 1) "~/.config" substr($0, i + length(p)) } length > 100')" ]
+	printf '%s\n' "$output" | grep -q "^                      opt-in, to turn it on: .*panel=on"
+	# Rows stay short; detail lines may hold a command with full paths.
+	[ -z "$(printf '%s\n' "$output" | awk '/^[a-z]/ && length > 100')" ]
 }

@@ -49,6 +49,16 @@ unit_label() {
 	unit_meta "$1" gives || unit_meta "$1" description || unit_name "$1"
 }
 
+# unit_on_cmd <name>
+# Print the shell command that turns a unit on in kome.conf. kome.conf is
+# optional, so the command creates it if needed; appending a [Units] section
+# works either way (the last value of a key wins).
+unit_on_cmd() {
+	_dir=${KOME_CONF%/*}
+	[ -d "$_dir" ] && _mk= || _mk="mkdir -p \"$_dir\" && "
+	printf '%s\n' "$_mk""printf '[Units]\\n$1=on\\n' >>\"$KOME_CONF\""
+}
+
 # unit_enabled <dir>
 # kome.conf's [Units] <name>=on|off wins; otherwise the unit's default=.
 unit_enabled() {
