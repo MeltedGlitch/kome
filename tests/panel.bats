@@ -207,7 +207,7 @@ EOF
 	mkdir -p "$KOME_USER_DIR"
 	printf '[Units]\npanel=on\n' >"$KOME_USER_DIR/kome.conf"
 	"$KOME" apply mocha
-	grep -q 'kome panel layout "dock"' "$DBUSLOG"
+	grep -q 'kome panel layout "bar"' "$DBUSLOG"
 	grep -q '^a=showSeconds=Always' "$XDG_DATA_HOME/kome/snapshots/original/panel"
 	# Plasma's new panel, as the restart would have written it.
 	sed -i 's/^showSeconds=Always$/showSeconds=Never/' "$rc"

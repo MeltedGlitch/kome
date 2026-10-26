@@ -46,7 +46,7 @@ Open threads:
   `plasma-org.kde.plasma.desktop-appletsrc`) before a public release.
   The same backup advice applies to the first live test of `panel`.
 - Defaults chosen without asking the owner (to confirm): `soft` has
-  `blur=on`, `animation_speed=fast`, `panel=dock`; `breeze` `panel=bar`.
+  `blur=on`, `animation_speed=fast`. Panel: `bar` everywhere (owner, 2026-10-26).
 
 **Next:** owner's live tests of v0.2 (including `kome tui` and `kome gui`), then tag v0.2.0.
 
@@ -686,8 +686,6 @@ templates only.
   owner's machine one restart crashed in Mesa (iris) while quitting. Skip the
   refresh between previews (panel icons may be stale in screenshots), or
   keep it?
-- Panel layouts: `bar`, `dock`, `topbar` shipped (every screen, tray on the
-  first). Owner to confirm the choice and the `soft` default (`dock`).
 
 ---
 
@@ -804,6 +802,8 @@ templates only.
 | 2026-10-25 | Owner's request (from a screenshot): circle buttons must show their symbols without hovering, glow much less on hover, and their symbols must not be black/white but a tone of the circle's own colour. `window_buttons=circles` now shows icons always and writes Klassy's per-button colour overrides (`ButtonOverrideColors{Active,Inactive}{Minimize,Maximize,Close}`, JSON per state, format read from Klassy's `decorationbuttoncolors.cpp`) from a template `button-colors.in`: circle = accent, symbol = mix(accent, base, 0.5) (darker on dark looks, lighter on light ones), hover dims the circle slightly (mix with base 0.1) instead of brightening, close moves towards red; inactive windows dimmer. `OnPoorIconContrast=Nothing` so Klassy does not swap the symbol for the title bar colour. `icons` deletes the overrides. Supersedes "icons on hover" of 2026-10-22. |
 | 2026-10-25 | Owner's request: an earthy light and dark pair. Chosen: **Melange** (savq/melange-nvim, MIT), a warm earthy scheme with official dark and light palettes: presets `melange-dark` (accent ochre `#e49b5d`, Papirus `palebrown`) and `melange-light` (accent `#bc5c00`, `brown`). Melange has fewer shades than Catppuccin's roles, so mantle/crust (dark), surface1/2, overlay1 and subtext1 are kome's blends of Melange's own colours; light mantle/crust are its beige `float`/`sel`. `kome validate`: all pass except light's text-on-selection (3.98, warn — like Latte 4.34 and Rosé Pine Dawn 3.47). |
 | 2026-10-25 | Owner: "make the TUI and GUI". Both are thin front ends over the CLI with **one shared set of menus** (`lib/kome/frontend.sh`: apply a look with the active one preselected, undo the last change, back to my own desktop, what changed, check this system); each front end only defines how to draw (`ui_menu`, `ui_text`, `ui_note`). Every action runs a `kome` command and shows its output; when a look needs something, `kome deps` is shown next. TUI: `dialog` or `whiptail` if installed, else plain numbered menus (no dependency); `KOME_TUI` forces one. GUI: `kdialog` (ships with KDE; principle 5) plus `share/applications/kome.desktop` (launcher + KRunner), installed with kome's absolute path in `Exec=`. A Kirigami/QML app was not chosen: it would add Qt/QML build and runtime dependencies for the same menus. `purge` and `preview` are left to the CLI (destructive / long-running). |
+| 2026-10-26 | Opt-in hints (`kome doctor`, `kome apply -v`) give the exact command that turns a unit on, with kome.conf's full path; it creates the file if missing (kome.conf is optional, and the owner had none). |
+| 2026-10-26 | Owner tried the `dock` layout live and did not like it: `soft` now uses `panel=bar` (Plasma's own full-width bar). `dock` and `topbar` stay available. |
 ---
 
 ## 18. Reference machines (owner's)
